@@ -1,0 +1,52 @@
+
+server:
+  port: 8080
+spring:
+  application:
+    name: shopbanhang
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shopbanhang
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+        jdbc:
+          batch_size: 20
+      order_inserts: true
+      order_updates: true
+    open-in-view: true
+app:
+  security:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:4200
+    public-endpoints:
+      - /api/v1/auth/**
+      - /api/v1/docs/**
+      - /swagger-ui.html
+      - /swagger-ui/**
+      - /api/v1/products/**
+      - /api/products/**
+      - /api/v1/categories/**
+      - /api/categories/**
+      - /api/v1/users/register
+
+jwt:
+  secret-key: skmsOeeR7Lv7sLOPIsrI4VObY+hkzyNEO3PIMCj4HwE=
+  access-token:
+    expiration: 900000
+  refresh-token:
+    expiration: 604800000
+  issuer: shopbanhang
