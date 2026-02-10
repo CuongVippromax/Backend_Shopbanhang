@@ -1,11 +1,10 @@
 package com.cuong.shopbanhang.controller;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.cuong.shopbanhang.dto.PageResponse;
@@ -22,6 +21,7 @@ public class ProductController {
 
     // 1. Tạo sản phẩm mới
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> createProduct(@RequestBody Product product) {
         ProductResponse createdProduct = productService.createProduct(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
@@ -48,6 +48,7 @@ public class ProductController {
 
     // 4. Cập nhật sản phẩm
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         ProductResponse updatedProduct = productService.updateProduct(id, product);
         return ResponseEntity.ok(updatedProduct);
@@ -55,6 +56,7 @@ public class ProductController {
 
     // 5. Xóa sản phẩm
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();

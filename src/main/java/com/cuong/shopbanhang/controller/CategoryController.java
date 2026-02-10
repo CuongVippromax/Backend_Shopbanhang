@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.cuong.shopbanhang.dto.CategoryResponse;
@@ -20,7 +21,8 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     // 1. Tạo danh mục mới
-    @PostMapping
+    @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> createCategory(@RequestBody Category category) {
         CategoryResponse createdCategory = categoryService.createCategory(category);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
@@ -42,6 +44,7 @@ public class CategoryController {
 
     // 4. Cập nhật danh mục
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id, @RequestBody Category category) {
         CategoryResponse updatedCategory = categoryService.updateCategory(id, category);
         return ResponseEntity.ok(updatedCategory);
@@ -49,6 +52,7 @@ public class CategoryController {
 
     // 5. Xóa danh mục
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();

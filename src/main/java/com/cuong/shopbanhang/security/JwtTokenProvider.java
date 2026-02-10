@@ -1,6 +1,8 @@
 package com.cuong.shopbanhang.security;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
@@ -12,6 +14,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.cuong.shopbanhang.config.JwtProperties;
@@ -33,6 +36,9 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        String roles = userPrincipal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
         Date now = new Date();
         Date expriryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
         return Jwts.builder()
@@ -40,6 +46,9 @@ public class JwtTokenProvider {
                 .setIssuer(jwtProperties.getIssuer())
                 .setIssuedAt(new Date())
                 .setExpiration(expriryDate)
+                .claim("role", roles)
+                .claim("username", userPrincipal.getUsername())
+                .claim("email", userPrincipal.getEmail())
                 .signWith(signingKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
@@ -86,5 +95,14 @@ public class JwtTokenProvider {
                 .getBody();
 
         return claims.getSubject();
+    }
+
+    public String getRoleFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.get("roles", String.class);
     }
 }
