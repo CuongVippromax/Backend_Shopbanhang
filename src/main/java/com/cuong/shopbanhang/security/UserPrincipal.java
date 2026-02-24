@@ -29,7 +29,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return authorities != null ? authorities : List.of();
     }
 
     public static UserPrincipal create(User user) {

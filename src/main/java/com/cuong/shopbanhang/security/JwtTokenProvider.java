@@ -103,6 +103,58 @@ public class JwtTokenProvider {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.get("roles", String.class);
+        return claims.get("role", String.class);
+    }
+
+    public String generateRefreshToken(Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshToken().getExpiration());
+        return Jwts.builder()
+                .setSubject(Long.toString(userPrincipal.getId()))
+                .setIssuer(jwtProperties.getIssuer())
+                .setIssuedAt(new Date())
+                .setExpiration(expiryDate)
+                .claim("type", "refresh")
+                .signWith(signingKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public String generateRefreshTokenFromUserId(Long userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshToken().getExpiration());
+        return Jwts.builder()
+                .setSubject(Long.toString(userId))
+                .setIssuer(jwtProperties.getIssuer())
+                .setIssuedAt(new Date())
+                .setExpiration(expiryDate)
+                .claim("type", "refresh")
+                .signWith(signingKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public String generateAccessTokenFromUserId(Long userId, String username, String email, String roles) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
+        return Jwts.builder()
+                .setSubject(Long.toString(userId))
+                .setIssuer(jwtProperties.getIssuer())
+                .setIssuedAt(new Date())
+                .setExpiration(expiryDate)
+                .claim("role", roles)
+                .claim("username", username)
+                .claim("email", email)
+                .signWith(signingKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    // dùng cho logout: lấy thời điểm hết hạn của token
+    public Date getExpirationDateFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getExpiration();
     }
 }
