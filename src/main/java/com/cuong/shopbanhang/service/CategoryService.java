@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.cuong.shopbanhang.dto.CategoryResponse;
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
+import com.cuong.shopbanhang.dto.response.CategoryResponse;
 import com.cuong.shopbanhang.exception.ResourceAlreadyExistsException;
 import com.cuong.shopbanhang.model.Category;
 import com.cuong.shopbanhang.model.Product;

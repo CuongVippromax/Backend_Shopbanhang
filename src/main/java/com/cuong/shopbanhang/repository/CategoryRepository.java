@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.cuong.shopbanhang.model.Category;
 import com.cuong.shopbanhang.model.Product;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     boolean existsByCategoryName(String name);
 

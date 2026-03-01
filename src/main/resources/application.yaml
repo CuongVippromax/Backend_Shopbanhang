@@ -48,7 +48,7 @@ app:
       - /api/v1/users/register
 
 jwt:
-  secret-key: skmsOeeR7Lv7sLOPIsrI4VObY+hkzyNEO3PIMCj4HwE=
+  secret-key: c2hvcGJhbmhhbmcxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY=
   access-token:
     expiration: 900000
   refresh-token:

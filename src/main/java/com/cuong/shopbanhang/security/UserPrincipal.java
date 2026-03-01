@@ -34,8 +34,9 @@ public class UserPrincipal implements UserDetails {
 
     public static UserPrincipal create(User user) {
 
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> (GrantedAuthority) role::getName).toList();
+        List<GrantedAuthority> authorities = List.of(
+                (GrantedAuthority) () -> user.getRole().name()
+        );
         return UserPrincipal.builder()
                 .id(user.getUserId())
                 .username(user.getUsername())

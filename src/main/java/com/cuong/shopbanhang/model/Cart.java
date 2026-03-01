@@ -29,5 +29,6 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
     private List<CartItem> cartItems;
 
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

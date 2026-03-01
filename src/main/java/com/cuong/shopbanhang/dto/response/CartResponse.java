@@ -1,4 +1,4 @@
-package com.cuong.shopbanhang.dto;
+package com.cuong.shopbanhang.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -1,8 +1,5 @@
 package com.cuong.shopbanhang.model;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
@@ -11,13 +8,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.cuong.shopbanhang.common.Role;
+
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,10 +37,10 @@ public class User {
     @Column()
     private String address;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     @Builder.Default
-    private Set<Role> roles = new HashSet<>();
+    private Role role = Role.USER;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Cart cart;

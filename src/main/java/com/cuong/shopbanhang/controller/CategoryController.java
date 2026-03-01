@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.cuong.shopbanhang.dto.CategoryResponse;
+import com.cuong.shopbanhang.dto.response.CategoryResponse;
 import com.cuong.shopbanhang.model.Category;
 import com.cuong.shopbanhang.service.CategoryService;
 
@@ -22,7 +22,7 @@ public class CategoryController {
 
   
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<CategoryResponse> createCategory(@RequestBody Category category) {
         CategoryResponse createdCategory = categoryService.createCategory(category);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
@@ -44,7 +44,7 @@ public class CategoryController {
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id, @RequestBody Category category) {
         CategoryResponse updatedCategory = categoryService.updateCategory(id, category);
         return ResponseEntity.ok(updatedCategory);
@@ -52,7 +52,7 @@ public class CategoryController {
 
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();

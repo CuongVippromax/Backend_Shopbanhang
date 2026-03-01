@@ -1,4 +1,4 @@
-package com.cuong.shopbanhang.dto;
+package com.cuong.shopbanhang.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

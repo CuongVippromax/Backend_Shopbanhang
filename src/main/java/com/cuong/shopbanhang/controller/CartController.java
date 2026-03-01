@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.cuong.shopbanhang.dto.CartResponse;
+import com.cuong.shopbanhang.dto.response.CartResponse;
 import com.cuong.shopbanhang.service.CartService;
 
 @RestController

@@ -1,5 +1,8 @@
 package com.cuong.shopbanhang.model;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,17 +20,15 @@ import lombok.Setter;
 public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderDetailId;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;
+  
+   
+    @OneToMany(mappedBy = "orderDetail", cascade = CascadeType.ALL)
+    private List<CartItem> items;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
-
-    private Integer quantity;
-    private Double price;
-
+    private Double totalPrice;
 }

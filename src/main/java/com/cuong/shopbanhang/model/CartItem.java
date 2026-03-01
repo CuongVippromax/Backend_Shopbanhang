@@ -29,4 +29,8 @@ public class CartItem {
 
     private Integer quantity;
 
+    // Thêm quan hệ với OrderDetail (sau khi checkout, CartItem sẽ thuộc OrderDetail)
+    @ManyToOne
+    @JoinColumn(name = "order_detail_id")
+    private OrderDetail orderDetail;
 }

@@ -13,9 +13,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.cuong.shopbanhang.dto.PageResponse;
-import com.cuong.shopbanhang.dto.ProductResponse;
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
+import com.cuong.shopbanhang.dto.response.PageResponse;
+import com.cuong.shopbanhang.dto.response.ProductResponse;
 import com.cuong.shopbanhang.exception.ResourceAlreadyExistsException;
 import com.cuong.shopbanhang.model.Product;
 import com.cuong.shopbanhang.repository.ProductRepository;

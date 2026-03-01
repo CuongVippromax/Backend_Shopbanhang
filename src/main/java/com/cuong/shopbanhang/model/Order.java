@@ -1,5 +1,7 @@
 package com.cuong.shopbanhang.model;
 
+import com.cuong.shopbanhang.common.OrderStatus;
+import com.cuong.shopbanhang.common.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -26,10 +27,20 @@ public class Order {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Builder.Default
     private LocalDateTime orderDate = LocalDateTime.now();
-    private Double totalAmount;
-    private String status; // NEW, PAID, CANCEL
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderDetail> orderDetails;
+    private Double totalAmount;
+
+    private PaymentStatus paymentStatus;
+
+    private OrderStatus orderStatus;
+
+    private String shippingAddress;
+
+    private String paymentMethod;
+
+   
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private OrderDetail orderDetails;
 }

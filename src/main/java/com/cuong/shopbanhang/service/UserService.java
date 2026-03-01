@@ -9,15 +9,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.cuong.shopbanhang.dto.DataResponse;
-import com.cuong.shopbanhang.dto.PageResponse;
-import com.cuong.shopbanhang.dto.UserResponse;
+import com.cuong.shopbanhang.common.Role;
+import com.cuong.shopbanhang.dto.response.PageResponse;
+import com.cuong.shopbanhang.dto.response.UserResponse;
 import com.cuong.shopbanhang.model.User;
 import com.cuong.shopbanhang.repository.UserRepository;
 
@@ -32,8 +31,15 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserResponse createUser(User user) {
+        if(userRepository.findByEmail(user.getEmail().toString()).isPresent()){
+            throw new RuntimeException("Email already exists");
+        }
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
+        
+        // Gắn role USER mặc định
+        user.setRole(Role.USER);
+
         User saveUser = userRepository.save(user);
         return UserResponse.builder()
                 .username(user.getUsername())

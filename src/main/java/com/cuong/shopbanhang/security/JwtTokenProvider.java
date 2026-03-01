@@ -36,17 +36,15 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        String roles = userPrincipal.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+        String role = authentication.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElseThrow(null);
         Date now = new Date();
         Date expriryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
         return Jwts.builder()
                 .setSubject(Long.toString(userPrincipal.getId()))
                 .setIssuer(jwtProperties.getIssuer())
-                .setIssuedAt(new Date())
+                .setIssuedAt(now)
                 .setExpiration(expriryDate)
-                .claim("role", roles)
+                .claim("role", role)
                 .claim("username", userPrincipal.getUsername())
                 .claim("email", userPrincipal.getEmail())
                 .signWith(signingKey(), SignatureAlgorithm.HS512)
@@ -133,7 +131,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String generateAccessTokenFromUserId(Long userId, String username, String email, String roles) {
+    public String generateAccessTokenFromUserId(Long userId, String username, String email, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
         return Jwts.builder()
@@ -141,7 +139,7 @@ public class JwtTokenProvider {
                 .setIssuer(jwtProperties.getIssuer())
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
-                .claim("role", roles)
+                .claim("role", role)
                 .claim("username", username)
                 .claim("email", email)
                 .signWith(signingKey(), SignatureAlgorithm.HS512)
