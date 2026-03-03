@@ -2,8 +2,6 @@ package com.cuong.shopbanhang.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -92,21 +90,18 @@ public class ProductService {
         }
 
         String sortField = "productId";
-        String sortDirection = "asc";
+        Sort.Direction direction = Sort.Direction.ASC;
 
         if (StringUtils.hasLength(sortBy)) {
-            Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
-            Matcher matcher = pattern.matcher(sortBy);
-            if (matcher.find()) {
-                sortField = matcher.group(1);
-                if (matcher.group(3).equalsIgnoreCase("desc")) {
-                    sortDirection = "desc";
-                }
+            String[] parts = sortBy.split(":");
+            sortField = parts[0];
+            if (parts.length > 1 && parts[1].equalsIgnoreCase("desc")) {
+                direction = Sort.Direction.DESC;
             }
         }
 
         Pageable pageable = PageRequest.of(pageNo, pageSize,
-                Sort.by(sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, sortField));
+                Sort.by(direction, sortField));
         Page<Product> products = productRepository.findProductsWithSearch(search, pageable);
 
         List<ProductResponse> productResponses = products.stream()

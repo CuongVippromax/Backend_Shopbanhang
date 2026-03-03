@@ -69,9 +69,9 @@ public class UserController {
                                 .build();
         }
 
-        @GetMapping("/search")
-        @PreAuthorize("hasAuthority('ADMIN')")
-        public DataResponse<PageResponse<List<UserResponse>>> searchUsers(
+        @GetMapping("/")
+        // @PreAuthorize("hasAuthority('ADMIN')")
+        public DataResponse<PageResponse<List<UserResponse>>> getAllUsers(
                         @RequestParam(name = "search", required = false) String search,
                         @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
                         @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,

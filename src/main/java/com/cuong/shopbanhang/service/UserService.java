@@ -1,8 +1,6 @@
 package com.cuong.shopbanhang.service;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Pageable;
@@ -40,8 +38,9 @@ public class UserService {
         // Gắn role USER mặc định
         user.setRole(Role.USER);
 
-        User saveUser = userRepository.save(user);
+        User savedUser = userRepository.save(user);
         return UserResponse.builder()
+                .username(savedUser.getUsername())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
@@ -66,21 +65,20 @@ public class UserService {
             String search) {
         if (pageNo > 1)
             pageNo = pageNo - 1;
-        String sortField = "";
-        String sortDirection = "asc";
+        
+        String sortField = "userId";  // Default sort field
+        Sort.Direction direction = Sort.Direction.ASC;  // Default direction
+        
         if (StringUtils.hasLength(sortBy)) {
-            Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
-            Matcher matcher = pattern.matcher(sortBy);
-            if (matcher.find()) {
-                sortField = matcher.group(1);
-                if (matcher.group(3).equalsIgnoreCase("asc")) {
-                    Sort.Order order = Sort.Order.asc(sortField);
-                } else {
-                    Sort.Order order = Sort.Order.desc(sortField);
-                }
+            // Support both "field:direction" and just "field"
+            String[] parts = sortBy.split(":");
+            sortField = parts[0];
+            if (parts.length > 1 && parts[1].equalsIgnoreCase("desc")) {
+                direction = Sort.Direction.DESC;
             }
         }
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortDirection, sortField));
+        
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(direction, sortField));
         Page<User> users = userRepository.findUsersWithSearch(search, pageable);
         List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
                 .username(user.getUsername())

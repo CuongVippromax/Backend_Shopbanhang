@@ -135,17 +135,17 @@ public class OrderService {
        
        // Parse sort
        String sortField = "orderDate";
-       String sortDirection = "asc";
-       if(StringUtils.hasLength(sort)) {
-        Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
-        Matcher matcher = pattern.matcher(sort);
-        if(matcher.find()) {
-            sortField = matcher.group(1);
-            sortDirection = matcher.group(3);
-        }
+       Sort.Direction direction = Sort.Direction.ASC;
+       
+       if (StringUtils.hasLength(sort)) {
+           String[] parts = sort.split(":");
+           sortField = parts[0];
+           if (parts.length > 1 && parts[1].equalsIgnoreCase("desc")) {
+               direction = Sort.Direction.DESC;
+           }
        }
        
-       Sort sortObj = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+       Sort sortObj = Sort.by(direction, sortField);
        Pageable pageable = PageRequest.of(page, size, sortObj);
        
        // Parse dates

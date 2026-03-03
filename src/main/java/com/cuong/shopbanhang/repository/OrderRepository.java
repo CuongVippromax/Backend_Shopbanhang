@@ -17,11 +17,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o WHERE " +
            "(:search IS NULL OR :search = '' OR " +
-           "o.id LIKE %:search% OR " +
-           "o.user.name LIKE %:search% OR " +
-           "o.user.email LIKE %:search% OR " +
-           "o.user.phone LIKE %:search% OR " +
-           "o.shippingAddress LIKE %:search%) " +
+           "CAST(o.id AS string) LIKE CONCAT('%', :search, '%') OR " +
+           "o.user.fullName LIKE CONCAT('%', :search, '%') OR " +
+           "o.user.email LIKE CONCAT('%', :search, '%') OR " +
+           "o.user.phone LIKE CONCAT('%', :search, '%') OR " +
+           "o.shippingAddress LIKE CONCAT('%', :search, '%')) " +
            "AND (:startDate IS NULL OR o.orderDate >= :startDate) " +
            "AND (:endDate IS NULL OR o.orderDate <= :endDate)")
     Page<Order> searchOrders(@Param("search") String search,
