@@ -24,8 +24,8 @@ public class CartItem {
     private Cart cart;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @JoinColumn(name = "book_id")
+    private Book book;
 
     private Integer quantity;
 

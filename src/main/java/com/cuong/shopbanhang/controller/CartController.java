@@ -22,13 +22,13 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
-    // Thêm sản phẩm vào giỏ
+    // Thêm sách vào giỏ
     @PostMapping("/{userId}/add")
     public ResponseEntity<CartResponse> addToCart(
             @PathVariable Long userId,
-            @RequestParam Long productId,
+            @RequestParam Long bookId,
             @RequestParam Integer quantity) {
-        CartResponse cart = cartService.addToCart(userId, productId, quantity);
+        CartResponse cart = cartService.addToCart(userId, bookId, quantity);
         return ResponseEntity.ok(cart);
     }
 
@@ -36,18 +36,18 @@ public class CartController {
     @PutMapping("/{userId}/update")
     public ResponseEntity<CartResponse> updateQuantity(
             @PathVariable Long userId,
-            @RequestParam Long productId,
+            @RequestParam Long bookId,
             @RequestParam Integer quantity) {
-        CartResponse cart = cartService.updateQuantity(userId, productId, quantity);
+        CartResponse cart = cartService.updateQuantity(userId, bookId, quantity);
         return ResponseEntity.ok(cart);
     }
 
-    // Xóa sản phẩm
+    // Xóa sách
     @DeleteMapping("/{userId}/remove")
     public ResponseEntity<CartResponse> removeItem(
             @PathVariable Long userId,
-            @RequestParam Long productId) {
-        CartResponse cart = cartService.removeItem(userId, productId);
+            @RequestParam Long bookId) {
+        CartResponse cart = cartService.removeItem(userId, bookId);
         return ResponseEntity.ok(cart);
     }
 

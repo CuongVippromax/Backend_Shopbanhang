@@ -31,6 +31,18 @@ spring:
       order_inserts: true
       order_updates: true
     open-in-view: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: cuongssdz1@gmail.com
+    password: cwqlwpquczqlppnp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 app:
   security:
     allowed-origins:
@@ -41,11 +53,13 @@ app:
       - /api/v1/docs/**
       - /swagger-ui.html
       - /swagger-ui/**
-      - /api/v1/products/**
-      - /api/products/**
+      - /api/v1/books/**
+      - /api/books/**
       - /api/v1/categories/**
       - /api/categories/**
       - /api/v1/users/register
+      - /api/v1/users/forgot-password
+      - /api/v1/users/reset-password
 
 jwt:
   secret-key: c2hvcGJhbmhhbmcxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY=
@@ -53,4 +67,9 @@ jwt:
     expiration: 900000
   refresh-token:
     expiration: 604800000
-  issuer: shopbanhang
+
+minio:
+  url: http://localhost:9000
+  access-key: admin
+  secret-key: "12345678"
+  bucket: shopbanhang

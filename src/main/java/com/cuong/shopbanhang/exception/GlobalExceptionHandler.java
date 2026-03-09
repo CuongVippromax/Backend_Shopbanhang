@@ -7,6 +7,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -135,6 +136,28 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed(
+            HttpRequestMethodNotSupportedException ex, WebRequest request) {
+
+        log.warn("Method not allowed: {} - {}", request.getDescription(false), ex.getMessage());
+
+        String hint = "";
+        String path = request.getDescription(false).replace("uri=", "");
+        if (path.contains("/api/v1/cart/") && !path.contains("/add") && "POST".equals(ex.getMethod())) {
+            hint = " Thêm sách vào giỏ: dùng POST /api/v1/cart/{userId}/add?bookId=...&quantity=...";
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .error("METHOD_NOT_ALLOWED")
+                .message("Method " + ex.getMethod() + " is not supported for this URL." + hint)
+                .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                .timestamp(LocalDateTime.now())
+                .path(path)
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.METHOD_NOT_ALLOWED);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(

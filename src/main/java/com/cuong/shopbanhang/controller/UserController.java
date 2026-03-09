@@ -38,7 +38,7 @@ public class UserController {
         }
 
         @GetMapping("/{id}")
-        // @PreAuthorize("hasAuthority('ADMIN')")
+        @PreAuthorize("hasAuthority('ADMIN')")
         public DataResponse<UserResponse> getUserById(@PathVariable @Min(1) Long id) {
                 UserResponse user = userService.getUserById(id);
                 return DataResponse.<UserResponse>builder()
@@ -70,7 +70,7 @@ public class UserController {
         }
 
         @GetMapping("/")
-        // @PreAuthorize("hasAuthority('ADMIN')")
+        @PreAuthorize("hasAuthority('ADMIN')")
         public DataResponse<PageResponse<List<UserResponse>>> getAllUsers(
                         @RequestParam(name = "search", required = false) String search,
                         @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
@@ -83,6 +83,27 @@ public class UserController {
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Users found successfully")
                                 .data(users)
+                                .build();
+        }
+
+        @PostMapping("/forgot-password")
+        public DataResponse<Void> forgotPassword(@RequestBody java.util.Map<String, String> request) {
+                String email = request.get("email");
+                userService.forgotPassword(email);
+                return DataResponse.<Void>builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Password reset link has been sent to your email")
+                                .build();
+        }
+
+        @PostMapping("/reset-password")
+        public DataResponse<Void> resetPassword(@RequestBody java.util.Map<String, String> request) {
+                String token = request.get("token");
+                String newPassword = request.get("newPassword");
+                userService.resetPassword(token, newPassword);
+                return DataResponse.<Void>builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Password reset successfully")
                                 .build();
         }
 }

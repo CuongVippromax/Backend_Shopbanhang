@@ -5,8 +5,7 @@ package com.cuong.shopbanhang.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,14 +18,19 @@ import org.springframework.util.StringUtils;
 import com.cuong.shopbanhang.common.OrderStatus;
 import com.cuong.shopbanhang.common.PaymentStatus;
 import com.cuong.shopbanhang.dto.request.CheckoutRequest;
+import com.cuong.shopbanhang.dto.response.OrderDetailResponse;
+import com.cuong.shopbanhang.dto.response.OrderItemResponse;
+import com.cuong.shopbanhang.dto.response.OrderResponse;
 import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.model.Cart;
 import com.cuong.shopbanhang.model.CartItem;
 import com.cuong.shopbanhang.model.Order;
 import com.cuong.shopbanhang.model.OrderDetail;
+import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.model.User;
 import com.cuong.shopbanhang.repository.CartRepository;
 import com.cuong.shopbanhang.repository.OrderRepository;
+import com.cuong.shopbanhang.repository.BookRepository;
 import com.cuong.shopbanhang.repository.UserRepository;
 import com.cuong.shopbanhang.security.SecurityUtils;
 
@@ -44,6 +48,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
+    private final BookRepository bookRepository;
+    private final EmailService emailService;
     
     @Transactional
     public Order checkout(CheckoutRequest request) {
@@ -53,8 +59,26 @@ public class OrderService {
         if (cart.getCartItems().isEmpty()) {
             throw new RuntimeException("Cart is empty");
         }
+        
+        // KIỂM TRA TỒN KHO TRƯỚC KHI CHECKOUT
+        for (CartItem item : cart.getCartItems()) {
+            Book book = item.getBook();
+            if (book.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Sách '" + book.getBookName() + "' không đủ hàng trong kho. Còn lại: " + book.getQuantity() + " quyển");
+            }
+        }
+        
+        // TRỪ TỒN KHO SAU KHI KIỂM TRA THÀNH CÔNG
+        for (CartItem item : cart.getCartItems()) {
+            Book book = item.getBook();
+            book.setQuantity(book.getQuantity() - item.getQuantity());
+            bookRepository.save(book);
+            log.info("Đã trừ {} quyển sách '{}' trong kho. Còn lại: {}", 
+                    item.getQuantity(), book.getBookName(), book.getQuantity());
+        }
+        
         Double totalPrice = cart.getCartItems().stream()
-        .map(item -> item.getProduct().getPrice().doubleValue() * item.getQuantity())
+        .map(item -> item.getBook().getPrice().doubleValue() * item.getQuantity())
         .reduce(0.0, Double::sum);
         
         OrderDetail orderDetail = OrderDetail.builder()
@@ -87,12 +111,25 @@ public class OrderService {
         cart.getCartItems().clear();
         cartRepository.save(cart);
         
+        // GỬI EMAIL XÁC NHẬN ĐƠN HÀNG
+        try {
+            String orderDetailsHtml = buildOrderDetailsHtml(savedOrder);
+            emailService.sendOrderConfirmation(
+                user.getEmail(),
+                savedOrder.getOrderId().toString(),
+                savedOrder.getTotalAmount(),
+                orderDetailsHtml
+            );
+        } catch (Exception e) {
+            log.error("Failed to send order confirmation email", e);
+        }
+        
         return savedOrder;
 
     }
     
     @Transactional
-    public void cancelOrder(Long orderId) {
+    public Order cancelOrder(Long orderId) {
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
         boolean isAdmin = SecurityUtils.hasRole("ADMIN"); // Giả sử có method này
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
@@ -108,8 +145,19 @@ public class OrderService {
             throw new RuntimeException("Cannot cancel order that is shipped");
         }
         
+        // HOÀN LẠI TỒN KHO khi hủy đơn (chỉ khi đơn chưa bị hủy trước đó)
+        if (order.getOrderStatus() != OrderStatus.CANCELLED && order.getOrderDetails() != null) {
+            for (CartItem item : order.getOrderDetails().getItems()) {
+                Book book = item.getBook();
+                book.setQuantity(book.getQuantity() + item.getQuantity());
+                bookRepository.save(book);
+                log.info("Đã hoàn {} quyển sách '{}' vào kho khi hủy đơn", 
+                        item.getQuantity(), book.getBookName());
+            }
+        }
+        
         order.setOrderStatus(OrderStatus.CANCELLED);
-        orderRepository.save(order);
+        return orderRepository.save(order);
     }
     
     public PageResponse<List<Order>> getOrdersByUser(int page, int size) {
@@ -175,5 +223,105 @@ public class OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
         order.setPaymentStatus(status);
         return orderRepository.save(order);
+    }
+    
+    // Chuyển Order sang OrderResponse
+    public OrderResponse toOrderResponse(Order order) {
+        List<OrderItemResponse> items = order.getOrderDetails() != null 
+            ? order.getOrderDetails().getItems().stream()
+                .map(item -> OrderItemResponse.builder()
+                    .cartItemId(item.getCartItemId())
+                    .bookId(item.getBook().getBookId())
+                    .bookName(item.getBook().getBookName())
+                    .price(item.getBook().getPrice().doubleValue())
+                    .quantity(item.getQuantity())
+                    .totalPrice(item.getBook().getPrice().doubleValue() * item.getQuantity())
+                    .image(item.getBook().getImage())
+                    .build())
+                .collect(Collectors.toList())
+            : null;
+        
+        return OrderResponse.builder()
+                .orderId(order.getOrderId())
+                .userId(order.getUser() != null ? order.getUser().getUserId() : null)
+                .username(order.getUser() != null ? order.getUser().getUsername() : null)
+                .orderDate(order.getOrderDate())
+                .totalAmount(order.getTotalAmount())
+                .paymentStatus(order.getPaymentStatus())
+                .orderStatus(order.getOrderStatus())
+                .shippingAddress(order.getShippingAddress())
+                .paymentMethod(order.getPaymentMethod())
+                .items(items)
+                .build();
+    }
+    
+    // Lấy chi tiết đơn hàng
+    public OrderDetailResponse getOrderDetail(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        // Kiểm tra quyền: chỉ chủ đơn hoặc admin mới xem được
+        Long userId = SecurityUtils.getCurrentUserId().orElse(null);
+        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        if (userId != null && !order.getUser().getUserId().equals(userId) && !isAdmin) {
+            throw new RuntimeException("You don't have permission to view this order");
+        }
+        
+        OrderDetail detail = order.getOrderDetails();
+        List<OrderItemResponse> items = detail.getItems().stream()
+                .map(item -> OrderItemResponse.builder()
+                        .cartItemId(item.getCartItemId())
+                        .bookId(item.getBook().getBookId())
+                        .bookName(item.getBook().getBookName())
+                        .price(item.getBook().getPrice().doubleValue())
+                        .quantity(item.getQuantity())
+                        .totalPrice(item.getBook().getPrice().doubleValue() * item.getQuantity())
+                        .image(item.getBook().getImage())
+                        .build())
+                .collect(Collectors.toList());
+        
+        return OrderDetailResponse.builder()
+                .orderDetailId(detail.getId())
+                .orderId(order.getOrderId())
+                .items(items)
+                .totalPrice(detail.getTotalPrice())
+                .build();
+    }
+    
+    // Tạo HTML cho chi tiết đơn hàng trong email
+    private String buildOrderDetailsHtml(Order order) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table style='width: 100%; border-collapse: collapse;'>");
+        sb.append("<tr style='background-color: #f2f2f2;'>");
+        sb.append("<th style='padding: 8px; border: 1px solid #ddd; text-align: left;'>Sản phẩm</th>");
+        sb.append("<th style='padding: 8px; border: 1px solid #ddd; text-align: center;'>Số lượng</th>");
+        sb.append("<th style='padding: 8px; border: 1px solid #ddd; text-align: right;'>Giá</th>");
+        sb.append("<th style='padding: 8px; border: 1px solid #ddd; text-align: right;'>Thành tiền</th>");
+        sb.append("</tr>");
+        
+        if (order.getOrderDetails() != null && order.getOrderDetails().getItems() != null) {
+            for (CartItem item : order.getOrderDetails().getItems()) {
+                Double itemTotal = item.getBook().getPrice().doubleValue() * item.getQuantity();
+                sb.append("<tr>");
+                sb.append("<td style='padding: 8px; border: 1px solid #ddd;'>").append(item.getBook().getBookName()).append("</td>");
+                sb.append("<td style='padding: 8px; border: 1px solid #ddd; text-align: center;'>").append(item.getQuantity()).append("</td>");
+                sb.append("<td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>").append(String.format("%,.0f VNĐ", item.getBook().getPrice().doubleValue())).append("</td>");
+                sb.append("<td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>").append(String.format("%,.0f VNĐ", itemTotal)).append("</td>");
+                sb.append("</tr>");
+            }
+        }
+        
+        sb.append("<tr style='background-color: #e8f5e9; font-weight: bold;'>");
+        sb.append("<td colspan='3' style='padding: 8px; border: 1px solid #ddd; text-align: right;'>Tổng cộng:</td>");
+        sb.append("<td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>").append(String.format("%,.0f VNĐ", order.getTotalAmount())).append("</td>");
+        sb.append("</tr>");
+        sb.append("</table>");
+        
+        sb.append("<div style='margin-top: 20px; padding: 15px; background-color: #fff3e0; border-radius: 5px;'>");
+        sb.append("<p style='margin: 0;'><strong>Địa chỉ giao hàng:</strong> ").append(order.getShippingAddress()).append("</p>");
+        sb.append("<p style='margin: 5px 0 0 0;'><strong>Phương thức thanh toán:</strong> ").append(order.getPaymentMethod()).append("</p>");
+        sb.append("</div>");
+        
+        return sb.toString();
     }
 }

@@ -11,11 +11,11 @@ import com.cuong.shopbanhang.exception.ResourceNotFoundException;
 import com.cuong.shopbanhang.exception.BadRequestException;
 import com.cuong.shopbanhang.model.Cart;
 import com.cuong.shopbanhang.model.CartItem;
-import com.cuong.shopbanhang.model.Product;
+import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.model.User;
 import com.cuong.shopbanhang.repository.CartRepository;
 import com.cuong.shopbanhang.repository.CartItemRepository;
-import com.cuong.shopbanhang.repository.ProductRepository;
+import com.cuong.shopbanhang.repository.BookRepository;
 import com.cuong.shopbanhang.repository.UserRepository;
 
 import java.math.BigDecimal;
@@ -30,7 +30,7 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
-    private final ProductRepository productRepository;
+    private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
     // Lấy giỏ hàng của user
@@ -39,20 +39,20 @@ public class CartService {
         return buildCartResponse(cart);
     }
 
-    // Thêm sản phẩm vào giỏ hàng
-    public CartResponse addToCart(Long userId, Long productId, Integer quantity) {
+    // Thêm sách vào giỏ hàng
+    public CartResponse addToCart(Long userId, Long bookId, Integer quantity) {
         // Validate quantity > 0
         if (quantity <= 0) {
             throw new BadRequestException("Quantity must be greater than 0");
         }
 
-        Product product = productRepository.findByProductId(productId)
-            .orElseThrow(() -> new ResourceNotFoundException("Product", productId));
+        Book book = bookRepository.findByBookId(bookId)
+            .orElseThrow(() -> new ResourceNotFoundException("Book", bookId));
         Cart cart = getOrCreateCart(userId);
 
-        // Check if product already in cart
+        // Check if book already in cart
         Optional<CartItem> existingItem = cartItemRepository
-                .findByCart_CartIdAndProduct_ProductId(cart.getCartId(), productId);
+                .findByCart_CartIdAndBook_BookId(cart.getCartId(), bookId);
 
         if (existingItem.isPresent()) {
             // Update quantity
@@ -63,7 +63,7 @@ public class CartService {
             // Create new item
             CartItem newItem = CartItem.builder()
                     .cart(cart)
-                    .product(product)
+                    .book(book)
                     .quantity(quantity)
                     .build();
             cartItemRepository.save(newItem);
@@ -72,8 +72,8 @@ public class CartService {
         return getCartByUserId(userId);
     }
 
-    // Cập nhật số lượng sản phẩm
-    public CartResponse updateQuantity(Long userId, Long productId, Integer quantity) {
+    // Cập nhật số lượng sách
+    public CartResponse updateQuantity(Long userId, Long bookId, Integer quantity) {
         // Validate quantity > 0
         if (quantity <= 0) {
             throw new BadRequestException("Quantity must be greater than 0");
@@ -81,8 +81,8 @@ public class CartService {
 
         Cart cart = cartRepository.findByUser_UserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));
-        CartItem item = cartItemRepository.findByCart_CartIdAndProduct_ProductId(cart.getCartId(), productId)
-                .orElseThrow(() -> new ResourceNotFoundException("CartItem", "productId", productId));
+        CartItem item = cartItemRepository.findByCart_CartIdAndBook_BookId(cart.getCartId(), bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("CartItem", "bookId", bookId));
 
         item.setQuantity(quantity);
         cartItemRepository.save(item);
@@ -90,11 +90,11 @@ public class CartService {
         return getCartByUserId(userId);
     }
 
-    // Xóa sản phẩm khỏi giỏ hàng
-    public CartResponse removeItem(Long userId, Long productId) {
+    // Xóa sách khỏi giỏ hàng
+    public CartResponse removeItem(Long userId, Long bookId) {
         Cart cart = cartRepository.findByUser_UserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));
-        Optional<CartItem> item = cartItemRepository.findByCart_CartIdAndProduct_ProductId(cart.getCartId(), productId);
+        Optional<CartItem> item = cartItemRepository.findByCart_CartIdAndBook_BookId(cart.getCartId(), bookId);
 
         if (item.isPresent()) {
             cartItemRepository.delete(item.get());
@@ -128,16 +128,16 @@ public class CartService {
 
         List<CartItemResponse> itemResponses = items.stream()
                 .map(item -> {
-                    BigDecimal unitPrice = BigDecimal.valueOf(item.getProduct().getPrice());
+                    BigDecimal unitPrice = BigDecimal.valueOf(item.getBook().getPrice());
                     BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
 
                     return CartItemResponse.builder()
                             .cartItemId(item.getCartItemId())
-                            .productId(item.getProduct().getProductId())
-                            .productName(item.getProduct().getProductName())
+                            .bookId(item.getBook().getBookId())
+                            .bookName(item.getBook().getBookName())
                             .price(unitPrice)
                             .quantity(item.getQuantity())
-                            .image(item.getProduct().getImage())
+                            .image(item.getBook().getImage())
                             .totalPrice(totalPrice)
                             .build();
                 })
