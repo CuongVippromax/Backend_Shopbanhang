@@ -2,6 +2,7 @@ package com.cuong.shopbanhang.model;
 
 import com.cuong.shopbanhang.common.OrderStatus;
 import com.cuong.shopbanhang.common.PaymentStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,6 +26,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"cart", "password", "role"})
     private User user;
 
     @Builder.Default
@@ -36,11 +38,16 @@ public class Order {
 
     private OrderStatus orderStatus;
 
+    private String recipientName;
+
+    private String recipientPhone;
+
     private String shippingAddress;
 
     private String paymentMethod;
 
    
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"order", "items"})
     private OrderDetail orderDetails;
 }

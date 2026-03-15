@@ -24,6 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.cuong.shopbanhang.security.JwtAuthenticationEntryPoint;
 import com.cuong.shopbanhang.security.JwtAuthenticationFilter;
+import com.cuong.shopbanhang.service.UserDetailsServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

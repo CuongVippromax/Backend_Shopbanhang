@@ -19,6 +19,8 @@ public class OrderResponse {
     private Long orderId;
     private Long userId;
     private String username;
+    private String fullName;
+    private String recipientPhone;
     private LocalDateTime orderDate;
     private Double totalAmount;
     private PaymentStatus paymentStatus;

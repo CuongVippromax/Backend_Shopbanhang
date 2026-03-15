@@ -1,0 +1,28 @@
+import { apiGet, apiPost, apiPostForm, apiPut, apiDelete } from './client'
+
+// Dashboard
+export const getDashboardStats = () => apiGet('/admin/dashboard')
+
+// Orders - Admin
+export const getAllOrders = (params) => apiGet('/admin/orders', params)
+export const getOrderDetail = (orderId) => apiGet(`/admin/orders/${orderId}`)
+export const updateOrderStatus = (orderId, status) =>
+  apiPut(`/admin/orders/${orderId}/status?status=${status}`)
+export const updatePaymentStatus = (orderId, status) =>
+  apiPut(`/admin/orders/${orderId}/payment-status?status=${status}`)
+
+// Books - Admin (CRUD)
+export const getAllBooksAdmin = (params) => apiGet('/admin/books/all', params)
+export const createBook = (data) => apiPostForm('/admin/books', data)
+export const updateBook = (bookId, data) => apiPostForm(`/admin/books/${bookId}`, data)
+export const deleteBook = (bookId) => apiDelete(`/admin/books/${bookId}`)
+
+// Categories - Admin
+export const getAllCategoriesAdmin = () => apiGet('/admin/categories/all')
+export const createCategory = (data) => apiPost('/admin/categories', data)
+export const updateCategory = (categoryId, data) => apiPut(`/admin/categories/${categoryId}`, data)
+export const deleteCategory = (categoryId) => apiDelete(`/admin/categories/${categoryId}`)
+
+// Users - Admin
+export const getAllUsers = (params) => apiGet('/admin/users', params)
+export const deleteUser = (userId) => apiDelete(`/admin/users/${userId}`)

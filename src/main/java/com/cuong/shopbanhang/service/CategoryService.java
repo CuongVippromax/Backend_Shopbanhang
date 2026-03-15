@@ -1,5 +1,6 @@
 package com.cuong.shopbanhang.service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,9 +20,11 @@ import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.repository.CategoryRepository;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
@@ -32,12 +35,14 @@ public class CategoryService {
         categoryRepository.save(category);
         return CategoryResponse.builder()
                 .categoryId(category.getCategoryId())
-                .CategoryName(category.getCategoryName())
+                .categoryName(category.getCategoryName())
                 .description(category.getDescription())
                 .build();
     }
 
     public PageResponse<?> getAllCategories(int pageNo, int pageSize, String sortBy, String search) {
+        log.info("getAllCategories called - pageNo: {}, pageSize: {}, sortBy: {}, search: '{}'", pageNo, pageSize, sortBy, search);
+        
         if (pageNo > 1) {
             pageNo = pageNo - 1;
         }
@@ -56,11 +61,12 @@ public class CategoryService {
         Pageable pageable = PageRequest.of(pageNo, pageSize,
                 Sort.by(direction, sortField));
         Page<Category> categories = categoryRepository.findCategoriesWithSearch(search, pageable);
+        log.info("Categories found: totalElements={}, content size={}", categories.getTotalElements(), categories.getContent().size());
 
         List<CategoryResponse> categoryResponses = categories.stream()
                 .map(category -> CategoryResponse.builder()
                         .categoryId(category.getCategoryId())
-                        .CategoryName(category.getCategoryName())
+                        .categoryName(category.getCategoryName())
                         .description(category.getDescription())
                         .build())
                 .collect(Collectors.toList());
@@ -79,7 +85,7 @@ public class CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id));
         return CategoryResponse.builder()
                 .categoryId(category.getCategoryId())
-                .CategoryName(category.getCategoryName())
+                .categoryName(category.getCategoryName())
                 .description(category.getDescription())
                 .build();
     }
@@ -98,7 +104,7 @@ public class CategoryService {
         Category updatedCategory = categoryRepository.save(category);
         return CategoryResponse.builder()
                 .categoryId(updatedCategory.getCategoryId())
-                .CategoryName(updatedCategory.getCategoryName())
+                .categoryName(updatedCategory.getCategoryName())
                 .description(updatedCategory.getDescription())
                 .build();
     }
@@ -109,7 +115,51 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
+    public void deleteAllCategories() {
+        categoryRepository.deleteAll();
+        log.info("All categories deleted");
+    }
+
     public List<Book> loadBookWithCategory(String category) {
         return categoryRepository.findBooksByCategoryName(category);
+    }
+
+    public List<CategoryResponse> getAllCategoriesList() {
+        log.info("getAllCategoriesList called");
+        List<Category> categories = categoryRepository.findAll();
+        log.info("Found {} categories", categories.size());
+        return categories.stream()
+                .map(category -> CategoryResponse.builder()
+                        .categoryId(category.getCategoryId())
+                        .categoryName(category.getCategoryName())
+                        .description(category.getDescription())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public void seedDefaultCategories() {
+        if (categoryRepository.count() > 0) {
+            log.info("Categories already exist, skipping seed");
+            return;
+        }
+        
+        log.info("Seeding default categories...");
+        List<Category> categories = Arrays.asList(
+            Category.builder().categoryName("Văn học").description("Sách văn học Việt Nam và nước ngoài").build(),
+            Category.builder().categoryName("Tiểu thuyết").description("Tiểu thuyết hay nhất").build(),
+            Category.builder().categoryName("Truyện tranh").description("Truyện tranh - Manga - Comic").build(),
+            Category.builder().categoryName("Kinh tế").description("Sách kinh tế - Kinh doanh").build(),
+            Category.builder().categoryName("Tâm lý").description("Sách tâm lý - Kỹ năng sống").build(),
+            Category.builder().categoryName("Lịch sử").description("Sách lịch sử").build(),
+            Category.builder().categoryName("Khoa học").description("Sách khoa học - Công nghệ").build(),
+            Category.builder().categoryName("Ngoại ngữ").description("Sách học ngoại ngữ").build(),
+            Category.builder().categoryName("Thiếu nhi").description("Sách cho bé").build(),
+            Category.builder().categoryName("Giáo khoa").description("Sách giáo khoa - Tham khảo").build(),
+            Category.builder().categoryName("Tôn giáo").description("Sách tôn giáo - Tâm linh").build(),
+            Category.builder().categoryName("Nghệ thuật").description("Sách nghệ thuật - Cuộc sống").build()
+        );
+        
+        categoryRepository.saveAll(categories);
+        log.info("Seeded {} categories", categories.size());
     }
 }

@@ -1,4 +1,4 @@
-package com.cuong.shopbanhang.controller;
+package com.cuong.shopbanhang.controller.admin;
 
 import lombok.RequiredArgsConstructor;
 
@@ -9,22 +9,21 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.dto.response.BookResponse;
 import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.model.Category;
 import com.cuong.shopbanhang.service.BookService;
 
+
 @RestController
-@RequestMapping({ "/api/v1/books", "/api/books" })
+@RequestMapping("/api/v1/admin/books")
 @RequiredArgsConstructor
-public class BookController {
+@PreAuthorize("hasAuthority('ADMIN')")
+public class AdminBookController {
 
     private final BookService bookService;
 
-
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BookResponse> createBook(
             @RequestParam("bookName") String bookName,
             @RequestParam("price") Double price,
@@ -45,6 +44,7 @@ public class BookController {
                 .publisher(publisher)
                 .publicationYear(publicationYear)
                 .build();
+
         if (categoryId != null) {
             Category category = new Category();
             category.setCategoryId(categoryId);
@@ -55,29 +55,7 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
     }
 
- 
-    @GetMapping("/all")
-    public ResponseEntity<PageResponse<?>> getAllBooks(
-            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(name = "sortBy", required = false) String sortBy,
-            @RequestParam(name = "search", required = false) String search,
-            @RequestParam(name = "category", required = false) String category) {
-
-        PageResponse<?> books = bookService.getAllBook(pageNo, pageSize, sortBy, search, category);
-        return ResponseEntity.ok(books);
-    }
-
-
-    @GetMapping("/{id}")
-    public ResponseEntity<BookResponse> getBookById(@PathVariable Long id) {
-        BookResponse book = bookService.getBookById(id);
-        return ResponseEntity.ok(book);
-    }
-
-
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<BookResponse> updateBook(
             @PathVariable Long id,
             @RequestParam(value = "bookName", required = false) String bookName,
@@ -109,23 +87,9 @@ public class BookController {
         return ResponseEntity.ok(updatedBook);
     }
 
-
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<PageResponse<?>> searchBooks(
-            @RequestParam(name = "search", required = false) String search,
-            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(name = "sortBy", required = false) String sortBy,
-            @RequestParam(name = "category", required = false) String category) {
-
-        PageResponse<?> books = bookService.getAllBook(pageNo, pageSize, sortBy, search, category);
-        return ResponseEntity.ok(books);
     }
 }

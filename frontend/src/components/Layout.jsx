@@ -1,22 +1,67 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
-
-function TopBar() {
-  return (
-    <div className="top-bar">
-      <div className="top-bar__left">
-        Chào mừng bạn đã đến với Nhà sách Hoàng Kim!
-      </div>
-      <div className="top-bar__right">
-        <Link to="/dang-nhap">Đăng nhập</Link>
-        <span className="divider">/</span>
-        <Link to="/dang-ky">Đăng ký</Link>
-      </div>
-    </div>
-  )
-}
+import { useState, useEffect } from 'react'
+import { getUser, isLoggedIn, logout } from '../api/client'
+import { getCartCount, getCart } from '../utils/cart'
 
 function Header() {
   const navigate = useNavigate()
+  const [user, setUser] = useState(null)
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [cartCount, setCartCount] = useState(0)
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showDropdown && !e.target.closest('.user-dropdown')) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showDropdown])
+
+  useEffect(() => {
+    const checkUser = () => {
+      const loggedIn = isLoggedIn()
+      if (loggedIn) {
+        const userData = getUser()
+        setUser(userData)
+      } else {
+        setUser(null)
+      }
+      getCart()
+    }
+    checkUser()
+
+    // Listen for storage changes (for when user logs in from another tab)
+    const handleStorage = () => checkUser()
+    window.addEventListener('storage', handleStorage)
+
+    // Listen for custom auth-change event (for login/logout in same tab)
+    const handleAuthChange = () => checkUser()
+    window.addEventListener('auth-change', handleAuthChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      window.removeEventListener('auth-change', handleAuthChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    const updateCartCount = () => setCartCount(getCartCount())
+    updateCartCount()
+    window.addEventListener('cart-change', updateCartCount)
+    return () => window.removeEventListener('cart-change', updateCartCount)
+  }, [])
+
+  const handleLogout = () => {
+    logout()
+    setUser(null)
+    window.dispatchEvent(new Event('auth-change'))
+    navigate('/')
+    window.location.reload()
+  }
+
   return (
     <header className="header">
       <Link to="/" className="header__logo">
@@ -33,39 +78,131 @@ function Header() {
         if (q && q.trim()) navigate(`/san-pham?search=${encodeURIComponent(q.trim())}`)
         else navigate('/san-pham')
       }}>
-        <select className="search__category" name="cat" aria-label="Danh mục">
-          <option>Danh mục</option>
-        </select>
         <input name="q" className="search__input" placeholder="Bạn muốn tìm gì..." />
         <button type="submit" className="search__button">Tìm kiếm</button>
       </form>
 
-      <div className="header__hotline">
-        <div className="hotline-icon">24H</div>
-        <div className="hotline-text">
-          <span>Hotline Hà Nội: 1900 1234</span>
-          <span>Hotline HCM: 1900 5678</span>
-        </div>
-      </div>
+      <div className="header__actions">
+        <Link to="#" className="header-action">
+          <span className="header-action__icon">🔔</span>
+          <span className="header-action__label">Thông báo</span>
+        </Link>
+        <Link to="/gio-hang" className="header-action header-action--cart" aria-label="Giỏ hàng">
+          <span className="header-action__icon">🛒</span>
+          {cartCount > 0 && <span className="header-cart-badge">{cartCount}</span>}
+          <span className="header-action__label">Giỏ hàng</span>
+        </Link>
 
-      <Link to="/gio-hang" className="header__cart" aria-label="Giỏ hàng">
-        <span className="cart-icon">🛒</span>
-        <span className="cart-count">0</span>
-      </Link>
+        {user ? (
+          <div 
+            className={`user-dropdown ${showDropdown ? 'show' : ''}`} 
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowDropdown(!showDropdown)
+            }}
+          >
+            <span className="header-action__icon">👤</span>
+            <span className="header-action__label">{user.fullName || user.username || 'Tài khoản'}</span>
+            <div className="dropdown-menu">
+              <Link to="/tai-khoan" className="dropdown-item" onClick={() => setShowDropdown(false)}>Thông tin tài khoản</Link>
+              <Link to="/don-hang" className="dropdown-item" onClick={() => setShowDropdown(false)}>Lịch sử đơn hàng</Link>
+              <button onClick={handleLogout} className="dropdown-item">Đăng xuất</button>
+            </div>
+          </div>
+        ) : (
+          <Link to="/dang-nhap" className="header-action">
+            <span className="header-action__icon">👤</span>
+            <span className="header-action__label">Tài khoản</span>
+          </Link>
+        )}
+      </div>
     </header>
   )
 }
 
 function NavBar() {
   const location = useLocation()
+  const [categories, setCategories] = useState([])
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false)
   const isActive = (path) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path))
+
+  useEffect(() => {
+    let cancelled = false
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) {
+        console.log('Categories timeout - setting loaded')
+        setCategoriesLoaded(true)
+      }
+    }, 8000)
+    import('../api/categories.js')
+      .then(({ getCategories }) => getCategories())
+      .then((res) => {
+        if (cancelled) return
+        console.log('Categories API response:', res)
+        let raw
+        if (Array.isArray(res)) {
+          raw = res
+        } else {
+          raw = res?.content ?? res?.data ?? []
+        }
+        const list = Array.isArray(raw) ? raw : []
+        const seen = new Set()
+        const valid = list
+          .filter((c) => {
+            if (!c || (c.categoryId == null && !c.categoryName && !c.CategoryName)) return false
+            const id = c.categoryId ?? c.categoryName ?? c.CategoryName
+            if (seen.has(id)) return false
+            seen.add(id)
+            return true
+          })
+          .slice(0, 12)
+        setCategories(valid)
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error('Categories API error:', err)
+          setCategories([])
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          clearTimeout(timeoutId)
+          console.log('Categories loaded (finally)')
+          setCategoriesLoaded(true)
+        }
+      })
+    return () => {
+      cancelled = true
+      clearTimeout(timeoutId)
+    }
+  }, [])
 
   return (
     <nav className="nav">
-      <Link to="/san-pham" className="nav__catalog">
-        <span className="hamburger" />
-        <span>CHỌN TỦ SÁCH</span>
-      </Link>
+      <div className="nav-catalog-wrap">
+        <Link to="/san-pham" className="nav__catalog">
+          <span className="hamburger" />
+          <span>CHỌN TỦ SÁCH</span>
+          <span className="nav-catalog-arrow">▼</span>
+        </Link>
+        <div className="nav-catalog-dropdown">
+          {!categoriesLoaded ? (
+            <div className="nav-catalog-empty">Đang tải...</div>
+          ) : categories.length > 0 ? (
+            <ul className="nav-catalog-list">
+              {categories.map((cat) => (
+                <li key={cat.categoryId}>
+                  <Link to={`/san-pham?category=${cat.categoryId}`}>
+                    {String(cat.categoryName).trim() || 'Danh mục'}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="nav-catalog-empty">Không có danh mục</div>
+          )}
+        </div>
+      </div>
 
       <div className="nav__links">
         <Link to="/" className={isActive('/') && location.pathname === '/' ? 'active' : ''}>
@@ -75,9 +212,10 @@ function NavBar() {
           SẢN PHẨM
           <span className="badge-hot">Hot</span>
         </Link>
-        <Link to="/san-pham?sort=newest">SÁCH MỚI</Link>
-        <Link to="/san-pham?featured=true">SÁCH HAY</Link>
-        <Link to="/tin-tuc">TIN TỨC</Link>
+        <Link to="/sach-moi" className={isActive('/sach-moi') ? 'active' : ''}>SÁCH BÁN CHẠY</Link>
+        <Link to="/sach-hay" className={isActive('/sach-hay') ? 'active' : ''}>SÁCH HAY</Link>
+        <Link to="/tin-tuc" className={isActive('/tin-tuc') ? 'active' : ''}>TIN TỨC</Link>
+        <Link to="/chinh-sach" className={isActive('/chinh-sach') ? 'active' : ''}>CHÍNH SÁCH</Link>
         <Link to="/lien-he" className={isActive('/lien-he') ? 'active' : ''}>LIÊN HỆ</Link>
       </div>
     </nav>
@@ -87,7 +225,6 @@ function NavBar() {
 export default function Layout() {
   return (
     <div className="app">
-      <TopBar />
       <Header />
       <NavBar />
       <main className="main">
@@ -128,20 +265,10 @@ export default function Layout() {
             <h4 className="footer-title">Hỗ trợ</h4>
             <ul className="footer-list">
               <li><Link to="#">Chính sách đổi - trả - hoàn tiền</Link></li>
-              <li><Link to="#">Chính sách bảo hành - bồi hoàn</Link></li>
+              <li><Link to="/chinh-sach-bao-hanh">Chính sách bảo hành - bồi hoàn</Link></li>
               <li><Link to="#">Chính sách vận chuyển</Link></li>
               <li><Link to="#">Chính sách khách sỉ</Link></li>
               <li><Link to="#">Câu hỏi thường gặp</Link></li>
-            </ul>
-          </div>
-
-          <div className="footer-col">
-            <h4 className="footer-title">Tài khoản của tôi</h4>
-            <ul className="footer-list">
-              <li><Link to="/dang-nhap">Đăng nhập / Tạo tài khoản</Link></li>
-              <li><Link to="#">Thay đổi địa chỉ khách hàng</Link></li>
-              <li><Link to="#">Chi tiết tài khoản</Link></li>
-              <li><Link to="#">Lịch sử mua hàng</Link></li>
             </ul>
           </div>
 
@@ -176,4 +303,4 @@ export default function Layout() {
   )
 }
 
-export { TopBar, Header, NavBar }
+export { Header, NavBar }

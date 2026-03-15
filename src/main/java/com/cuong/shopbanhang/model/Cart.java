@@ -1,5 +1,6 @@
 package com.cuong.shopbanhang.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,9 +25,11 @@ public class Cart {
 
     @OneToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"cart", "password", "role"})
     private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"cart", "orderDetail"})
     private List<CartItem> cartItems;
 
     @Builder.Default

@@ -1,4 +1,4 @@
-package com.cuong.shopbanhang.config;
+package com.cuong.shopbanhang.service;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

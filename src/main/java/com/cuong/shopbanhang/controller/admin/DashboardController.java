@@ -1,4 +1,4 @@
-package com.cuong.shopbanhang.controller;
+package com.cuong.shopbanhang.controller.admin;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,6 @@ public class DashboardController {
 
     private final DashboardService dashboardService;
 
-    // Lấy thống kê dashboard
     @GetMapping
     public ResponseEntity<DashboardStats> getDashboardStats() {
         return ResponseEntity.ok(dashboardService.getDashboardStats());

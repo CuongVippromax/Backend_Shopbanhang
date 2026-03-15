@@ -1,5 +1,6 @@
 package com.cuong.shopbanhang.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,10 +22,12 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
+    @JsonIgnoreProperties({"cartItems", "user"})
     private Cart cart;
 
     @ManyToOne
     @JoinColumn(name = "book_id")
+    @JsonIgnoreProperties({"category"})
     private Book book;
 
     private Integer quantity;
@@ -32,5 +35,6 @@ public class CartItem {
     // Thêm quan hệ với OrderDetail (sau khi checkout, CartItem sẽ thuộc OrderDetail)
     @ManyToOne
     @JoinColumn(name = "order_detail_id")
+    @JsonIgnoreProperties({"order", "items"})
     private OrderDetail orderDetail;
 }

@@ -1,5 +1,5 @@
 package com.cuong.shopbanhang.common;
 
 public enum PaymentStatus {
-    PENDING, PAID, CANCELLED;
+    PENDING, PAID, FAILED, CANCELLED;
 }

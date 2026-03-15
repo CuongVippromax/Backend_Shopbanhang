@@ -15,24 +15,34 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j(topic = "AuthController")
 public class AuthController {
     private final AuthService authService;
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok().body(response);
     }
+
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
         return ResponseEntity.ok().body("Logout successfully");
-}
-@PostMapping("/refresh-token")
-public ResponseEntity<String> refreshToken(@RequestBody String refreshToken) {
-    String response = authService.refreshToken(refreshToken);
-    return ResponseEntity.ok().body(response);
-}
-@PostMapping("/change-password")
-public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
-    authService.changePassword(request);
-    return ResponseEntity.ok().body("Change password successfully");
-}
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<String> refreshToken(@RequestBody String refreshToken) {
+        String response = authService.refreshToken(refreshToken);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(@RequestBody String refreshToken) {
+        LoginResponse response = authService.createAccessTooken(refreshToken);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+        authService.changePassword(request);
+        return ResponseEntity.ok().body("Change password successfully");
+    }
 }

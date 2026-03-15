@@ -1,4 +1,4 @@
-package com.cuong.shopbanhang.controller;
+package com.cuong.shopbanhang.controller.admin;
 
 import java.util.Map;
 
@@ -16,40 +16,27 @@ import com.cuong.shopbanhang.service.MinIOService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping({ "/api/v1/files", "/api/files" })
+@RequestMapping({ "/api/v1/admin/files", "/api/v1/files" })
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('ADMIN')")
 public class FileController {
 
     private final MinIOService minIOService;
 
-    /**
-     * Upload một file (hình ảnh, tài liệu...) lên MinIO.
-     * Chỉ ADMIN mới có quyền upload.
-     * Trả về URL truy cập của file đã upload.
-     */
     @PostMapping("/upload")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, String>> uploadFile(
             @RequestParam("file") MultipartFile file) {
-
         if (file.isEmpty()) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "File không được để trống"));
         }
-
         String fileUrl = minIOService.uploadFile(file);
         return ResponseEntity.ok(Map.of("url", fileUrl));
     }
 
-    /**
-     * Xóa file khỏi MinIO theo tên object.
-     * Chỉ ADMIN mới có quyền xóa.
-     */
     @DeleteMapping("/delete")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Map<String, String>> deleteFile(
             @RequestParam("objectName") String objectName) {
-
         minIOService.deleteFile(objectName);
         return ResponseEntity.ok(Map.of("message", "Xóa file thành công"));
     }

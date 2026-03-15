@@ -3,7 +3,6 @@ package com.cuong.shopbanhang.service;
 
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,7 +17,6 @@ import org.springframework.util.StringUtils;
 import com.cuong.shopbanhang.common.OrderStatus;
 import com.cuong.shopbanhang.common.PaymentStatus;
 import com.cuong.shopbanhang.dto.request.CheckoutRequest;
-import com.cuong.shopbanhang.dto.response.OrderDetailResponse;
 import com.cuong.shopbanhang.dto.response.OrderItemResponse;
 import com.cuong.shopbanhang.dto.response.OrderResponse;
 import com.cuong.shopbanhang.dto.response.PageResponse;
@@ -91,6 +89,8 @@ public class OrderService {
         .orderDate(LocalDateTime.now())
         .totalAmount(totalPrice)
         .paymentStatus(PaymentStatus.PENDING)
+        .recipientName(request.getFullName())
+        .recipientPhone(request.getPhone())
         .shippingAddress(request.getShippingAddress())
         .paymentMethod(request.getPaymentMethod())
         .orderDetails(orderDetail)
@@ -160,23 +160,27 @@ public class OrderService {
         return orderRepository.save(order);
     }
     
-    public PageResponse<List<Order>> getOrdersByUser(int page, int size) {
+    @Transactional(readOnly = true)
+    public PageResponse<List<OrderResponse>> getOrdersByUser(int page, int size) {
         if(page > 0) {
             page = page - 1;
         }
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.findByUser_UserId(userId, pageable);
-        return PageResponse.<List<Order>>builder()
+        List<OrderResponse> orderResponses = orders.getContent().stream()
+                .map(this::toOrderResponse)
+                .collect(Collectors.toList());
+        return PageResponse.<List<OrderResponse>>builder()
         .pageNo(page)
         .pageSize(size)
         .totalElements(orders.getTotalElements())
         .totalPages(orders.getTotalPages())
-        .data(orders.getContent())
+        .data(orderResponses)
         .build();
     }
     
-    public PageResponse<List<Order>> getAllOrders(int page, int size, String sort, String search, String startDate, String endDate) {
+    public PageResponse<List<OrderResponse>> getAllOrders(int page, int size, String sort, String search, String startDate, String endDate) {
        if(page > 0) {
         page = page - 1;
        }
@@ -196,19 +200,18 @@ public class OrderService {
        Sort sortObj = Sort.by(direction, sortField);
        Pageable pageable = PageRequest.of(page, size, sortObj);
        
-       // Parse dates
-       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-       LocalDateTime start = StringUtils.hasLength(startDate) ? LocalDateTime.parse(startDate + " 00:00:00", formatter) : null;
-       LocalDateTime end = StringUtils.hasLength(endDate) ? LocalDateTime.parse(endDate + " 23:59:59", formatter) : null;
+       Page<Order> orders = orderRepository.searchOrders(search, pageable);
        
-       Page<Order> orders = orderRepository.searchOrders(search, start, end, pageable);
+       List<OrderResponse> orderResponses = orders.getContent().stream()
+               .map(this::toOrderResponse)
+               .collect(Collectors.toList());
        
-       return PageResponse.<List<Order>>builder()
+       return PageResponse.<List<OrderResponse>>builder()
            .pageNo(page)
            .pageSize(size)
            .totalElements(orders.getTotalElements())
            .totalPages(orders.getTotalPages())
-           .data(orders.getContent())
+           .data(orderResponses)
            .build();
     }
     @Transactional
@@ -241,10 +244,15 @@ public class OrderService {
                 .collect(Collectors.toList())
             : null;
         
+        String displayName = order.getRecipientName() != null && !order.getRecipientName().isBlank()
+                ? order.getRecipientName()
+                : (order.getUser() != null ? order.getUser().getFullName() : null);
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .userId(order.getUser() != null ? order.getUser().getUserId() : null)
                 .username(order.getUser() != null ? order.getUser().getUsername() : null)
+                .fullName(displayName)
+                .recipientPhone(order.getRecipientPhone())
                 .orderDate(order.getOrderDate())
                 .totalAmount(order.getTotalAmount())
                 .paymentStatus(order.getPaymentStatus())
@@ -255,37 +263,16 @@ public class OrderService {
                 .build();
     }
     
-    // Lấy chi tiết đơn hàng
-    public OrderDetailResponse getOrderDetail(Long orderId) {
+    // Lấy đơn hàng theo ID (full OrderResponse cho trang chi tiết)
+    public OrderResponse getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
-        
-        // Kiểm tra quyền: chỉ chủ đơn hoặc admin mới xem được
         Long userId = SecurityUtils.getCurrentUserId().orElse(null);
         boolean isAdmin = SecurityUtils.hasRole("ADMIN");
         if (userId != null && !order.getUser().getUserId().equals(userId) && !isAdmin) {
             throw new RuntimeException("You don't have permission to view this order");
         }
-        
-        OrderDetail detail = order.getOrderDetails();
-        List<OrderItemResponse> items = detail.getItems().stream()
-                .map(item -> OrderItemResponse.builder()
-                        .cartItemId(item.getCartItemId())
-                        .bookId(item.getBook().getBookId())
-                        .bookName(item.getBook().getBookName())
-                        .price(item.getBook().getPrice().doubleValue())
-                        .quantity(item.getQuantity())
-                        .totalPrice(item.getBook().getPrice().doubleValue() * item.getQuantity())
-                        .image(item.getBook().getImage())
-                        .build())
-                .collect(Collectors.toList());
-        
-        return OrderDetailResponse.builder()
-                .orderDetailId(detail.getId())
-                .orderId(order.getOrderId())
-                .items(items)
-                .totalPrice(detail.getTotalPrice())
-                .build();
+        return toOrderResponse(order);
     }
     
     // Tạo HTML cho chi tiết đơn hàng trong email

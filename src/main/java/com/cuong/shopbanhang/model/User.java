@@ -1,5 +1,6 @@
 package com.cuong.shopbanhang.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
@@ -43,6 +44,7 @@ public class User {
     private Role role = Role.USER;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties({"user", "cartItems"})
     private Cart cart;
 
 }

@@ -1,4 +1,4 @@
-package com.cuong.shopbanhang.controller;
+package com.cuong.shopbanhang.controller.user;
 
 import java.util.List;
 
@@ -20,13 +20,11 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    // Thêm đánh giá
     @PostMapping
     public ResponseEntity<ReviewResponse> addReview(@Valid @RequestBody ReviewRequest request) {
         return ResponseEntity.ok(reviewService.addReview(request));
     }
 
-    // Cập nhật đánh giá
     @PutMapping("/{reviewId}")
     public ResponseEntity<ReviewResponse> updateReview(
             @PathVariable Long reviewId,
@@ -34,14 +32,12 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.updateReview(reviewId, request));
     }
 
-    // Xóa đánh giá
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId) {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.ok().build();
     }
 
-    // Lấy đánh giá theo sách
     @GetMapping("/book/{bookId}")
     public ResponseEntity<PageResponse<?>> getReviewsByBook(
             @PathVariable Long bookId,
@@ -50,7 +46,6 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByBook(bookId, page, size));
     }
 
-    // Lấy đánh giá của user hiện tại
     @GetMapping("/my-reviews")
     public ResponseEntity<List<ReviewResponse>> getMyReviews() {
         return ResponseEntity.ok(reviewService.getMyReviews());

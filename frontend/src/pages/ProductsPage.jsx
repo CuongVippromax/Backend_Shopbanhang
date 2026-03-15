@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { getBooks } from '../api/books.js'
 import { getCategories } from '../api/categories.js'
 import ProductCard from '../components/ProductCard.jsx'
+import { CategoryBanner } from '../components/CategoryBanner.jsx'
 
 export default function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -37,7 +38,17 @@ export default function ProductsPage() {
 
   useEffect(() => {
     getCategories({ pageSize: 50 })
-      .then((res) => setCategories(Array.isArray(res?.data) ? res.data : []))
+      .then((res) => {
+        const raw = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : [])
+        const seen = new Set()
+        const list = raw.filter((c) => {
+          const id = c?.categoryId ?? c?.categoryName ?? c?.CategoryName
+          if (seen.has(id)) return false
+          seen.add(id)
+          return true
+        })
+        setCategories(list)
+      })
       .catch(() => setCategories([]))
   }, [])
 
@@ -111,6 +122,11 @@ export default function ProductsPage() {
         </aside>
 
         <div className="products-main">
+          <CategoryBanner
+            categoryName={category || (search ? null : 'Tất cả sách')}
+            books={displayBooks}
+            showBookCovers={displayBooks.length > 0}
+          />
           <div className="products-toolbar">
             <h1 className="products-title">{getTitle()}</h1>
             <div className="products-actions">
@@ -169,23 +185,39 @@ export default function ProductsPage() {
 
           {totalPages > 1 && (
             <div className="pagination">
-              <button
-                type="button"
-                disabled={pageNo <= 1}
-                onClick={() => updateParams({ page: pageNo - 1 })}
-              >
-                Trước
-              </button>
-              <span className="pagination__info">
-                Trang {pageNo} / {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={pageNo >= totalPages}
-                onClick={() => updateParams({ page: pageNo + 1 })}
-              >
-                Sau
-              </button>
+              {(() => {
+                const maxVisible = 5
+                let start = Math.max(1, pageNo - Math.floor(maxVisible / 2))
+                let end = Math.min(totalPages, start + maxVisible - 1)
+                if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1)
+                const pages = []
+                for (let p = start; p <= end; p++) pages.push(p)
+                return (
+                  <>
+                    {pages.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        className={`pagination__page ${p === pageNo ? 'pagination__page--active' : ''}`}
+                        onClick={() => updateParams({ page: p })}
+                        aria-label={`Trang ${p}`}
+                        aria-current={p === pageNo ? 'page' : undefined}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="pagination__next"
+                      disabled={pageNo >= totalPages}
+                      onClick={() => updateParams({ page: pageNo + 1 })}
+                      aria-label="Trang sau"
+                    >
+                      ›
+                    </button>
+                  </>
+                )
+              })()}
             </div>
           )}
         </div>
