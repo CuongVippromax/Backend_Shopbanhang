@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiGet } from '../api/client'
 
 export default function VNPayCallbackPage() {
@@ -30,7 +30,14 @@ export default function VNPayCallbackPage() {
           setStatus('failed')
         })
     } else {
-      setStatus('failed')
+      // Thanh toán thất bại: gọi backend để xóa đơn + khôi phục giỏ hàng, sau đó redirect về giỏ hàng
+      apiGet('/payment/vn-pay-callback?' + searchParams.toString())
+        .catch((err) => console.error('Payment callback error:', err))
+        .finally(() => {
+          setStatus('failed')
+          localStorage.removeItem('pendingOrderId')
+          navigate('/gio-hang?payment_failed=1', { replace: true })
+        })
     }
   }, [searchParams, navigate])
 
@@ -55,11 +62,7 @@ export default function VNPayCallbackPage() {
         <>
           <div style={{ fontSize: '60px', marginBottom: '20px' }}>✗</div>
           <h2 style={{ color: '#dc3545', marginBottom: '10px' }}>Thanh toán thất bại</h2>
-          <p>Mã lỗi: {searchParams.get('vnp_ResponseCode')}</p>
-          <p>Mã đơn hàng: {searchParams.get('vnp_TxnRef')}</p>
-          <Link to="/don-hang" className="btn" style={{ marginTop: '20px', display: 'inline-block' }}>
-            Xem đơn hàng
-          </Link>
+          <p>Đang chuyển về giỏ hàng...</p>
         </>
       )}
     </div>

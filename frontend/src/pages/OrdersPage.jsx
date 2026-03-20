@@ -43,30 +43,44 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
 
   useEffect(() => {
     if (!isLoggedIn()) {
       navigate('/dang-nhap')
       return
     }
-    fetchOrders()
-  }, [navigate])
+    fetchOrders(currentPage)
+  }, [navigate, currentPage])
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page) => {
     try {
-      const response = await apiGet('/orders/my-orders?page=1&size=20')
-      if (response?.data) setOrders(response.data)
-      else setOrders([])
+      console.log('=== DEBUG: Fetching orders ===')
+      const response = await apiGet(`/orders/my-orders?page=${page}&size=20`)
+      console.log('=== DEBUG: Full response ===', response)
+      console.log('=== DEBUG: response.data ===', response?.data)
+      // API client trả về body trực tiếp (PageResponse: data, totalPages, totalElements)
+      if (response) {
+        setOrders(response.data ?? [])
+        setTotalPages(response.totalPages ?? 0)
+        setTotalElements(response.totalElements ?? 0)
+      } else {
+        setOrders([])
+      }
     } catch (err) {
-      let msg = err.message || 'Không tải được danh sách đơn hàng'
-      try {
-        const body = JSON.parse(err.message)
-        if (body.message) msg = body.message
-      } catch (_) {}
-      setError(msg)
+      setError(err.message || 'Không tải được danh sách đơn hàng')
       setOrders([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -124,60 +138,110 @@ export default function OrdersPage() {
                 <Link to="/san-pham" className="account-shop-btn">Mua sắm ngay</Link>
               </div>
             ) : (
-              <div className="order-blocks">
-                {orders.map((order) => (
-                  <div key={order.orderId} className="order-block">
-                    <div className="order-block__head">
-                      <span className={`order-block__status ${isStatusUnconfirmed(order.orderStatus) ? 'order-block__status--red' : ''}`}>
-                        Trạng thái: {getStatusLabel(order.orderStatus)}
-                      </span>
-                      <span className="order-block__time">
-                        Thời gian: {formatOrderTime(order.orderDate)}
-                      </span>
-                    </div>
-                    <div className="order-block__items">
-                      {order.items?.map((item, idx) => {
-                        const imgSrc = getImageSrc(item.image)
-                        const price = Number(item.price) || 0
-                        const qty = item.quantity || 1
-                        return (
-                          <div key={idx} className="order-block-item">
-                            <div className="order-block-item__thumb">
-                              {imgSrc ? (
-                                <img src={imgSrc} alt={item.bookName} />
-                              ) : (
-                                <div className="order-block-item__placeholder" />
-                              )}
-                            </div>
-                            <div className="order-block-item__info">
-                              <span className="order-block-item__name">{item.bookName}</span>
-                              <span className="order-block-item__price-qty">
-                                {price.toLocaleString('vi-VN')}₫ x{qty}
-                              </span>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                    <div className="order-block__foot">
-                      <Link to="/don-hang" className="order-block__btn order-block__btn--back">
-                        ‹ Trở lại
-                      </Link>
-                      <div className="order-block__foot-right">
-                        <span className="order-block__total">
-                          Thành tiền: <strong>{Number(order.totalAmount || 0).toLocaleString('vi-VN')}₫</strong>
+              <>
+                <div className="order-blocks">
+                  {orders.map((order) => (
+                    <div key={order.orderId} className="order-block">
+                      <div className="order-block__head">
+                        <span className={`order-block__status ${isStatusUnconfirmed(order.orderStatus) ? 'order-block__status--red' : ''}`}>
+                          Trạng thái: {getStatusLabel(order.orderStatus)}
                         </span>
-                        <Link
-                          to={`/don-hang/${order.orderId}`}
-                          className="order-block__btn order-block__btn--detail"
-                        >
-                          Xem chi tiết
+                        <span className="order-block__time">
+                          Thời gian: {formatOrderTime(order.orderDate)}
+                        </span>
+                      </div>
+                      <div className="order-block__items">
+                        {order.items?.map((item, idx) => {
+                          const imgSrc = getImageSrc(item.image)
+                          const price = Number(item.price) || 0
+                          const qty = item.quantity || 1
+                          return (
+                            <div key={idx} className="order-block-item">
+                              <div className="order-block-item__thumb">
+                                {imgSrc ? (
+                                  <img src={imgSrc} alt={item.bookName} />
+                                ) : (
+                                  <div className="order-block-item__placeholder" />
+                                )}
+                              </div>
+                              <div className="order-block-item__info">
+                                <span className="order-block-item__name">{item.bookName}</span>
+                                <span className="order-block-item__price-qty">
+                                  {price.toLocaleString('vi-VN')}₫ x{qty}
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div className="order-block__foot">
+                        <Link to="/don-hang" className="order-block__btn order-block__btn--back">
+                          ‹ Trở lại
                         </Link>
+                        <div className="order-block__foot-right">
+                          <span className="order-block__total">
+                            Thành tiền: <strong>{Number(order.totalAmount || 0).toLocaleString('vi-VN')}₫</strong>
+                          </span>
+                          <Link
+                            to={`/don-hang/${order.orderId}`}
+                            className="order-block__btn order-block__btn--detail"
+                          >
+                            Xem chi tiết
+                          </Link>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="pagination">
+                    <button
+                      className="pagination-btn"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      ‹ Trước
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <button
+                            key={page}
+                            className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                            onClick={() => handlePageChange(page)}
+                          >
+                            {page}
+                          </button>
+                        )
+                      } else if (
+                        page === currentPage - 2 ||
+                        page === currentPage + 2
+                      ) {
+                        return <span key={page} className="pagination-ellipsis">...</span>
+                      }
+                      return null
+                    })}
+
+                    <button
+                      className="pagination-btn"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Sau ›
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+
+                <div className="pagination-info">
+                  Trang {currentPage} / {totalPages} - Tổng số: {totalElements} đơn hàng
+                </div>
+              </>
             )}
           </div>
         </main>

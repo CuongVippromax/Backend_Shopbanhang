@@ -187,18 +187,25 @@ export default function HomePage() {
   const [bestSellerBooks, setBestSellerBooks] = useState([])
   const [newBooks, setNewBooks] = useState([])
   const [featuredBooks, setFeaturedBooks] = useState([])
+  const [comicBooks, setComicBooks] = useState([])
   const [loadingBest, setLoadingBest] = useState(true)
   const [loadingNew, setLoadingNew] = useState(true)
   const [loadingFeatured, setLoadingFeatured] = useState(true)
+  const [loadingComic, setLoadingComic] = useState(true)
 
   useEffect(() => {
     setLoadingBest(true)
     setLoadingNew(true)
     setLoadingFeatured(true)
+    setLoadingComic(true)
 
-    // Giả lập "bán chạy" bằng cách lấy danh sách sách và sắp xếp theo giá giảm dần
-    getBooks({ pageNo: 1, pageSize: 12, sortBy: 'price:desc' })
-      .then((res) => setBestSellerBooks(Array.isArray(res?.data) ? res.data : []))
+    // Sách bán chạy: lấy nhiều sách, shuffle rồi lấy 20 cuốn ngẫu nhiên
+    getBooks({ pageNo: 1, pageSize: 30, sortBy: 'price:desc' })
+      .then((res) => {
+        const allBooks = Array.isArray(res?.data) ? res.data : []
+        const shuffled = [...allBooks].sort(() => Math.random() - 0.5)
+        setBestSellerBooks(shuffled.slice(0, 20))
+      })
       .catch(() => setBestSellerBooks([]))
       .finally(() => setLoadingBest(false))
 
@@ -208,16 +215,30 @@ export default function HomePage() {
       .catch(() => setNewBooks([]))
       .finally(() => setLoadingNew(false))
 
-    // Sách hay: lấy nhiều sách rồi random
-    getBooks({ pageNo: 1, pageSize: 24 })
+    // Sách hay: lấy nhiều sách rồi random 20 cuốn
+    getBooks({ pageNo: 1, pageSize: 30 })
       .then((res) => {
         const allBooks = Array.isArray(res?.data) ? res.data : []
-        // Shuffle array (Fisher-Yates)
         const shuffled = [...allBooks].sort(() => Math.random() - 0.5)
-        setFeaturedBooks(shuffled.slice(0, 12))
+        setFeaturedBooks(shuffled.slice(0, 20))
       })
       .catch(() => setFeaturedBooks([]))
       .finally(() => setLoadingFeatured(false))
+
+    // Truyện tranh & Thiếu nhi: lọc theo 2 category
+    Promise.all([
+      getBooks({ pageNo: 1, pageSize: 6, category: 'Truyện tranh' }),
+      getBooks({ pageNo: 1, pageSize: 6, category: 'Thiếu nhi' })
+    ])
+      .then(([comics, children]) => {
+        const comicData = Array.isArray(comics?.data) ? comics.data : []
+        const childrenData = Array.isArray(children?.data) ? children.data : []
+        // Gộp 2 mảng, ưu tiên random
+        const combined = [...comicData, ...childrenData].sort(() => Math.random() - 0.5)
+        setComicBooks(combined)
+      })
+      .catch(() => setComicBooks([]))
+      .finally(() => setLoadingComic(false))
   }, [])
 
   return (
@@ -264,6 +285,20 @@ export default function HomePage() {
             title="Sách mới"
             highlight="Mới"
             products={loadingNew ? [] : newBooks}
+            initialVisibleCount={4}
+          />
+
+          <CategoryBanner
+            categoryName="Truyện tranh & Thiếu nhi"
+            tagline="Khám phá thế giới truyện tranh và sách dành cho thiếu nhi"
+            books={comicBooks}
+            showBookCovers={!loadingComic && comicBooks.length > 0}
+            linkTo="/san-pham?category=Truyện tranh"
+          />
+          <ProductSection
+            title="Truyện tranh & Thiếu nhi"
+            highlight="Comic & Kids"
+            products={loadingComic ? [] : comicBooks}
             initialVisibleCount={4}
           />
         </div>

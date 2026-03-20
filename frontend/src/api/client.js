@@ -76,8 +76,13 @@ async function apiRequest(method, path, body = null, params = {}) {
   console.log('API Request URL final:', url.toString())
 
   const headers = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
   }
+  // Thêm timestamp để tránh cache 304
+  url.searchParams.set('_t', Date.now().toString())
   const token = getToken()
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
@@ -115,18 +120,22 @@ async function apiRequest(method, path, body = null, params = {}) {
 
   if (!res.ok) {
     const errorText = await res.text().catch(() => res.statusText)
-    let errorObj
+    let message = errorText
     try {
-      errorObj = JSON.parse(errorText)
-      errorObj.statusCode = res.status
-    } catch {
-      errorObj = { message: errorText, statusCode: res.status }
-    }
-    throw new Error(JSON.stringify(errorObj))
+      const parsed = JSON.parse(errorText)
+      if (parsed && typeof parsed.message === 'string') message = parsed.message
+    } catch (_) {}
+    throw new Error(message)
   }
 
   const text = await res.text()
-  return text ? JSON.parse(text) : null
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    // Backend trả về plain text (vd: "Change password successfully") thì coi như thành công
+    return { message: text }
+  }
 }
 
 export async function apiGet(path, params = {}) {
@@ -145,8 +154,45 @@ export async function apiDelete(path) {
   return apiRequest('DELETE', path)
 }
 
-export async function apiPostForm(path, params = {}) {
-  return apiRequest('POST', path + '?' + new URLSearchParams(params))
+export async function apiPostForm(path, body) {
+  const url = new URL(path, window.location.origin)
+  url.pathname = API_BASE + path
+
+  const headers = {}
+  const token = getToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  // Browser tự set Content-Type: multipart/form-data với boundary khi body là FormData
+
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers,
+    body
+  })
+
+  if (res.status === 401) {
+    logout()
+    window.location.href = '/dang-nhap'
+    throw new Error('Unauthorized')
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => res.statusText)
+    throw new Error(errorText)
+  }
+
+  const text = await res.text()
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return { message: text }
+  }
+}
+
+export async function updateUser(userId, userData) {
+  return apiPut(`/users/update/${userId}`, userData)
 }
 
 export function getUser() {

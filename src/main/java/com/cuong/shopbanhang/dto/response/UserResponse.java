@@ -8,10 +8,12 @@ import lombok.Setter;
 @Setter
 @Builder
 public class UserResponse {
+    private Long userId;
     private String username;
     private String fullName;
     private String email;
     private String phone;
+    private String phoneNumber;
     private String address;
-
+    private String role;
 }

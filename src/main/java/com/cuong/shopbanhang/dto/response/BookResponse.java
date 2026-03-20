@@ -15,6 +15,7 @@ public class BookResponse {
     private String image;
     private String description;
     private String category;
+    private Long categoryId;
     private Double averageRating;
     private Integer reviewCount;
     // Các trường mới cho sách

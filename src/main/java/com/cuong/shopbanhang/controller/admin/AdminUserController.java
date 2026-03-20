@@ -33,10 +33,12 @@ public class AdminUserController {
     @GetMapping
     public DataResponse<PageResponse<List<UserResponse>>> getAllUsers(
             @RequestParam(name = "search", required = false) String search,
-            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
+            @RequestParam(name = "pageNo", defaultValue = "1") int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(name = "sortBy", required = false) String sortBy) {
+        log.info("getAllUsers received → pageNo={}, pageSize={}, sortBy={}, search={}", pageNo, pageSize, sortBy, search);
         PageResponse<List<UserResponse>> users = userService.getAllUserswithSearchandSort(pageNo, pageSize, sortBy, search);
+        log.info("getAllUsers returning → pageNo={}, totalElements={}, dataSize={}", users.getPageNo(), users.getTotalElements(), users.getData() != null ? users.getData().size() : 0);
         return DataResponse.<PageResponse<List<UserResponse>>>builder()
                 .statusCode(HttpStatus.OK.value())
                 .message("Users found successfully")
@@ -60,6 +62,18 @@ public class AdminUserController {
         return DataResponse.<Void>builder()
                 .statusCode(HttpStatus.OK.value())
                 .message("User deleted successfully")
+                .build();
+    }
+
+    @PutMapping("/{id}/role")
+    public DataResponse<UserResponse> updateUserRole(
+            @PathVariable Long id,
+            @RequestParam String role) {
+        UserResponse user = userService.updateUserRole(id, role);
+        return DataResponse.<UserResponse>builder()
+                .statusCode(HttpStatus.OK.value())
+                .message("User role updated successfully")
+                .data(user)
                 .build();
     }
 }

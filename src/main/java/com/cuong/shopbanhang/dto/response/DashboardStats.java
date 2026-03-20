@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+import java.util.Map;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,4 +21,41 @@ public class DashboardStats {
     private Long shippedOrders;
     private Long completedOrders;
     private Long cancelledOrders;
+
+    // Thống kê sản phẩm
+    private Long lowStockBooks;
+    private Long outOfStockBooks;
+    private Long totalCategories;
+
+    // Top sách bán chạy
+    private List<TopBookStat> topSellingBooks;
+
+    // Doanh thu theo tháng
+    private List<MonthlyRevenue> revenueByMonth;
+
+    // Đơn hàng gần đây
+    private List<OrderResponse> recentOrders;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TopBookStat {
+        private Long bookId;
+        private String bookName;
+        private String image;
+        private Long totalSold;
+        private Double totalRevenue;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MonthlyRevenue {
+        private String month;
+        private Integer year;
+        private Double revenue;
+        private Long orderCount;
+    }
 }

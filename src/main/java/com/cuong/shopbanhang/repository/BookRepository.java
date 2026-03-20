@@ -24,6 +24,9 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     void deleteByBookId(long id);
 
+    Long countByQuantityBetween(Integer from, Integer to);
+    Long countByQuantity(Integer quantity);
+
     @Query("SELECT b FROM Book b WHERE " +
             "(:search IS NULL OR :search = '' OR " +
             "LOWER(b.bookName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

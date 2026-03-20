@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getUser, isLoggedIn, logout } from '../api/client'
+import { getUser, isLoggedIn, logout, updateUser } from '../api/client'
 
 export default function AccountPage() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showAddressModal, setShowAddressModal] = useState(false)
+  const [addressForm, setAddressForm] = useState({ address: '' })
+  const [addressSubmitting, setAddressSubmitting] = useState(false)
+  const [addressError, setAddressError] = useState(null)
+  const [addressSuccess, setAddressSuccess] = useState(false)
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -20,6 +25,39 @@ export default function AccountPage() {
     logout()
     window.dispatchEvent(new Event('auth-change'))
     navigate('/')
+  }
+
+  const handleSaveAddress = async (e) => {
+    e.preventDefault()
+    setAddressError(null)
+    setAddressSuccess(false)
+
+    if (!addressForm.address.trim()) {
+      setAddressError('Vui lòng nhập địa chỉ')
+      return
+    }
+
+    setAddressSubmitting(true)
+    try {
+      const userId = user?.userId || user?.id
+      await updateUser(userId, { address: addressForm.address.trim() })
+
+      // Update local user data
+      const updatedUser = { ...user, address: addressForm.address.trim() }
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      setUser(updatedUser)
+
+      setAddressSuccess(true)
+      setTimeout(() => {
+        setShowAddressModal(false)
+        setAddressSuccess(false)
+        setAddressForm({ address: '' })
+      }, 1500)
+    } catch (err) {
+      setAddressError(err.message || 'Cập nhật địa chỉ thất bại')
+    } finally {
+      setAddressSubmitting(false)
+    }
   }
 
   if (loading) {
@@ -93,7 +131,18 @@ export default function AccountPage() {
               <span className="account-info-row__label">Địa chỉ</span>
               <span className="account-info-row__value">
                 {address || '—'}
-                <Link to="/tai-khoan" className="account-info-row__link">Thêm địa chỉ</Link>
+                <button
+                  type="button"
+                  className="account-info-row__link"
+                  onClick={() => {
+                    setAddressForm({ address: user?.address || '' })
+                    setAddressError(null)
+                    setAddressSuccess(false)
+                    setShowAddressModal(true)
+                  }}
+                >
+                  {address ? 'Thay đổi' : 'Thêm địa chỉ'}
+                </button>
               </span>
             </div>
           </div>
@@ -107,6 +156,49 @@ export default function AccountPage() {
           </div>
         </main>
       </div>
+
+      {/* Address Modal */}
+      {showAddressModal && (
+        <div className="modal-overlay" onClick={() => setShowAddressModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{address ? 'Thay đổi địa chỉ' : 'Thêm địa chỉ'}</h3>
+              <button className="modal-close" onClick={() => setShowAddressModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveAddress} className="modal-body">
+              <div className="form-group">
+                <label htmlFor="address-input">Địa chỉ</label>
+                <textarea
+                  id="address-input"
+                  className="form-control"
+                  value={addressForm.address}
+                  onChange={(e) => setAddressForm({ address: e.target.value })}
+                  placeholder="Nhập địa chỉ của bạn..."
+                  rows={3}
+                />
+              </div>
+              {addressError && <p className="form-error">{addressError}</p>}
+              {addressSuccess && <p className="form-success">Cập nhật địa chỉ thành công!</p>}
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowAddressModal(false)}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={addressSubmitting}
+                >
+                  {addressSubmitting ? 'Đang lưu...' : 'Lưu'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   )
 }

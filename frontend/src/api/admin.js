@@ -26,3 +26,9 @@ export const deleteCategory = (categoryId) => apiDelete(`/admin/categories/${cat
 // Users - Admin
 export const getAllUsers = (params) => apiGet('/admin/users', params)
 export const deleteUser = (userId) => apiDelete(`/admin/users/${userId}`)
+export const updateUserRole = (userId, role) =>
+  apiPut(`/admin/users/${userId}/role?role=${role}`)
+
+// Reviews - Admin
+export const getAllReviews = (params) => apiGet('/admin/reviews', params)
+export const deleteReview = (reviewId) => apiDelete(`/admin/reviews/${reviewId}`)

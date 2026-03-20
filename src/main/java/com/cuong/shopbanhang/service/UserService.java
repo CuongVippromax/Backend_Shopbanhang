@@ -47,12 +47,14 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         return UserResponse.builder()
+                .userId(savedUser.getUserId())
                 .username(savedUser.getUsername())
-                .username(user.getUsername())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .address(user.getAddress())
+                .fullName(savedUser.getFullName())
+                .email(savedUser.getEmail())
+                .phone(savedUser.getPhone())
+                .phoneNumber(savedUser.getPhone())
+                .address(savedUser.getAddress())
+                .role(savedUser.getRole() != null ? savedUser.getRole().name() : "USER")
                 .build();
     }
 
@@ -60,22 +62,26 @@ public class UserService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return UserResponse.builder()
+                .userId(user.getUserId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .phoneNumber(user.getPhone())
                 .address(user.getAddress())
+                .role(user.getRole() != null ? user.getRole().name() : "USER")
                 .build();
     }
 
     public PageResponse<List<UserResponse>> getAllUserswithSearchandSort(int pageNo, int pageSize, String sortBy,
             String search) {
-        if (pageNo > 1)
-            pageNo = pageNo - 1;
-        
+        // Frontend gửi pageNo 1-based (trang 1, 2, 3...) → chuyển sang 0-based cho Spring
+        int zeroBasedPage = pageNo <= 0 ? 0 : pageNo - 1;
+        log.info("getAllUserswithSearchandSort → raw pageNo={}, zeroBasedPage={}, pageSize={}, sortBy={}, search={}", pageNo, zeroBasedPage, pageSize, sortBy, search);
+
         String sortField = "userId";  // Default sort field
         Sort.Direction direction = Sort.Direction.ASC;  // Default direction
-        
+
         if (StringUtils.hasLength(sortBy)) {
             // Support both "field:direction" and just "field"
             String[] parts = sortBy.split(":");
@@ -84,18 +90,23 @@ public class UserService {
                 direction = Sort.Direction.DESC;
             }
         }
-        
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(direction, sortField));
+
+        Pageable pageable = PageRequest.of(zeroBasedPage, pageSize, Sort.by(direction, sortField));
+        log.info("Querying repository with pageable: page={}, size={}, sort={}", pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
         Page<User> users = userRepository.findUsersWithSearch(search, pageable);
+        log.info("Repository returned: totalElements={}, totalPages={}, content.size={}", users.getTotalElements(), users.getTotalPages(), users.getContent().size());
         List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
+                .userId(user.getUserId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .phone(user.getPhone())
+                .phoneNumber(user.getPhone())
                 .address(user.getAddress())
+                .role(user.getRole() != null ? user.getRole().name() : "USER")
                 .build()).collect(Collectors.toList());
         return PageResponse.<List<UserResponse>>builder()
-                .pageNo(pageNo)
+                .pageNo(zeroBasedPage)
                 .pageSize(pageSize)
                 .totalElements(users.getTotalElements())
                 .totalPages(users.getTotalPages())
@@ -123,11 +134,14 @@ public class UserService {
         }
         User updatedUser = userRepository.save(existingUser);
         return UserResponse.builder()
+                .userId(updatedUser.getUserId())
                 .username(updatedUser.getUsername())
                 .fullName(updatedUser.getFullName())
                 .email(updatedUser.getEmail())
                 .phone(updatedUser.getPhone())
+                .phoneNumber(updatedUser.getPhone())
                 .address(updatedUser.getAddress())
+                .role(updatedUser.getRole() != null ? updatedUser.getRole().name() : "USER")
                 .build();
     }
 
@@ -135,6 +149,34 @@ public class UserService {
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.delete(existingUser);
+    }
+
+    @Transactional
+    public UserResponse updateUserRole(Long userId, String role) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Role newRole;
+        try {
+            newRole = Role.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Vai trò không hợp lệ: " + role);
+        }
+
+        user.setRole(newRole);
+        User updated = userRepository.save(user);
+        log.info("Updated user {} role to {}", userId, newRole);
+
+        return UserResponse.builder()
+                .userId(updated.getUserId())
+                .username(updated.getUsername())
+                .fullName(updated.getFullName())
+                .email(updated.getEmail())
+                .phone(updated.getPhone())
+                .phoneNumber(updated.getPhone())
+                .address(updated.getAddress())
+                .role(updated.getRole() != null ? updated.getRole().name() : "USER")
+                .build();
     }
 
     @Transactional

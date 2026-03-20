@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { getCart, removeFromCart, updateQuantity, clearCart } from '../utils/cart'
+import { getCart, setCart, removeFromCart, updateQuantity, clearCart } from '../utils/cart'
 import { getUser, isLoggedIn, apiPost, apiDelete, apiGet } from '../api/client'
 
 function getImageSrc(image) {
@@ -18,6 +18,9 @@ export default function CartPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const showAddedMessage = new URLSearchParams(location.search).get('added') === '1'
+  const showPaymentFailedMessage = new URLSearchParams(location.search).get('payment_failed') === '1'
+  // Khi đang sync giỏ từ API (sau thanh toán thất bại), không cho loadCart ghi đè state
+  const [syncingFromApi, setSyncingFromApi] = useState(false)
   const [error, setError] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('CASH')
   const [delivery, setDelivery] = useState({
@@ -31,14 +34,18 @@ export default function CartPage() {
     note: ''
   })
 
-  const loadCart = () => setItems(getCart())
+  const loadCart = () => {
+    // Không ghi đè state khi đang sync từ API server
+    if (syncingFromApi) return
+    setItems(getCart())
+  }
 
   useEffect(() => {
-    loadCart()
+    if (!syncingFromApi) loadCart()
     const onCartChange = () => loadCart()
     window.addEventListener('cart-change', onCartChange)
     return () => window.removeEventListener('cart-change', onCartChange)
-  }, [])
+  }, [syncingFromApi])
 
   useEffect(() => {
     if (isLoggedIn()) {
@@ -50,6 +57,43 @@ export default function CartPage() {
       }))
     }
   }, [])
+
+  // Sau thanh toán VNPay thất bại: đồng bộ giỏ hàng từ server (đã được backend khôi phục)
+  useEffect(() => {
+    if (!showPaymentFailedMessage || !isLoggedIn()) return
+    const user = getUser()
+    const userId = user?.userId ?? user?.id
+    if (!userId) return
+
+    // Bật cờ để loadCart() không ghi đè state
+    setSyncingFromApi(true)
+
+    apiGet(`/cart/${userId}`)
+      .then((res) => {
+        // Backend CartController trả về CartResponse trực tiếp (có .items)
+        const cartData = res?.data ?? res
+        const list = cartData?.items ?? []
+        const localItems = list.map((i) => ({
+          id: i.bookId,
+          bookName: i.bookName,
+          image: i.image,
+          price: i.price != null ? Number(i.price) : 0,
+          quantity: i.quantity || 1
+        }))
+        // Ghi vào localStorage trước
+        setCart(localItems)
+        // Cập nhật state
+        setItems(localItems)
+        window.dispatchEvent(new Event('cart-change'))
+      })
+      .catch((err) => {
+        console.error('Lỗi sync giỏ hàng:', err)
+      })
+      .finally(() => {
+        // Tắt cờ — từ giờ loadCart() hoạt động bình thường
+        setSyncingFromApi(false)
+      })
+  }, [showPaymentFailedMessage])
 
   const handleRemove = (id) => {
     removeFromCart(id)
@@ -78,6 +122,11 @@ export default function CartPage() {
     }
     if (!delivery.fullName || !delivery.phone || !delivery.address) {
       setError('Vui lòng nhập đầy đủ thông tin giao hàng')
+      return
+    }
+    const phoneNorm = delivery.phone.trim().replace(/\s/g, '')
+    if (!/^(\+84|0)[3-9]\d{8}$/.test(phoneNorm)) {
+      setError('Số điện thoại không hợp lệ')
       return
     }
     if (items.length === 0) {
@@ -147,15 +196,7 @@ export default function CartPage() {
 
       navigate('/don-hang')
     } catch (err) {
-      let msg = err.message || 'Đặt hàng thất bại. Vui lòng thử lại.'
-      try {
-        const body = JSON.parse(err.message)
-        if (body.statusCode === 401 || body.error === 'Unauthorized') {
-          msg = 'Phiên đăng nhập hết hạn hoặc chưa đăng nhập. Vui lòng đăng nhập lại.'
-        } else if (body.message) {
-          msg = body.message
-        }
-      } catch (_) {}
+      const msg = err.message || 'Đặt hàng thất bại. Vui lòng thử lại.'
       setError(msg)
     } finally {
       setLoading(false)
@@ -179,6 +220,11 @@ export default function CartPage() {
       {showAddedMessage && (
         <div className="cart-added-banner">
           <span className="cart-added-banner__text">Đã thêm sản phẩm vào giỏ hàng</span>
+        </div>
+      )}
+      {showPaymentFailedMessage && (
+        <div className="cart-added-banner" style={{ backgroundColor: '#fff3e0', color: '#e65100' }}>
+          <span className="cart-added-banner__text">Thanh toán không thành công. Sản phẩm đã được đưa lại vào giỏ hàng.</span>
         </div>
       )}
 

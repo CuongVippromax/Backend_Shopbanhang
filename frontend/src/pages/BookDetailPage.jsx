@@ -37,6 +37,11 @@ export default function BookDetailPage() {
   const [commentSubmitting, setCommentSubmitting] = useState(false)
   const [commentError, setCommentError] = useState(null)
 
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   const loadReviews = useCallback(() => {
     if (!id) return
     setReviewsLoading(true)
@@ -84,12 +89,7 @@ export default function BookDetailPage() {
         loadReviews()
       })
       .catch((err) => {
-        try {
-          const data = JSON.parse(err.message)
-          setCommentError(data?.message || 'Gửi bình luận thất bại.')
-        } catch {
-          setCommentError('Gửi bình luận thất bại.')
-        }
+        setCommentError(err.message || 'Gửi bình luận thất bại.')
       })
       .finally(() => setCommentSubmitting(false))
   }

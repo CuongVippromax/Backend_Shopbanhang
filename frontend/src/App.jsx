@@ -13,6 +13,8 @@ import LoginPage from './pages/LoginPage.jsx'
 import AccountPage from './pages/AccountPage.jsx'
 import OrdersPage from './pages/OrdersPage.jsx'
 import OrderDetailPage from './pages/OrderDetailPage.jsx'
+import ChangePasswordPage from './pages/ChangePasswordPage.jsx'
+import TruyenTranhThieuNhiPage from './pages/TruyenTranhThieuNhiPage.jsx'
 import CartPage from './pages/CartPage.jsx'
 import NewBooksPage from './pages/NewBooksPage.jsx'
 import FeaturedBooksPage from './pages/FeaturedBooksPage.jsx'
@@ -23,7 +25,10 @@ import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
 import AdminProductsPage from './pages/admin/AdminProductsPage.jsx'
 import AdminUsersPage from './pages/admin/AdminUsersPage.jsx'
-import AdminPlaceholder from './pages/admin/AdminPlaceholder.jsx'
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage.jsx'
+import AdminStatisticsPage from './pages/admin/AdminStatisticsPage.jsx'
+import AdminInventoryPage from './pages/admin/AdminInventoryPage.jsx'
+import AdminCommentsPage from './pages/admin/AdminCommentsPage.jsx'
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
 import { getCart } from './utils/cart'
 
@@ -43,11 +48,12 @@ function App() {
           {/* Placeholder routes */}
           <Route path="hop-sach-tet-2026" element={<div className="page-placeholder">Hộp sách Tết 2026</div>} />
           <Route path="ngay-hoi-chua-lanh" element={<div className="page-placeholder">Ngày hội chữa lành</div>} />
-          <Route path="tin-tuc" element={<div className="page-placeholder">Tin tức</div>} />
+          <Route path="truyen-tranh-thieu-nhi" element={<TruyenTranhThieuNhiPage />} />
           <Route path="chinh-sach" element={<PolicyPage />} />
           <Route path="chinh-sach-bao-hanh" element={<WarrantyPolicyPage />} />
           <Route path="dang-nhap" element={<LoginPage />} />
           <Route path="tai-khoan" element={<AccountPage />} />
+          <Route path="doi-mat-khau" element={<ChangePasswordPage />} />
           <Route path="don-hang" element={<OrdersPage />} />
           <Route path="don-hang/:orderId" element={<OrderDetailPage />} />
           <Route path="dang-ky" element={<RegisterPage />} />
@@ -67,11 +73,10 @@ function App() {
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="users" element={<AdminUsersPage />} />
-          <Route path="categories" element={<AdminPlaceholder title="Danh mục" />} />
-          <Route path="posts" element={<AdminPlaceholder title="Bài viết" />} />
-          <Route path="statistics" element={<AdminPlaceholder title="Thống kê" />} />
-          <Route path="inventory" element={<AdminPlaceholder title="Quản lý kho" />} />
-          <Route path="comments" element={<AdminPlaceholder title="Bình luận" />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="statistics" element={<AdminStatisticsPage />} />
+          <Route path="inventory" element={<AdminInventoryPage />} />
+          <Route path="comments" element={<AdminCommentsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

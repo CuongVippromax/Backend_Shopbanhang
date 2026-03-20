@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +30,7 @@ public class BookService {
     private final BookRepository bookRepository;
     private final MinIOService minIOService;
 
+    @Transactional
     public BookResponse createBook(Book book, MultipartFile image) {
         if (bookRepository.existsByBookName(book.getBookName())) {
             throw new ResourceAlreadyExistsException("Book", "name", book.getBookName());
@@ -71,6 +73,7 @@ public class BookService {
                 .build();
     }
 
+    @Transactional
     public BookResponse updateBook(long id, Book book, MultipartFile image) {
         Optional<Book> gettedBook = bookRepository.findByBookId(id);
         if (gettedBook.isEmpty()) {
@@ -171,6 +174,7 @@ public class BookService {
                         .image(book.getImage())
                         .description(book.getDescription())
                         .category(book.getCategory() != null ? book.getCategory().getCategoryName() : null)
+                        .categoryId(book.getCategory() != null ? book.getCategory().getCategoryId() : null)
                         .author(book.getAuthor())
                         .publisher(book.getPublisher())
                         .publicationYear(book.getPublicationYear())
@@ -188,6 +192,7 @@ public class BookService {
                 .build();
     }
 
+    @Transactional
     public void deleteBook(long id) {
         Book book = bookRepository.findByBookId(id)
                 .orElseThrow(() -> new RuntimeException("Khong ton tai sach"));

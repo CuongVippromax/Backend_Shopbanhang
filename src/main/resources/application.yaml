@@ -11,7 +11,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/shopbanhang
     username: postgres
-    password: ${DB_PASSWORD:postgres}
+    password: postgres
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -35,7 +35,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: cuongssdz1@gmail.com
-    password: ${EMAIL_PASSWORD:cwqlwpquczqlppnp}
+    password: cwqlwpquczqlppnp
     properties:
       mail:
         smtp:
@@ -45,11 +45,11 @@ spring:
 
 app:
   security:
-    allowed-origins:
+    allowedOrigins:
+      - http://localhost:5173
       - http://localhost:3000
       - http://localhost:4200
-      - http://localhost:5173
-    public-endpoints:
+    publicEndpoints:
       - /api/v1/auth/**
       - /api/v1/docs/**
       - /swagger-ui.html
@@ -64,25 +64,25 @@ app:
       - /api/v1/payment/**
 
 jwt:
-  secret-key: ${JWT_SECRET_KEY:c2hvcGJhbmhhbmcxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY=}
-  access-token:
-    expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
-  refresh-token:
-    expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+  secretKey: c2hvcGJhbmhhbmcxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY=
+  accessToken:
+    expiration: 86400000
+  refreshToken:
+    expiration: 604800000
 
 minio:
   url: http://localhost:9000
-  access-key: ${MINIO_ACCESS_KEY:admin}
-  secret-key: ${MINIO_SECRET_KEY:12345678}
+  access-key: admin
+  secret-key: 12345678
   bucket: shopbanhang
 
 # VNPay configuration
 payment:
   vnPay:
-    url: ${VNPAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
-    returnUrl: ${VNPAY_RETURN_URL:http://localhost:5173/payment/vn-pay-callback}
-    tmnCode: ${VNPAY_TMN_CODE:VOCHJPXX}
-    secretKey: ${VNPAY_SECRET_KEY:Y01LSL5Y22IKR7EA7AO2LLKMXXQTABIT}
-    version: ${VNPAY_VERSION:2.1.0}
-    command: ${VNPAY_COMMAND:pay}
-    orderType: ${VNPAY_ORDER_TYPE:other}
+    url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+    returnUrl: http://localhost:5173/payment/vn-pay-callback
+    tmnCode: VOCHJPXX
+    secretKey: Y01LSL5Y22IKR7EA7AO2LLKMXXQTABIT
+    version: 2.1.0
+    command: pay
+    orderType: other

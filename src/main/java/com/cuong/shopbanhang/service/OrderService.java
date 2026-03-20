@@ -3,6 +3,7 @@ package com.cuong.shopbanhang.service;
 
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,11 +28,14 @@ import com.cuong.shopbanhang.model.OrderDetail;
 import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.model.User;
 import com.cuong.shopbanhang.repository.CartRepository;
+import com.cuong.shopbanhang.repository.CartItemRepository;
 import com.cuong.shopbanhang.repository.OrderRepository;
 import com.cuong.shopbanhang.repository.BookRepository;
 import com.cuong.shopbanhang.repository.UserRepository;
 import com.cuong.shopbanhang.security.SecurityUtils;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,15 +49,27 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final EmailService emailService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
     
     @Transactional
     public Order checkout(CheckoutRequest request) {
+       
+        
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
+       
+        
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        
+        
         Cart cart = cartRepository.findByUser_UserId(userId).orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        
         if (cart.getCartItems().isEmpty()) {
             throw new RuntimeException("Cart is empty");
         }
@@ -71,24 +87,28 @@ public class OrderService {
             Book book = item.getBook();
             book.setQuantity(book.getQuantity() - item.getQuantity());
             bookRepository.save(book);
-            log.info("Đã trừ {} quyển sách '{}' trong kho. Còn lại: {}", 
-                    item.getQuantity(), book.getBookName(), book.getQuantity());
         }
         
         Double totalPrice = cart.getCartItems().stream()
         .map(item -> item.getBook().getPrice().doubleValue() * item.getQuantity())
         .reduce(0.0, Double::sum);
-        
         OrderDetail orderDetail = OrderDetail.builder()
         .items(cart.getCartItems().stream().toList())
         .totalPrice(totalPrice)
         .build();
 
+        // Xác định paymentStatus dựa trên phương thức thanh toán
+        // Tất cả đơn hàng đều bắt đầu với PENDING, sau đó:
+        // - COD: thanh toán khi nhận hàng -> PAID khi giao hàng thành công
+        // - VNPAY: chờ VNPay xác nhận thanh toán thành công -> PAID trong callback
+        // KHÔNG gửi email xác nhận ở đây - chỉ gửi sau khi thanh toán thành công
+        PaymentStatus paymentStatus = PaymentStatus.PENDING;
+        
         Order order =  Order.builder()
         .user(user)
         .orderDate(LocalDateTime.now())
         .totalAmount(totalPrice)
-        .paymentStatus(PaymentStatus.PENDING)
+        .paymentStatus(paymentStatus)
         .recipientName(request.getFullName())
         .recipientPhone(request.getPhone())
         .shippingAddress(request.getShippingAddress())
@@ -111,21 +131,82 @@ public class OrderService {
         cart.getCartItems().clear();
         cartRepository.save(cart);
         
-        // GỬI EMAIL XÁC NHẬN ĐƠN HÀNG
-        try {
-            String orderDetailsHtml = buildOrderDetailsHtml(savedOrder);
-            emailService.sendOrderConfirmation(
-                user.getEmail(),
-                savedOrder.getOrderId().toString(),
-                savedOrder.getTotalAmount(),
-                orderDetailsHtml
-            );
-        } catch (Exception e) {
-            log.error("Failed to send order confirmation email", e);
-        }
+        
         
         return savedOrder;
 
+    }
+    
+    @Transactional
+    public void cancelAndDeleteOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // Chỉ hủy và xóa đơn nếu chưa thanh toán thành công
+        if (order.getPaymentStatus() == PaymentStatus.PAID) {
+            log.warn("Cannot delete order {} - already paid", orderId);
+            throw new RuntimeException("Không thể xóa đơn hàng đã thanh toán thành công");
+        }
+
+        Long userId = order.getUser() != null ? order.getUser().getUserId() : null;
+
+        List<CartItem> itemsToRestore = null;
+        if (order.getOrderDetails() != null && order.getOrderDetails().getItems() != null) {
+            itemsToRestore = new java.util.ArrayList<>(order.getOrderDetails().getItems());
+        }
+
+        // Bước 1: Null orderDetail reference trong mỗi CartItem TRƯỚC KHI xóa OrderDetail
+        if (itemsToRestore != null) {
+            for (CartItem item : itemsToRestore) {
+                item.setOrderDetail(null);
+            }
+            // Save tất cả CartItems để persist thay đổi order_detail_id = null
+            cartItemRepository.saveAll(itemsToRestore);
+            entityManager.flush();
+            log.info("Updated {} CartItems to remove orderDetail reference", itemsToRestore.size());
+        }
+
+        // Bước 2: Hoàn lại tồn kho
+        if (itemsToRestore != null) {
+            for (CartItem item : itemsToRestore) {
+                Book book = item.getBook();
+                book.setQuantity(book.getQuantity() + item.getQuantity());
+                bookRepository.save(book);
+            }
+            entityManager.flush();
+            log.info("Restored inventory for {} items", itemsToRestore.size());
+        }
+
+        // Bước 3: Fetch lại Cart từ DB sau khi đã flush
+        Cart userCart = userId != null ? cartRepository.findByUser_UserId(userId).orElse(null) : null;
+
+        // Bước 4: Khôi phục sản phẩm vào giỏ hàng
+        if (userCart != null && itemsToRestore != null) {
+            for (CartItem item : itemsToRestore) {
+                // Kiểm tra sách đã có trong giỏ chưa — nếu có thì cộng dồn số lượng
+                var existing = cartItemRepository.findByCart_CartIdAndBook_BookId(
+                        userCart.getCartId(), item.getBook().getBookId());
+                if (existing.isPresent()) {
+                    CartItem existingItem = existing.get();
+                    existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
+                    cartItemRepository.save(existingItem);
+                } else {
+                    // Cập nhật cart_id cho CartItem đã được null order_detail_id
+                    item.setCart(userCart);
+                    cartItemRepository.save(item);
+                }
+            }
+            entityManager.flush();
+            log.info("Restored {} items to cart", itemsToRestore.size());
+        }
+
+        // Bước 5: Break bidirectional link và xóa Order
+        order.setOrderDetails(null);
+        orderRepository.save(order);
+        orderRepository.delete(order);
+
+        // Bước 6: Clear persistence context để đảm bảo các fetch tiếp theo lấy dữ liệu mới
+        entityManager.clear();
     }
     
     @Transactional
@@ -151,8 +232,6 @@ public class OrderService {
                 Book book = item.getBook();
                 book.setQuantity(book.getQuantity() + item.getQuantity());
                 bookRepository.save(book);
-                log.info("Đã hoàn {} quyển sách '{}' vào kho khi hủy đơn", 
-                        item.getQuantity(), book.getBookName());
             }
         }
         
@@ -168,6 +247,7 @@ public class OrderService {
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.findByUser_UserId(userId, pageable);
+        
         List<OrderResponse> orderResponses = orders.getContent().stream()
                 .map(this::toOrderResponse)
                 .collect(Collectors.toList());
@@ -230,19 +310,21 @@ public class OrderService {
     
     // Chuyển Order sang OrderResponse
     public OrderResponse toOrderResponse(Order order) {
-        List<OrderItemResponse> items = order.getOrderDetails() != null 
-            ? order.getOrderDetails().getItems().stream()
+        List<OrderItemResponse> items = null;
+        if (order.getOrderDetails() != null && order.getOrderDetails().getItems() != null) {
+            items = order.getOrderDetails().getItems().stream()
+                .filter(item -> item.getBook() != null)
                 .map(item -> OrderItemResponse.builder()
                     .cartItemId(item.getCartItemId())
                     .bookId(item.getBook().getBookId())
                     .bookName(item.getBook().getBookName())
-                    .price(item.getBook().getPrice().doubleValue())
+                    .price(item.getBook().getPrice() != null ? item.getBook().getPrice().doubleValue() : 0.0)
                     .quantity(item.getQuantity())
-                    .totalPrice(item.getBook().getPrice().doubleValue() * item.getQuantity())
+                    .totalPrice(item.getBook().getPrice() != null ? item.getBook().getPrice().doubleValue() * item.getQuantity() : 0.0)
                     .image(item.getBook().getImage())
                     .build())
-                .collect(Collectors.toList())
-            : null;
+                .collect(Collectors.toList());
+        }
         
         String displayName = order.getRecipientName() != null && !order.getRecipientName().isBlank()
                 ? order.getRecipientName()
@@ -275,8 +357,14 @@ public class OrderService {
         return toOrderResponse(order);
     }
     
+    // Lấy order entity cho việc gửi email (không cần security check)
+    @Transactional(readOnly = true)
+    public java.util.Optional<Order> getOrderByIdForEmail(Long orderId) {
+        return orderRepository.findById(orderId);
+    }
+    
     // Tạo HTML cho chi tiết đơn hàng trong email
-    private String buildOrderDetailsHtml(Order order) {
+    public String buildOrderDetailsHtml(Order order) {
         StringBuilder sb = new StringBuilder();
         sb.append("<table style='width: 100%; border-collapse: collapse;'>");
         sb.append("<tr style='background-color: #f2f2f2;'>");

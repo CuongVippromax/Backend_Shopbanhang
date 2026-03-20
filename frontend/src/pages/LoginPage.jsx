@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { apiPost, isLoggedIn } from '../api/client'
+import { apiPost, isLoggedIn, getUser } from '../api/client'
 import { initCartForUser } from '../utils/cart'
 
 export default function LoginPage() {
@@ -12,10 +12,14 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  // Nếu đã đăng nhập thì chuyển về trang chủ
   useEffect(() => {
     if (isLoggedIn()) {
-      navigate('/')
+      const user = getUser()
+      if (user?.role === 'ADMIN') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     }
   }, [navigate])
 
@@ -37,16 +41,16 @@ export default function LoginPage() {
         password: formData.password
       })
 
-      // Lưu token vào localStorage (backend trả về accessToken)
       if (response.accessToken) {
         localStorage.setItem('token', response.accessToken)
       }
       if (response.refreshToken) {
         localStorage.setItem('refreshToken', response.refreshToken)
       }
-      // Backend trả về thông tin user ở top-level, không phải trong object user
+
       const userData = {
         id: response.userId,
+        userId: response.userId,
         username: response.username,
         email: response.email,
         fullName: response.fullName,
@@ -54,14 +58,15 @@ export default function LoginPage() {
       }
       localStorage.setItem('user', JSON.stringify(userData))
 
-      // Chuyển giỏ hàng sang key của user
       initCartForUser(response.userId)
-
-      // Trigger custom event để Header cập nhật state
       window.dispatchEvent(new Event('auth-change'))
 
-      // Chuyển về trang chủ
-      navigate('/')
+      // Redirect theo role
+      if (response.role === 'ADMIN') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     } catch (err) {
       setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.')
     } finally {

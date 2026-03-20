@@ -5,6 +5,7 @@ import com.cuong.shopbanhang.dto.response.PaymentDTO;
 import com.cuong.shopbanhang.dto.response.ResponseObject;
 import com.cuong.shopbanhang.service.PaymentService;
 import com.cuong.shopbanhang.service.OrderService;
+import com.cuong.shopbanhang.service.EmailService;
 import com.cuong.shopbanhang.util.VNPayUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final OrderService orderService;
+    private final EmailService emailService;
 
     @GetMapping("/vn-pay")
     public ResponseObject<PaymentDTO.VNPayResponse> pay(HttpServletRequest request) {
@@ -49,6 +51,25 @@ public class PaymentController {
         
         if ("00".equals(vnp_ResponseCode)) {
             orderService.updatePaymentStatus(orderId, PaymentStatus.PAID);
+            
+            // GỬI EMAIL XÁC NHẬN SAU KHI THANH TOÁN THÀNH CÔNG
+            try {
+                var orderOpt = orderService.getOrderByIdForEmail(orderId);
+                if (orderOpt.isPresent()) {
+                    var order = orderOpt.get();
+                    String orderDetailsHtml = orderService.buildOrderDetailsHtml(order);
+                    emailService.sendOrderConfirmation(
+                        order.getUser().getEmail(),
+                        order.getOrderId().toString(),
+                        order.getTotalAmount(),
+                        orderDetailsHtml
+                    );
+                    log.info("Payment confirmation email sent for order: {}", orderId);
+                }
+            } catch (Exception e) {
+                log.error("Failed to send payment confirmation email", e);
+            }
+            
             log.info("Payment successful for order: {}", orderId);
             return new ResponseObject<>(HttpStatus.OK, "Payment successful", 
                 PaymentDTO.VNPayResponse.builder()
@@ -57,7 +78,13 @@ public class PaymentController {
                     .orderId(orderId)
                     .build());
         } else {
-            orderService.updatePaymentStatus(orderId, PaymentStatus.FAILED);
+            // Thanh toán thất bại - xóa đơn hàng và hoàn lại tồn kho
+            try {
+                orderService.cancelAndDeleteOrder(orderId);
+                log.info("Payment failed - order {} deleted and inventory restored", orderId);
+            } catch (Exception e) {
+                log.error("Failed to cancel order {} after payment failure", orderId, e);
+            }
             log.info("Payment failed for order: {}, code: {}", orderId, vnp_ResponseCode);
             return new ResponseObject<>(HttpStatus.BAD_REQUEST, "Payment failed with code: " + vnp_ResponseCode, null);
         }

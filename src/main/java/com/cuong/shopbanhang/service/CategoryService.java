@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
@@ -28,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
+    @Transactional
     public CategoryResponse createCategory(Category category) {
         if (categoryRepository.existsByCategoryName(category.getCategoryName())) {
             throw new ResourceAlreadyExistsException("Category", "name", category.getCategoryName());
@@ -41,8 +43,6 @@ public class CategoryService {
     }
 
     public PageResponse<?> getAllCategories(int pageNo, int pageSize, String sortBy, String search) {
-        log.info("getAllCategories called - pageNo: {}, pageSize: {}, sortBy: {}, search: '{}'", pageNo, pageSize, sortBy, search);
-        
         if (pageNo > 1) {
             pageNo = pageNo - 1;
         }
@@ -61,7 +61,6 @@ public class CategoryService {
         Pageable pageable = PageRequest.of(pageNo, pageSize,
                 Sort.by(direction, sortField));
         Page<Category> categories = categoryRepository.findCategoriesWithSearch(search, pageable);
-        log.info("Categories found: totalElements={}, content size={}", categories.getTotalElements(), categories.getContent().size());
 
         List<CategoryResponse> categoryResponses = categories.stream()
                 .map(category -> CategoryResponse.builder()
@@ -90,6 +89,7 @@ public class CategoryService {
                 .build();
     }
 
+    @Transactional
     public CategoryResponse updateCategory(Long id, String categoryName, String description) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id));
@@ -109,15 +109,16 @@ public class CategoryService {
                 .build();
     }
 
+    @Transactional
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id));
         categoryRepository.delete(category);
     }
 
+    @Transactional
     public void deleteAllCategories() {
         categoryRepository.deleteAll();
-        log.info("All categories deleted");
     }
 
     public List<Book> loadBookWithCategory(String category) {
@@ -125,9 +126,7 @@ public class CategoryService {
     }
 
     public List<CategoryResponse> getAllCategoriesList() {
-        log.info("getAllCategoriesList called");
         List<Category> categories = categoryRepository.findAll();
-        log.info("Found {} categories", categories.size());
         return categories.stream()
                 .map(category -> CategoryResponse.builder()
                         .categoryId(category.getCategoryId())
@@ -137,13 +136,12 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void seedDefaultCategories() {
         if (categoryRepository.count() > 0) {
-            log.info("Categories already exist, skipping seed");
             return;
         }
         
-        log.info("Seeding default categories...");
         List<Category> categories = Arrays.asList(
             Category.builder().categoryName("Văn học").description("Sách văn học Việt Nam và nước ngoài").build(),
             Category.builder().categoryName("Tiểu thuyết").description("Tiểu thuyết hay nhất").build(),
@@ -160,6 +158,5 @@ public class CategoryService {
         );
         
         categoryRepository.saveAll(categories);
-        log.info("Seeded {} categories", categories.size());
     }
 }

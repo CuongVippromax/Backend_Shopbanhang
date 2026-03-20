@@ -20,11 +20,16 @@ function getDiscount(bookId) {
 }
 
 export function ProductSection({ title, highlight, products = [], initialVisibleCount = 4 }) {
-  const [showAll, setShowAll] = useState(false)
+  console.log('ProductSection received products:', products)
+  const [visibleCount, setVisibleCount] = useState(initialVisibleCount)
+
+  const handleShowMore = () => {
+    setVisibleCount(products.length)
+  }
 
   const safeProducts = Array.isArray(products) ? products : []
-  const visibleProducts = showAll ? safeProducts : safeProducts.slice(0, initialVisibleCount)
-  const canShowMore = !showAll && safeProducts.length > initialVisibleCount
+  const visibleProducts = safeProducts.slice(0, visibleCount)
+  const canShowMore = visibleCount < safeProducts.length
 
   return (
     <section className="product-section">
@@ -42,9 +47,9 @@ export function ProductSection({ title, highlight, products = [], initialVisible
           <button
             type="button"
             className="product-section__more-button"
-            onClick={() => setShowAll(true)}
+            onClick={handleShowMore}
           >
-            Xem thêm
+            Xem tất cả
           </button>
         </div>
       )}
@@ -63,14 +68,17 @@ function StarRating({ stars = 5 }) {
 }
 
 export default function ProductCard({ book }) {
+  console.log('ProductCard received:', book)
   const navigate = useNavigate()
   const arrowId = useId()
+  const [imgError, setImgError] = useState(false)
   if (!book) return null
   const price = book.price != null ? Number(book.price) : 0
   const discount = getDiscount(book.bookId)
   const hasDiscount = discount > 0
   const originalPrice = hasDiscount ? Math.round(price / (1 - discount / 100)) : 0
   const imageSrc = getImageSrc(book.image)
+  const showImage = imageSrc && !imgError
   const detailUrl = `/san-pham/${book.bookId}`
 
   const handleAddToCart = (e) => {
@@ -111,10 +119,14 @@ export default function ProductCard({ book }) {
       <div className="product-card__image-wrap">
         <Link to={detailUrl} className="product-card__image-link">
           <div className="product-card__image">
-            {imageSrc ? (
-              <img src={imageSrc} alt={book.bookName ?? ''} />
+            {showImage ? (
+              <img
+                src={imageSrc}
+                alt={book.bookName ?? ''}
+                onError={() => setImgError(true)}
+              />
             ) : (
-              <div className="product-card__image-placeholder" title="Chưa có ảnh" />
+              <div className="product-card__image-placeholder" title="Chưa có ảnh">Chưa có ảnh</div>
             )}
             {hasDiscount && <span className="discount-badge">-{discount}%</span>}
             <div className="product-card__hover-actions">

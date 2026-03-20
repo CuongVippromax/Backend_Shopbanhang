@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiPost, isLoggedIn, getUser } from '../../api/client'
+import { initCartForUser } from '../../utils/cart'
 
 export default function AdminLoginPage() {
   const [formData, setFormData] = useState({
@@ -56,15 +57,15 @@ export default function AdminLoginPage() {
       }
       localStorage.setItem('user', JSON.stringify(userData))
 
+      initCartForUser(response.userId)
       window.dispatchEvent(new Event('auth-change'))
 
       if (response.role === 'ADMIN') {
         navigate('/admin')
       } else {
-        setError('Bạn không có quyền truy cập trang quản trị.')
-        localStorage.removeItem('token')
-        localStorage.removeItem('refreshToken')
-        localStorage.removeItem('user')
+        // Người dùng thường → redirect về trang chủ
+        window.dispatchEvent(new Event('auth-change'))
+        navigate('/')
       }
     } catch (err) {
       setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.')

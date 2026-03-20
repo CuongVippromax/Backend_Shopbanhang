@@ -8,6 +8,7 @@ function Header() {
   const [user, setUser] = useState(null)
   const [showDropdown, setShowDropdown] = useState(false)
   const [cartCount, setCartCount] = useState(0)
+  const [searchValue, setSearchValue] = useState('')
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -33,11 +34,9 @@ function Header() {
     }
     checkUser()
 
-    // Listen for storage changes (for when user logs in from another tab)
     const handleStorage = () => checkUser()
     window.addEventListener('storage', handleStorage)
 
-    // Listen for custom auth-change event (for login/logout in same tab)
     const handleAuthChange = () => checkUser()
     window.addEventListener('auth-change', handleAuthChange)
 
@@ -62,6 +61,15 @@ function Header() {
     window.location.reload()
   }
 
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchValue.trim()) {
+      navigate(`/san-pham?search=${encodeURIComponent(searchValue.trim())}`)
+    } else {
+      navigate('/san-pham')
+    }
+  }
+
   return (
     <header className="header">
       <Link to="/" className="header__logo">
@@ -72,21 +80,24 @@ function Header() {
         </div>
       </Link>
 
-      <form className="header__search" onSubmit={(e) => {
-        e.preventDefault()
-        const q = e.currentTarget.querySelector('input[name="q"]').value
-        if (q && q.trim()) navigate(`/san-pham?search=${encodeURIComponent(q.trim())}`)
-        else navigate('/san-pham')
-      }}>
-        <input name="q" className="search__input" placeholder="Bạn muốn tìm gì..." />
-        <button type="submit" className="search__button">Tìm kiếm</button>
+      <form className="header__search" onSubmit={handleSearch}>
+        <input 
+          name="q" 
+          className="search__input" 
+          placeholder="Tìm kiếm sách..." 
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+        />
+        <button type="submit" className="search__button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          Tìm
+        </button>
       </form>
 
       <div className="header__actions">
-        <Link to="#" className="header-action">
-          <span className="header-action__icon">🔔</span>
-          <span className="header-action__label">Thông báo</span>
-        </Link>
         <Link to="/gio-hang" className="header-action header-action--cart" aria-label="Giỏ hàng">
           <span className="header-action__icon">🛒</span>
           {cartCount > 0 && <span className="header-cart-badge">{cartCount}</span>}
@@ -104,15 +115,16 @@ function Header() {
             <span className="header-action__icon">👤</span>
             <span className="header-action__label">{user.fullName || user.username || 'Tài khoản'}</span>
             <div className="dropdown-menu">
-              <Link to="/tai-khoan" className="dropdown-item" onClick={() => setShowDropdown(false)}>Thông tin tài khoản</Link>
-              <Link to="/don-hang" className="dropdown-item" onClick={() => setShowDropdown(false)}>Lịch sử đơn hàng</Link>
-              <button onClick={handleLogout} className="dropdown-item">Đăng xuất</button>
+              <Link to="/tai-khoan" className="dropdown-item" onClick={() => setShowDropdown(false)}>👤 Thông tin tài khoản</Link>
+              <Link to="/don-hang" className="dropdown-item" onClick={() => setShowDropdown(false)}>📦 Lịch sử đơn hàng</Link>
+              <div style={{ borderTop: '1px solid #eee', marginTop: '4px' }} />
+              <button onClick={handleLogout} className="dropdown-item" style={{ color: '#e74c3c' }}>🚪 Đăng xuất</button>
             </div>
           </div>
         ) : (
           <Link to="/dang-nhap" className="header-action">
             <span className="header-action__icon">👤</span>
-            <span className="header-action__label">Tài khoản</span>
+            <span className="header-action__label">Đăng nhập</span>
           </Link>
         )}
       </div>
@@ -130,7 +142,6 @@ function NavBar() {
     let cancelled = false
     const timeoutId = setTimeout(() => {
       if (!cancelled) {
-        console.log('Categories timeout - setting loaded')
         setCategoriesLoaded(true)
       }
     }, 8000)
@@ -138,7 +149,6 @@ function NavBar() {
       .then(({ getCategories }) => getCategories())
       .then((res) => {
         if (cancelled) return
-        console.log('Categories API response:', res)
         let raw
         if (Array.isArray(res)) {
           raw = res
@@ -160,14 +170,12 @@ function NavBar() {
       })
       .catch((err) => {
         if (!cancelled) {
-          console.error('Categories API error:', err)
           setCategories([])
         }
       })
       .finally(() => {
         if (!cancelled) {
           clearTimeout(timeoutId)
-          console.log('Categories loaded (finally)')
           setCategoriesLoaded(true)
         }
       })
@@ -182,7 +190,7 @@ function NavBar() {
       <div className="nav-catalog-wrap">
         <Link to="/san-pham" className="nav__catalog">
           <span className="hamburger" />
-          <span>CHỌN TỦ SÁCH</span>
+          <span>DANH MỤC SÁCH</span>
           <span className="nav-catalog-arrow">▼</span>
         </Link>
         <div className="nav-catalog-dropdown">
@@ -193,7 +201,7 @@ function NavBar() {
               {categories.map((cat) => (
                 <li key={cat.categoryId}>
                   <Link to={`/san-pham?category=${cat.categoryId}`}>
-                    {String(cat.categoryName).trim() || 'Danh mục'}
+                    📚 {String(cat.categoryName).trim() || 'Danh mục'}
                   </Link>
                 </li>
               ))}
@@ -206,17 +214,30 @@ function NavBar() {
 
       <div className="nav__links">
         <Link to="/" className={isActive('/') && location.pathname === '/' ? 'active' : ''}>
-          TRANG CHỦ
+          🏠 Trang chủ
         </Link>
         <Link to="/san-pham" className={isActive('/san-pham') ? 'active' : ''}>
-          SẢN PHẨM
-          <span className="badge-hot">Hot</span>
+          📖 Sản phẩm
         </Link>
-        <Link to="/sach-moi" className={isActive('/sach-moi') ? 'active' : ''}>SÁCH BÁN CHẠY</Link>
-        <Link to="/sach-hay" className={isActive('/sach-hay') ? 'active' : ''}>SÁCH HAY</Link>
-        <Link to="/tin-tuc" className={isActive('/tin-tuc') ? 'active' : ''}>TIN TỨC</Link>
-        <Link to="/chinh-sach" className={isActive('/chinh-sach') ? 'active' : ''}>CHÍNH SÁCH</Link>
-        <Link to="/lien-he" className={isActive('/lien-he') ? 'active' : ''}>LIÊN HỆ</Link>
+        <Link to="/sach-moi" className={isActive('/sach-moi') ? 'active' : ''}>
+          ✨ Sách mới
+        </Link>
+        <Link to="/sach-hay" className={isActive('/sach-hay') ? 'active' : ''}>
+          🔥 Sách hay
+        </Link>
+        <Link to="/truyen-tranh-thieu-nhi" className={isActive('/truyen-tranh-thieu-nhi') ? 'active' : ''}>
+          📚 Thiếu nhi
+        </Link>
+        <Link to="/chinh-sach" className={isActive('/chinh-sach') ? 'active' : ''}>
+          📋 Chính sách
+        </Link>
+        <Link to="/lien-he" className={isActive('/lien-he') ? 'active' : ''}>
+          📞 Liên hệ
+        </Link>
+      </div>
+
+      <div className="nav__hotline">
+        <span>📞 Hotline: 1900 1234</span>
       </div>
     </nav>
   )

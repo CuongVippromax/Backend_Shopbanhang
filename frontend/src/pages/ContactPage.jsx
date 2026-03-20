@@ -24,12 +24,16 @@ export default function ContactPage() {
       </div>
 
       <div className="contact-page">
-        {/* Khu vực map / ảnh placeholder */}
-        <div className="contact-map-placeholder">
-          <div className="contact-map-inner">
-            <span>Bản đồ / Hình ảnh cửa hàng</span>
-            <p className="contact-map-hint">Có thể nhúng Google Map hoặc ảnh địa điểm tại đây.</p>
-          </div>
+        {/* Bản đồ: thay src bằng link embed Google Map của địa chỉ cửa hàng */}
+        <div className="contact-map-wrap">
+          <iframe
+            title="Bản đồ cửa hàng"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.424281601071!2d106.701755!3d10.776889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f46a7e51f2f%3A0x2e2c348a2e2c348a!2sHo%20Chi%20Minh%20City!5e0!3m2!1svi!2s!4v1640000000000!5m2!1svi!2s"
+            className="contact-map-iframe"
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
         </div>
 
         <div className="contact-content">

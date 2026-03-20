@@ -1,5 +1,28 @@
 import { Link } from 'react-router-dom'
 
+const policyHighlights = [
+  {
+    icon: '⭐',
+    title: '100% chính hãng',
+    description: 'Sản phẩm mới, có nguồn gốc rõ ràng và kiểm định chất lượng trước khi giao.'
+  },
+  {
+    icon: '🔄',
+    title: 'Đổi trả trong 7 ngày',
+    description: 'Đổi trả nhanh chóng nếu sách bị lỗi in, hư hỏng hoặc không đúng mô tả.'
+  },
+  {
+    icon: '🚚',
+    title: 'Giao hàng 24h',
+    description: 'Với đơn hàng nội thành, chúng tôi cam kết giao trong 24 giờ làm việc.'
+  },
+  {
+    icon: '💬',
+    title: 'Tư vấn nhiệt tình',
+    description: 'Đội ngũ hỗ trợ luôn sẵn sàng giải đáp mọi thắc mắc về sản phẩm và đơn hàng.'
+  }
+]
+
 export default function PolicyPage() {
   return (
     <>
@@ -9,14 +32,32 @@ export default function PolicyPage() {
         <span>CHÍNH SÁCH BÁN HÀNG</span>
       </div>
 
-      <div className="new-books-banner new-books-banner--image">
-        <img src="/images/6.jpg" alt="Chính sách bán hàng" className="new-books-banner__img" />
+      <div className="policy-banner">
+        <div className="policy-banner__content">
+          <p className="policy-banner__eyebrow">Cam kết phục vụ</p>
+          <h1 className="policy-banner__title">Chính sách bán hàng</h1>
+          <p className="policy-banner__desc">
+            Nhà sách Hoàng Kim luôn đặt quyền lợi của khách hàng lên hàng đầu. Mỗi chính sách đều
+            được xây dựng để đảm bảo trải nghiệm mua sắm an tâm, nhanh chóng và minh bạch.
+          </p>
+        </div>
+        <div className="policy-banner__grid">
+          {policyHighlights.map((item) => (
+            <article key={item.title} className="policy-banner__item">
+              <span className="policy-banner__icon" aria-hidden="true">
+                {item.icon}
+              </span>
+              <h3 className="policy-banner__item-title">{item.title}</h3>
+              <p className="policy-banner__item-desc">{item.description}</p>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="main__content">
         <div className="policy-page">
           <h1 className="policy-page__title">Chính sách bán hàng</h1>
-          
+
           <div className="policy-section">
             <h2>1. Chính sách giao hàng</h2>
             <p>Chúng tôi giao hàng toàn quốc với các phương thức:</p>

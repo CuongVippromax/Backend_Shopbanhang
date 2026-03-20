@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.cuong.shopbanhang.dto.response.CategoryResponse;
@@ -12,17 +13,20 @@ import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.model.Category;
 import com.cuong.shopbanhang.service.CategoryService;
 
+import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/api/v1/admin/categories")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
+@Validated
 public class AdminCategoryController {
 
     private final CategoryService categoryService;
 
     @PostMapping
-    public ResponseEntity<CategoryResponse> createCategory(@RequestBody Category category) {
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody Category category) {
         CategoryResponse createdCategory = categoryService.createCategory(category);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
     }
@@ -30,7 +34,7 @@ public class AdminCategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable Long id,
-            @RequestBody Category category) {
+            @Valid @RequestBody Category category) {
         CategoryResponse updatedCategory = categoryService.updateCategory(
                 id,
                 category.getCategoryName(),

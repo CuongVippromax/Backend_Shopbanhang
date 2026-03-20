@@ -74,6 +74,7 @@ export default function ProductsPage() {
       else next.set(k, String(v))
     })
     setSearchParams(next)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // Tính toán số lượng sách cần thêm để fill đầy row
@@ -194,6 +195,24 @@ export default function ProductsPage() {
                 for (let p = start; p <= end; p++) pages.push(p)
                 return (
                   <>
+                    <button
+                      type="button"
+                      className="pagination__prev pagination__nav"
+                      disabled={pageNo <= 1}
+                      onClick={() => updateParams({ page: 1 })}
+                      aria-label="Trang đầu tiên"
+                    >
+                      «
+                    </button>
+                    <button
+                      type="button"
+                      className="pagination__prev pagination__nav"
+                      disabled={pageNo <= 1}
+                      onClick={() => updateParams({ page: pageNo - 1 })}
+                      aria-label="Trang trước"
+                    >
+                      ‹
+                    </button>
                     {pages.map((p) => (
                       <button
                         key={p}
@@ -208,7 +227,7 @@ export default function ProductsPage() {
                     ))}
                     <button
                       type="button"
-                      className="pagination__next"
+                      className="pagination__next pagination__nav"
                       disabled={pageNo >= totalPages}
                       onClick={() => updateParams({ page: pageNo + 1 })}
                       aria-label="Trang sau"

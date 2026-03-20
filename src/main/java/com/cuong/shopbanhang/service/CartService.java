@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.cuong.shopbanhang.dto.response.CartItemResponse;
 import com.cuong.shopbanhang.dto.response.CartResponse;
@@ -17,6 +18,9 @@ import com.cuong.shopbanhang.repository.CartRepository;
 import com.cuong.shopbanhang.repository.CartItemRepository;
 import com.cuong.shopbanhang.repository.BookRepository;
 import com.cuong.shopbanhang.repository.UserRepository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,13 +37,22 @@ public class CartService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     // Lấy giỏ hàng của user
+    @Transactional(readOnly = true)
     public CartResponse getCartByUserId(Long userId) {
+        // Flush và clear để đảm bảo lấy dữ liệu mới nhất từ DB
+        entityManager.flush();
+        entityManager.clear();
+
         Cart cart = getOrCreateCart(userId);
         return buildCartResponse(cart);
     }
 
     // Thêm sách vào giỏ hàng
+    @Transactional
     public CartResponse addToCart(Long userId, Long bookId, Integer quantity) {
         // Validate quantity > 0
         if (quantity <= 0) {
@@ -73,6 +86,7 @@ public class CartService {
     }
 
     // Cập nhật số lượng sách
+    @Transactional
     public CartResponse updateQuantity(Long userId, Long bookId, Integer quantity) {
         // Validate quantity > 0
         if (quantity <= 0) {
@@ -91,6 +105,7 @@ public class CartService {
     }
 
     // Xóa sách khỏi giỏ hàng
+    @Transactional
     public CartResponse removeItem(Long userId, Long bookId) {
         Cart cart = cartRepository.findByUser_UserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));
@@ -104,6 +119,7 @@ public class CartService {
     }
 
     // Xóa toàn bộ giỏ hàng
+    @Transactional
     public void clearCart(Long userId) {
         Cart cart = cartRepository.findByUser_UserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));

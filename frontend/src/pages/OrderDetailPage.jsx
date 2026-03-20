@@ -66,12 +66,7 @@ export default function OrderDetailPage() {
     apiGet(`/orders/${orderId}`)
       .then(setOrder)
       .catch((err) => {
-        let msg = 'Không tải được đơn hàng.'
-        try {
-          const body = JSON.parse(err.message)
-          if (body.message) msg = body.message
-        } catch (_) {}
-        setError(msg)
+        setError(err.message || 'Không tải được đơn hàng.')
       })
       .finally(() => setLoading(false))
   }, [orderId, navigate])

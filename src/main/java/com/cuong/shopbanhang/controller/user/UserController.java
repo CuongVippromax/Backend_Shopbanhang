@@ -36,7 +36,7 @@ public class UserController {
 
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAuthority('USER')")
-    public DataResponse<UserResponse> updateUser(@PathVariable Long id, @RequestBody User user) {
+    public DataResponse<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
         UserResponse updatedUser = userService.updateUser(id, user);
         return DataResponse.<UserResponse>builder()
                 .statusCode(HttpStatus.OK.value())

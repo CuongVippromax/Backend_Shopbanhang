@@ -11,6 +11,16 @@ export function getBooks(params = {}) {
   })
 }
 
+/** API cho trang Sách bán chạy (/sach-moi) */
+export function getBooksSachMoi() {
+  return getBooks({ pageNo: 1, pageSize: 30, sortBy: 'bookId:desc' })
+}
+
+/** API cho trang Sách hay (/sach-hay) */
+export function getBooksSachHay() {
+  return getBooks({ pageNo: 1, pageSize: 30 })
+}
+
 export function getBookById(id) {
   return apiGet(`/books/${id}`)
 }

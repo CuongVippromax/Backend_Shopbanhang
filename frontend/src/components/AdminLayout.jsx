@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { getUser, isLoggedIn } from '../api/client'
+import { getUser, isLoggedIn, logout } from '../api/client'
 import './AdminLayout.css'
 
 const pathToBreadcrumb = {
@@ -9,7 +9,6 @@ const pathToBreadcrumb = {
   '/admin/products': [{ label: 'Sản phẩm', path: '/admin/products' }],
   '/admin/users': [{ label: 'Thành viên', path: '/admin/users' }],
   '/admin/categories': [{ label: 'Danh mục', path: '/admin/categories' }],
-  '/admin/posts': [{ label: 'Bài viết', path: '/admin/posts' }],
   '/admin/statistics': [{ label: 'Thống kê', path: '/admin/statistics' }],
   '/admin/inventory': [{ label: 'Quản lý kho', path: '/admin/inventory' }],
   '/admin/comments': [{ label: 'Bình luận', path: '/admin/comments' }],
@@ -38,7 +37,6 @@ const menuItems = [
   { path: '/admin/orders', label: 'Đơn hàng', icon: '🛒', hasDropdown: true },
   { path: '/admin/categories', label: 'Danh mục', icon: '⊞', hasDropdown: true },
   { path: '/admin/products', label: 'Sản phẩm', icon: '📦', hasDropdown: true },
-  { path: '/admin/posts', label: 'Bài viết', icon: '📄', hasDropdown: true },
   { path: '/admin/statistics', label: 'Thống kê', icon: '📈', hasDropdown: true },
   { path: '/admin/inventory', label: 'Quản lý kho', icon: '🏭' },
   { path: '/admin/users', label: 'Thành viên', icon: '👥' },
@@ -50,17 +48,29 @@ export default function AdminLayout() {
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
+    document.body.classList.add('admin-page-active')
+    return () => document.body.classList.remove('admin-page-active')
+  }, [])
+
+  useEffect(() => {
+    const currentUser = getUser()
+    setUser(currentUser)
     if (!isLoggedIn()) {
-      navigate('/admin/login')
+      navigate('/dang-nhap')
       return
     }
-    const user = getUser()
-    if (!user || user.role !== 'ADMIN') {
-      navigate('/admin/login')
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      navigate('/')
     }
   }, [navigate])
+
+  const handleLogout = () => {
+    logout()
+    navigate('/dang-nhap')
+  }
 
   const isActive = (path, exact) => {
     if (exact) return location.pathname === path
@@ -68,11 +78,11 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="admin-layout admin-layout--new">
+    <div className={`admin-layout admin-layout--new ${!sidebarOpen ? 'admin-layout--sidebar-collapsed' : ''}`}>
       <aside className={`admin-sidebar admin-sidebar--new ${sidebarOpen ? '' : 'admin-sidebar--collapsed'}`}>
         <div className="admin-sidebar__brand">
-          <span className="admin-sidebar__brand-icon">👤</span>
-          <span className="admin-sidebar__brand-text">Bookstore</span>
+          <span className="admin-sidebar__brand-icon">📖</span>
+          <span className="admin-sidebar__brand-text">BookStore Admin</span>
         </div>
         <nav className="admin-sidebar__nav">
           {menuItems.map((item) => (
@@ -91,6 +101,10 @@ export default function AdminLayout() {
               <span className="admin-sidebar__icon">🏠</span>
               <span className="admin-sidebar__label">Về shop</span>
             </Link>
+            <button onClick={handleLogout} className="admin-sidebar__link admin-sidebar__link--out">
+              <span className="admin-sidebar__icon">🚪</span>
+              <span className="admin-sidebar__label">Đăng xuất</span>
+            </button>
           </div>
         </nav>
       </aside>
@@ -115,21 +129,16 @@ export default function AdminLayout() {
             />
           </div>
           <div className="admin-header__right">
-            <div className="admin-header__item">
-              <span className="admin-header__item-icon">✉</span>
-              <span className="admin-header__item-text">Tin nhắn</span>
-              <span className="admin-header__item-arrow">▼</span>
-            </div>
-            <div className="admin-header__item">
-              <span className="admin-header__item-icon">🔔</span>
-              <span className="admin-header__item-text">Thông báo</span>
-              <span className="admin-header__item-arrow">▼</span>
-            </div>
             <div className="admin-header__item admin-header__item--user">
               <span className="admin-header__avatar">👤</span>
-              <span className="admin-header__item-text">ADMIN</span>
+              <span className="admin-header__item-text">
+                {user?.fullName || user?.username || 'Admin'}
+              </span>
               <span className="admin-header__item-arrow">▼</span>
             </div>
+            <button onClick={handleLogout} className="admin-logout-btn">
+              🚪 Đăng xuất
+            </button>
           </div>
         </header>
 

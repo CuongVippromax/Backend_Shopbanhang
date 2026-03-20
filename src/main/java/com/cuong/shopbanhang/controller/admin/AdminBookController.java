@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cuong.shopbanhang.dto.response.BookResponse;
+import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.model.Category;
 import com.cuong.shopbanhang.service.BookService;
@@ -22,6 +23,15 @@ import com.cuong.shopbanhang.service.BookService;
 public class AdminBookController {
 
     private final BookService bookService;
+
+    @GetMapping("/all")
+    public ResponseEntity<PageResponse<?>> getAllBooks(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String search) {
+        // Convert 1-based to 0-based for service
+        return ResponseEntity.ok(bookService.getAllBook(page - 1, size, null, search, null));
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BookResponse> createBook(

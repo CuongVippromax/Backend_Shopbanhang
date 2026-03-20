@@ -3,9 +3,12 @@ package com.cuong.shopbanhang.controller;
 import com.cuong.shopbanhang.dto.request.ChangePasswordRequest;
 import com.cuong.shopbanhang.dto.request.LoginRequest;
 import com.cuong.shopbanhang.dto.response.LoginResponse;
+import com.cuong.shopbanhang.dto.response.ResponseObject;
 import com.cuong.shopbanhang.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +20,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok().body(response);
     }
@@ -41,8 +44,8 @@ public class AuthController {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+    public ResponseObject<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);
-        return ResponseEntity.ok().body("Change password successfully");
+        return new ResponseObject<>(HttpStatus.OK, "Change password successfully", null);
     }
 }

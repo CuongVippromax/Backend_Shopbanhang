@@ -18,6 +18,7 @@ import com.cuong.shopbanhang.dto.response.ErrorResponse;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
@@ -84,16 +85,26 @@ public class GlobalExceptionHandler {
 
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            if (error instanceof FieldError fieldError) {
+                errors.put(fieldError.getField(), error.getDefaultMessage());
+            } else {
+                errors.put("_global", error.getDefaultMessage());
+            }
         });
 
         log.warn("Validation failed: {}", errors);
 
+        String userMessage = errors.values().stream()
+                .filter(msg -> msg != null && !msg.isBlank())
+                .distinct()
+                .collect(Collectors.joining(". "));
+        if (userMessage.isBlank()) {
+            userMessage = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
+        }
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("VALIDATION_FAILED")
-                .message("Input validation failed: " + errors.toString())
+                .message(userMessage)
                 .status(HttpStatus.BAD_REQUEST.value())
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
@@ -141,7 +152,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRuntimeException(
             RuntimeException ex, WebRequest request) {
 
-        log.warn("Runtime exception: {}", ex.getMessage());
+        log.error("Runtime exception [{}]: {} | path={}",
+                ex.getClass().getSimpleName(), ex.getMessage(), request.getDescription(false), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("BAD_REQUEST")

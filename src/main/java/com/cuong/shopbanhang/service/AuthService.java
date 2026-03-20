@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.cuong.shopbanhang.dto.request.ChangePasswordRequest;
@@ -84,6 +85,7 @@ public class AuthService {
                 .role(role)
                 .build();
     }
+    @Transactional
     public void changePassword(ChangePasswordRequest request) {
         Long userId = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         User user = userRepository.findByUserId(userId).orElseThrow(() -> new BadRequestException("User not found"));
@@ -101,6 +103,7 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
+    @Transactional
     public void logout(String token) {
         if (!StringUtils.hasText(token)) {
             return;

@@ -1,34 +1,48 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { getBooks } from '../api/books.js'
-import ProductCard from '../components/ProductCard.jsx'
+import { getBooksSachHay } from '../api/books.js'
+import { ProductSection } from '../components/ProductCard.jsx'
 
-const CARD_WIDTH = 200
-const VISIBLE_GAP = 16
+const sortOptions = [
+  { value: 'newest', label: 'Mới nhất' },
+  { value: 'priceAsc', label: 'Giá: thấp đến cao' },
+  { value: 'priceDesc', label: 'Giá: cao đến thấp' }
+]
 
 export default function FeaturedBooksPage() {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
-  const carouselRef = useRef(null)
+  const [sortOption, setSortOption] = useState('newest')
 
   useEffect(() => {
     setLoading(true)
-    getBooks({ pageNo: 1, pageSize: 24 })
+    getBooksSachHay()
       .then((res) => {
-        const allBooks = Array.isArray(res?.data) ? res.data : []
+        console.log('API Response (sach-hay):', res)
+        const raw = res?.data ?? (Array.isArray(res) ? res : [])
+        const allBooks = Array.isArray(raw) ? raw : []
         const shuffled = [...allBooks].sort(() => Math.random() - 0.5)
-        setBooks(shuffled)
+        setBooks(shuffled.slice(0, 20))
       })
-      .catch(() => setBooks([]))
+      .catch((err) => {
+        console.error('Load sách hay lỗi:', err)
+        setBooks([])
+      })
       .finally(() => setLoading(false))
   }, [])
 
-  const scroll = (dir) => {
-    const el = carouselRef.current
-    if (!el) return
-    const step = (CARD_WIDTH + VISIBLE_GAP) * 4
-    el.scrollBy({ left: dir === 'prev' ? -step : step, behavior: 'smooth' })
-  }
+  const sortedBooks = useMemo(() => {
+    const list = Array.isArray(books) ? [...books] : []
+    switch (sortOption) {
+      case 'priceAsc':
+        return list.sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
+      case 'priceDesc':
+        return list.sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
+      case 'newest':
+      default:
+        return list.sort((a, b) => (b.bookId ?? 0) - (a.bookId ?? 0))
+    }
+  }, [books, sortOption])
 
   return (
     <>
@@ -43,36 +57,41 @@ export default function FeaturedBooksPage() {
       </div>
 
       <div className="main__content">
+        <div className="products-toolbar">
+          <label className="products-toolbar__label" htmlFor="featured-books-sort">
+            Sắp xếp:
+          </label>
+          <select
+            id="featured-books-sort"
+            className="sort-select"
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+          >
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {loading ? (
-          <div className="loading">Đang tải...</div>
-        ) : books.length > 0 ? (
-          <div className="bestseller-carousel">
-            <button
-              type="button"
-              className="bestseller-carousel__arrow bestseller-carousel__arrow--prev"
-              onClick={() => scroll('prev')}
-              aria-label="Trước"
-            >
-              ‹
-            </button>
-            <div className="bestseller-carousel__track" ref={carouselRef}>
-              {books.map((book) => (
-                <div key={book.bookId} className="bestseller-carousel__card">
-                  <ProductCard book={book} />
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="bestseller-carousel__arrow bestseller-carousel__arrow--next"
-              onClick={() => scroll('next')}
-              aria-label="Sau"
-            >
-              ›
-            </button>
-          </div>
+          <div className="products-loading">Đang tải sách...</div>
+        ) : sortedBooks.length > 0 ? (
+          <ProductSection
+            title="Sách hay"
+            highlight=""
+            products={sortedBooks}
+            initialVisibleCount={4}
+          />
         ) : (
-          <div className="empty-state">Chưa có sách hay</div>
+          <div className="products-empty">
+            <p>Không tải được danh sách sách.</p>
+            <details>
+              <summary>Debug info</summary>
+              <pre>{JSON.stringify({ loading, booksLength: books.length }, null, 2)}</pre>
+            </details>
+          </div>
         )}
       </div>
     </>
