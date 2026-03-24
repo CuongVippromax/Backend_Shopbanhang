@@ -8,17 +8,25 @@ export default function AdminCommentsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
   const [ratingFilter, setRatingFilter] = useState('all') // all, 5, 4, 3, 2, 1
+  const [apiError, setApiError] = useState('')
 
   const fetchReviews = (pageNum = 1, searchKeyword = search) => {
     setLoading(true)
+    setApiError('')
     getAllReviews({ page: pageNum, size: 20, search: searchKeyword })
       .then((res) => {
-        setReviews(res.data?.data || [])
-        setTotalPages(res.data?.totalPages || 1)
+        // apiGet trả về body JSON trực tiếp (không như axios.response.data)
+        const list = Array.isArray(res?.data) ? res.data : []
+        setReviews(list)
+        setTotalPages(res?.totalPages ?? 1)
         setPage(pageNum)
         window.scrollTo({ top: 0, behavior: 'smooth' })
       })
-      .catch(() => setReviews([]))
+      .catch((err) => {
+        console.error('Reviews API error:', err)
+        setApiError(err.message || 'Không thể tải danh sách bình luận')
+        setReviews([])
+      })
       .finally(() => setLoading(false))
   }
 
@@ -29,9 +37,9 @@ export default function AdminCommentsPage() {
   useEffect(() => {
     getAllReviews({ page: 1, size: 1000, search: '' })
       .then((res) => {
-        const all = res.data?.data || []
+        const all = Array.isArray(res?.data) ? res.data : []
         setSummaryData({
-          total: res.data?.totalElements || all.length,
+          total: res?.totalElements ?? all.length,
           fiveStar: all.filter(r => r.rating === 5).length,
           fourStar: all.filter(r => r.rating === 4).length,
           threeStar: all.filter(r => r.rating === 3).length,
@@ -64,9 +72,9 @@ export default function AdminCommentsPage() {
       // Cập nhật lại summary
       getAllReviews({ page: 1, size: 1000, search: '' })
         .then((res) => {
-          const all = res.data?.data || []
+          const all = Array.isArray(res?.data) ? res.data : []
           setSummaryData({
-            total: res.data?.totalElements || all.length,
+            total: res?.totalElements ?? all.length,
             fiveStar: all.filter(r => r.rating === 5).length,
             fourStar: all.filter(r => r.rating === 4).length,
             threeStar: all.filter(r => r.rating === 3).length,
@@ -153,6 +161,11 @@ export default function AdminCommentsPage() {
       </div>
 
       {/* Reviews List */}
+      {apiError && (
+        <div style={{ padding: '12px 16px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>
+          ⚠️ {apiError}
+        </div>
+      )}
       <div className="admin-table-wrapper">
         <table className="admin-table">
           <thead>

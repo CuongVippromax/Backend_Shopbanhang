@@ -20,6 +20,7 @@ import NewBooksPage from './pages/NewBooksPage.jsx'
 import FeaturedBooksPage from './pages/FeaturedBooksPage.jsx'
 import PolicyPage from './pages/PolicyPage.jsx'
 import WarrantyPolicyPage from './pages/WarrantyPolicyPage.jsx'
+import StaticInfoPage from './pages/StaticInfoPage.jsx'
 import VNPayCallbackPage from './pages/VNPayCallbackPage.jsx'
 import AdminDashboard from './pages/admin/AdminDashboard.jsx'
 import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx'
@@ -51,6 +52,8 @@ function App() {
           <Route path="truyen-tranh-thieu-nhi" element={<TruyenTranhThieuNhiPage />} />
           <Route path="chinh-sach" element={<PolicyPage />} />
           <Route path="chinh-sach-bao-hanh" element={<WarrantyPolicyPage />} />
+          {/* Trang tĩnh: điều khoản, bảo mật, FAQ… — slug trong StaticInfoPage.jsx */}
+          <Route path="trang/:slug" element={<StaticInfoPage />} />
           <Route path="dang-nhap" element={<LoginPage />} />
           <Route path="tai-khoan" element={<AccountPage />} />
           <Route path="doi-mat-khau" element={<ChangePasswordPage />} />

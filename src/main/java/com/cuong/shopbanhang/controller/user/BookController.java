@@ -22,8 +22,9 @@ public class BookController {
             @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(name = "sortBy", required = false) String sortBy,
             @RequestParam(name = "search", required = false) String search,
-            @RequestParam(name = "category", required = false) String category) {
-        PageResponse<?> books = bookService.getAllBook(pageNo, pageSize, sortBy, search, category);
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "categoryId", required = false) Long categoryId) {
+        PageResponse<?> books = bookService.getAllBook(pageNo, pageSize, sortBy, search, category, categoryId);
         return ResponseEntity.ok(books);
     }
 
@@ -39,8 +40,9 @@ public class BookController {
             @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(name = "sortBy", required = false) String sortBy,
-            @RequestParam(name = "category", required = false) String category) {
-        PageResponse<?> books = bookService.getAllBook(pageNo, pageSize, sortBy, search, category);
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "categoryId", required = false) Long categoryId) {
+        PageResponse<?> books = bookService.getAllBook(pageNo, pageSize, sortBy, search, category, categoryId);
         return ResponseEntity.ok(books);
     }
 }

@@ -27,8 +27,7 @@ export function CategoryBanner({ categoryName, tagline, books = [], showBookCove
 
   const textBlock = (
     <>
-      <span className="category-banner__label">TỦ SÁCH</span>
-      <h2 className="category-banner__title">{displayTitle.toUpperCase()}</h2>
+      <h2 className="category-banner__title">{displayTitle}</h2>
       <p className="category-banner__tagline">{displayTagline}</p>
     </>
   )

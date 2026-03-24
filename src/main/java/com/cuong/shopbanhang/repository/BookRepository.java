@@ -44,6 +44,18 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             "(:search IS NULL OR :search = '' OR " +
             "LOWER(b.bookName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(b.description) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(b.author) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+            "b.category IS NOT NULL AND b.category.categoryId = :categoryId"
+        )
+    Page<Book> findBooksWithSearchAndCategoryId(
+            @Param("search") String search,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable);
+
+    @Query("SELECT b FROM Book b WHERE " +
+            "(:search IS NULL OR :search = '' OR " +
+            "LOWER(b.bookName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(b.description) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(b.author) LIKE LOWER(CONCAT('%', :search, '%')))"
         )
     Page<Book> findBooksWithSearch(@Param("search") String search, Pageable pageable);

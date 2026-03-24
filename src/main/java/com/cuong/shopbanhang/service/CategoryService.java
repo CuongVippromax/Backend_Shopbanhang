@@ -43,7 +43,7 @@ public class CategoryService {
     }
 
     public PageResponse<?> getAllCategories(int pageNo, int pageSize, String sortBy, String search) {
-        if (pageNo > 1) {
+        if (pageNo > 0) {
             pageNo = pageNo - 1;
         }
 

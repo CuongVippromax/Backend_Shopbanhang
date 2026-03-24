@@ -75,15 +75,12 @@ public class UserService {
 
     public PageResponse<List<UserResponse>> getAllUserswithSearchandSort(int pageNo, int pageSize, String sortBy,
             String search) {
-        // Frontend gửi pageNo 1-based (trang 1, 2, 3...) → chuyển sang 0-based cho Spring
         int zeroBasedPage = pageNo <= 0 ? 0 : pageNo - 1;
-        log.info("getAllUserswithSearchandSort → raw pageNo={}, zeroBasedPage={}, pageSize={}, sortBy={}, search={}", pageNo, zeroBasedPage, pageSize, sortBy, search);
 
-        String sortField = "userId";  // Default sort field
-        Sort.Direction direction = Sort.Direction.ASC;  // Default direction
+        String sortField = "userId";
+        Sort.Direction direction = Sort.Direction.ASC;
 
         if (StringUtils.hasLength(sortBy)) {
-            // Support both "field:direction" and just "field"
             String[] parts = sortBy.split(":");
             sortField = parts[0];
             if (parts.length > 1 && parts[1].equalsIgnoreCase("desc")) {
@@ -92,9 +89,7 @@ public class UserService {
         }
 
         Pageable pageable = PageRequest.of(zeroBasedPage, pageSize, Sort.by(direction, sortField));
-        log.info("Querying repository with pageable: page={}, size={}, sort={}", pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
         Page<User> users = userRepository.findUsersWithSearch(search, pageable);
-        log.info("Repository returned: totalElements={}, totalPages={}, content.size={}", users.getTotalElements(), users.getTotalPages(), users.getContent().size());
         List<UserResponse> userResponses = users.stream().map(user -> UserResponse.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())

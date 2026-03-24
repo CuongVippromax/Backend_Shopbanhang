@@ -2,7 +2,6 @@ package com.cuong.shopbanhang.controller.admin;
 
 import java.util.List;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 
 import org.springframework.http.HttpStatus;
@@ -13,11 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import com.cuong.shopbanhang.dto.response.DataResponse;
 import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.dto.response.UserResponse;
-import com.cuong.shopbanhang.model.User;
 import com.cuong.shopbanhang.service.UserService;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 
 @RestController
@@ -25,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/v1/admin/users")
 @AllArgsConstructor
 @PreAuthorize("hasAuthority('ADMIN')")
-@Slf4j(topic = "AdminUserController")
 public class AdminUserController {
 
     private final UserService userService;
@@ -36,9 +32,7 @@ public class AdminUserController {
             @RequestParam(name = "pageNo", defaultValue = "1") int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
             @RequestParam(name = "sortBy", required = false) String sortBy) {
-        log.info("getAllUsers received → pageNo={}, pageSize={}, sortBy={}, search={}", pageNo, pageSize, sortBy, search);
         PageResponse<List<UserResponse>> users = userService.getAllUserswithSearchandSort(pageNo, pageSize, sortBy, search);
-        log.info("getAllUsers returning → pageNo={}, totalElements={}, dataSize={}", users.getPageNo(), users.getTotalElements(), users.getData() != null ? users.getData().size() : 0);
         return DataResponse.<PageResponse<List<UserResponse>>>builder()
                 .statusCode(HttpStatus.OK.value())
                 .message("Users found successfully")

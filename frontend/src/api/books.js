@@ -2,13 +2,17 @@ import { apiGet } from './client.js'
 
 export function getBooks(params = {}) {
   const pageNo = params.pageNo ?? 1
-  return apiGet('/books/all', {
+  const q = {
     pageNo: pageNo < 1 ? 0 : pageNo - 1,
     pageSize: params.pageSize ?? 12,
     sortBy: params.sortBy ?? 'bookId:desc',
     search: params.search ?? '',
     category: params.category ?? '',
-  })
+  }
+  if (params.categoryId != null && params.categoryId !== '') {
+    q.categoryId = String(params.categoryId)
+  }
+  return apiGet('/books/all', q)
 }
 
 /** API cho trang Sách bán chạy (/sach-moi) */

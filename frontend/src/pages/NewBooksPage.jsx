@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { getBooks } from '../api/books.js'
 import { ProductSection } from '../components/ProductCard.jsx'
+import { CategoryBanner } from '../components/CategoryBanner.jsx'
+import NewBooksHeroBanner from '../components/NewBooksHeroBanner.jsx'
 
 const sortOptions = [
   { value: 'newest', label: 'Mới nhất' },
@@ -46,34 +48,41 @@ export default function NewBooksPage() {
   }, [books, sortOption])
 
   return (
-    <>
+    <div className="new-books-page">
       <div className="breadcrumb">
-        <Link to="/">TRANG CHỦ</Link>
-        <span className="breadcrumb__sep">»</span>
-        <span>SÁCH MỚI PHÁT HÀNH</span>
+        <Link to="/">Trang chủ</Link>
+        <span className="breadcrumb__sep">›</span>
+        <span>Sách mới phát hành</span>
       </div>
 
-      <div className="main__content">
-        <div className="page-banner page-banner--image">
-          <img src="/images/4.webp" alt="Sách mới phát hành" className="page-banner__img" />
-        </div>
+      <NewBooksHeroBanner />
 
+      <div id="sach-moi-danh-sach" className="main__content">
+        <CategoryBanner
+          categoryName="Sách mới phát hành"
+          tagline="Những đầu sách mới nhất, cập nhật liên tục từ Nhà sách Hoàng Kim"
+          books={books}
+          showBookCovers={!loading && books.length > 0}
+        />
         <div className="products-toolbar">
-          <label className="products-toolbar__label" htmlFor="new-books-sort">
-            Sắp xếp:
-          </label>
-          <select
-            id="new-books-sort"
-            className="sort-select"
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <h1 className="products-title">Sách mới phát hành</h1>
+          <div className="products-actions">
+            <label className="products-toolbar__label" htmlFor="new-books-sort">
+              Sắp xếp:
+            </label>
+            <select
+              id="new-books-sort"
+              className="sort-select"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -95,6 +104,6 @@ export default function NewBooksPage() {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }

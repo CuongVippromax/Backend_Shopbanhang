@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getBooks } from '../api/books.js'
 import ProductCard from '../components/ProductCard.jsx'
 import { CategoryBanner } from '../components/CategoryBanner.jsx'
+import ComicKidsHeroBanner from '../components/ComicKidsHeroBanner.jsx'
 
 const sortOptions = [
   { value: 'newest', label: 'Mới nhất' },
@@ -47,21 +48,23 @@ export default function TruyenTranhThieuNhiPage() {
   return (
     <div className="truyen-tranh-page">
       <div className="breadcrumb">
-        <Link to="/">TRANG CHỦ</Link>
-        <span className="breadcrumb__sep">»</span>
-        <span>TRUYỆN TRANH & THIẾU NHI</span>
+        <Link to="/">Trang chủ</Link>
+        <span className="breadcrumb__sep">›</span>
+        <span>Truyện tranh & Thiếu nhi</span>
       </div>
 
       <div className="main__content">
-        <div className="page-banner page-banner--image">
-          <img src="/images/10.png" alt="Truyện tranh & Thiếu nhi" className="page-banner__img" />
-        </div>
+        <ComicKidsHeroBanner books={books} />
 
-        <div className="products-main" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+        <div
+          id="truyen-danh-sach"
+          className="products-main"
+          style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
+        >
           <CategoryBanner
             categoryName="Truyện tranh & Thiếu nhi"
             books={books}
-            showBookCovers={books.length > 0}
+            showBookCovers={!loading && books.length > 0}
           />
           <div className="products-toolbar">
             <h1 className="products-title">Truyện tranh & Thiếu nhi</h1>

@@ -52,21 +52,20 @@ export default function AdminOrdersPage() {
   }
 
   const handleStatusChange = async (orderId, newStatus) => {
-    if (!window.confirm(`Đổi trạng thái đơn hàng #${orderId} thành "${getStatusLabel(newStatus)}"?`)) return
     try {
       await updateOrderStatus(orderId, newStatus)
       fetchOrders(page)
+      if (showDetailModal) loadDetail(orderId)
     } catch (err) {
       alert('Cập nhật thất bại: ' + (err?.message || ''))
     }
   }
 
   const handlePaymentStatusChange = async (orderId, newStatus) => {
-    if (!window.confirm(`Đổi trạng thái thanh toán đơn #${orderId} thành "${getPaymentLabel(newStatus)}"?`)) return
     try {
       await updatePaymentStatus(orderId, newStatus)
+      fetchOrders(page)
       if (showDetailModal) loadDetail(orderId)
-      else fetchOrders(page)
     } catch (err) {
       alert('Cập nhật thất bại: ' + (err?.message || ''))
     }
@@ -244,18 +243,9 @@ export default function AdminOrdersPage() {
                     </span>
                   </td>
                   <td>
-                    <select
-                      value={order.orderStatus}
-                      onChange={(e) => handleStatusChange(order.orderId, e.target.value)}
-                      className="admin-select admin-select--sm"
-                      style={{ minWidth: '130px' }}
-                    >
-                      <option value="PENDING">Chờ xử lý</option>
-                      <option value="PROCESSING">Đang xử lý</option>
-                      <option value="SHIPPED">Đang giao</option>
-                      <option value="COMPLETED">Hoàn thành</option>
-                      <option value="CANCELLED">Đã hủy</option>
-                    </select>
+                    <span className={`badge ${statusBadgeClass(order.orderStatus)}`}>
+                      {getStatusLabel(order.orderStatus)}
+                    </span>
                   </td>
                   <td>
                     <button

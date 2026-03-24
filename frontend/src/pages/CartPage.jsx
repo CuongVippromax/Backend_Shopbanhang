@@ -12,6 +12,44 @@ function getImageSrc(image) {
   return t
 }
 
+/** Icon tiền mặt / COD — tờ tiền + ký hiệu */
+function PaymentIconCash() {
+  return (
+    <svg
+      className="cart-payment-icon-svg"
+      viewBox="0 0 48 48"
+      width="44"
+      height="44"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="codBillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#66bb6a" />
+          <stop offset="100%" stopColor="#2e7d32" />
+        </linearGradient>
+      </defs>
+      <rect x="4" y="13" width="40" height="24" rx="4" fill="url(#codBillGrad)" />
+      <rect x="6" y="15" width="36" height="20" rx="3" fill="#fff" opacity="0.98" />
+      <circle cx="24" cy="25" r="6" fill="none" stroke="#2e7d32" strokeWidth="1.5" />
+      <text
+        x="24"
+        y="28.5"
+        textAnchor="middle"
+        fill="#2e7d32"
+        fontSize="10"
+        fontWeight="800"
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        ₫
+      </text>
+      <rect x="8" y="18" width="7" height="2" rx="1" fill="#c8e6c9" />
+      <rect x="8" y="30" width="7" height="2" rx="1" fill="#c8e6c9" />
+      <rect x="33" y="18" width="7" height="2" rx="1" fill="#c8e6c9" />
+      <rect x="33" y="30" width="7" height="2" rx="1" fill="#c8e6c9" />
+    </svg>
+  )
+}
+
 export default function CartPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -175,18 +213,14 @@ export default function CartPage() {
           return
         }
         const amountVnd = Math.round(total)
-        console.log('Calling VNPay API with amount:', amountVnd, 'orderId:', orderId)
         try {
           const res = await apiGet('/payment/vn-pay', { amount: amountVnd, orderId: orderId })
-          console.log('VNPay response:', res)
           const paymentUrl = res?.data?.paymentUrl
-          console.log('Payment URL:', paymentUrl)
           if (paymentUrl) {
             window.location.href = paymentUrl
             return
           }
         } catch (vnPayErr) {
-          console.error('VNPay error:', vnPayErr)
           setError('Lỗi kết nối VNPay: ' + vnPayErr.message)
           return
         }
@@ -231,10 +265,38 @@ export default function CartPage() {
       <div className="cart-page">
         <div className="cart-main">
           <section className="cart-section">
+            <h2 className="cart-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Giỏ hàng của bạn
+              {items.length > 0 && (
+                <span style={{ 
+                  fontSize: '14px', 
+                  fontWeight: 400, 
+                  color: '#666',
+                  background: '#f5f5f5',
+                  padding: '4px 12px',
+                  borderRadius: '20px'
+                }}>
+                  {productCount} sản phẩm
+                </span>
+              )}
+            </h2>
+            
             {items.length === 0 ? (
-              <div className="cart-empty">
-                <p>Giỏ hàng trống.</p>
-                <Link to="/san-pham" className="cart-buy-more">Mua sắm ngay</Link>
+              <div className="cart-empty" style={{ padding: '60px 20px' }}>
+                <div style={{ fontSize: '48px', marginBottom: '20px', color: '#ccc' }}>—</div>
+                <h3 style={{ margin: '0 0 12px', color: '#333' }}>Giỏ hàng trống</h3>
+                <p style={{ margin: '0 0 24px', color: '#666' }}>Hãy khám phá những cuốn sách thú vị!</p>
+                <Link to="/san-pham" className="cart-buy-more" style={{
+                  display: 'inline-block',
+                  padding: '12px 32px',
+                  background: 'var(--primary)',
+                  color: '#fff',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: 600
+                }}>
+                  Khám phá sách ngay
+                </Link>
               </div>
             ) : (
               <>
@@ -276,7 +338,7 @@ export default function CartPage() {
                                 </div>
                               </Link>
                             </td>
-                            <td className="cart-table__price">
+                            <td className="cart-table__price" style={{ fontWeight: 600 }}>
                               {price.toLocaleString('vi-VN')}₫
                             </td>
                             <td className="cart-table__qty">
@@ -307,7 +369,7 @@ export default function CartPage() {
                                 </button>
                               </div>
                             </td>
-                            <td className="cart-table__total">
+                            <td className="cart-table__total" style={{ fontWeight: 700, color: 'var(--primary-dark)' }}>
                               {lineTotal.toLocaleString('vi-VN')}₫
                             </td>
                             <td className="cart-table__remove">
@@ -316,7 +378,7 @@ export default function CartPage() {
                                 className="cart-table-remove"
                                 onClick={() => handleRemove(item.id)}
                                 aria-label="Xóa sản phẩm"
-                                title="Xóa"
+                                title="Xóa sản phẩm"
                               >
                                 ×
                               </button>
@@ -328,14 +390,45 @@ export default function CartPage() {
                   </table>
                 </div>
 
-                <Link to="/san-pham" className="cart-buy-more cart-buy-more--btn">
-                  Mua thêm
-                </Link>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  marginTop: '20px',
+                  paddingTop: '20px',
+                  borderTop: '1px solid #eee'
+                }}>
+                  <Link to="/san-pham" className="cart-buy-more">
+                    ← Tiếp tục mua sắm
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('Bạn có chắc muốn xóa tất cả sản phẩm?')) {
+                        clearCart()
+                        loadCart()
+                      }
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#999',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    Xóa tất cả
+                  </button>
+                </div>
 
                 <div className="cart-summary">
                   <div className="cart-summary-row">
+                    <span>Tạm tính ({productCount} sản phẩm)</span>
+                    <span>{subtotal.toLocaleString('vi-VN')}₫</span>
+                  </div>
+                  <div className="cart-summary-row">
                     <span>Phí vận chuyển</span>
-                    <span className="cart-freeship">Freeship</span>
+                    <span className="cart-freeship">Miễn phí</span>
                   </div>
                   <div className="cart-summary-row cart-summary-total">
                     <span>Tổng cộng:</span>
@@ -350,67 +443,67 @@ export default function CartPage() {
           {/* Cột phải: Thông tin nhận hàng */}
           <aside className="cart-delivery">
             {!isLoggedIn() && (
-              <>
-                <Link to="/dang-nhap" className="cart-login-prompt">
-                  Đăng ký / Đăng nhập để mua hàng tích điểm
-                </Link>
-                <div className="cart-guest-info">
-                  <span className="cart-guest-icon">i</span>
-                  <span>Hoặc mua hàng không cần đăng ký</span>
-                </div>
-              </>
+              <Link to="/dang-nhap" className="cart-login-prompt">
+                Đăng nhập hoặc đăng ký để đặt hàng
+              </Link>
             )}
 
             <div className="cart-delivery-form">
-              <h2 className="cart-delivery-title">1. Địa chỉ giao hàng</h2>
+              <h2 className="cart-delivery-title">Địa chỉ giao hàng</h2>
               <div className="cart-form-group">
                 <input
                   type="text"
-                  placeholder="Họ và tên"
+                  placeholder="Họ và tên người nhận *"
                   value={delivery.fullName}
                   onChange={(e) => setDelivery((d) => ({ ...d, fullName: e.target.value }))}
                   className="cart-input"
+                  disabled={!isLoggedIn()}
                 />
               </div>
               <div className="cart-form-group">
                 <input
                   type="tel"
-                  placeholder="Nhập số điện thoại"
+                  placeholder="Số điện thoại *"
                   value={delivery.phone}
                   onChange={(e) => setDelivery((d) => ({ ...d, phone: e.target.value }))}
                   className="cart-input"
+                  disabled={!isLoggedIn()}
                 />
               </div>
               <div className="cart-form-group">
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder="Email (nhận hóa đơn)"
                   value={delivery.email}
                   onChange={(e) => setDelivery((d) => ({ ...d, email: e.target.value }))}
                   className="cart-input"
+                  disabled={!isLoggedIn()}
                 />
               </div>
               <div className="cart-form-group">
                 <input
                   type="text"
-                  placeholder="Nhập địa chỉ đầy đủ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)"
+                  placeholder="Địa chỉ giao hàng * (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)"
                   value={delivery.address}
                   onChange={(e) => setDelivery((d) => ({ ...d, address: e.target.value }))}
                   className="cart-input"
+                  disabled={!isLoggedIn()}
                 />
               </div>
               <div className="cart-form-group">
                 <input
                   type="text"
-                  placeholder="Ghi chú"
+                  placeholder="Ghi chú đơn hàng (tùy chọn)"
                   value={delivery.note}
                   onChange={(e) => setDelivery((d) => ({ ...d, note: e.target.value }))}
                   className="cart-input"
+                  disabled={!isLoggedIn()}
                 />
               </div>
 
-              <h2 className="cart-delivery-title">2. Hình thức thanh toán</h2>
-              <div className="cart-payment-methods">
+              <div className="cart-payment-panel">
+                <h2 className="cart-delivery-title cart-delivery-title--payment">Hình thức thanh toán</h2>
+                <div className="cart-payment-methods">
                 <label className={`cart-payment-option ${paymentMethod === 'CASH' ? 'cart-payment-option--active' : ''}`}>
                   <input
                     type="radio"
@@ -418,9 +511,15 @@ export default function CartPage() {
                     value="CASH"
                     checked={paymentMethod === 'CASH'}
                     onChange={(e) => setPaymentMethod(e.target.value)}
+                    disabled={!isLoggedIn()}
                   />
-                  <span className="cart-payment-icon">💵</span>
-                  <span className="cart-payment-label">Tiền mặt (COD)</span>
+                  <span className="cart-payment-badge" aria-hidden>
+                    <PaymentIconCash />
+                  </span>
+                  <div className="cart-payment-text">
+                    <span className="cart-payment-label">Tiền mặt (COD)</span>
+                    <p className="cart-payment-hint">Thanh toán khi nhận hàng</p>
+                  </div>
                 </label>
                 <label className={`cart-payment-option ${paymentMethod === 'VNPAY' ? 'cart-payment-option--active' : ''}`}>
                   <input
@@ -429,15 +528,41 @@ export default function CartPage() {
                     value="VNPAY"
                     checked={paymentMethod === 'VNPAY'}
                     onChange={(e) => setPaymentMethod(e.target.value)}
+                    disabled={!isLoggedIn()}
                   />
-                  <span className="cart-payment-icon">🏦</span>
-                  <span className="cart-payment-label">VNPay</span>
+                  <span className="cart-payment-badge" aria-hidden>
+                    <img
+                      src="/images/vnpay-logo.png"
+                      alt=""
+                      className="cart-payment-img cart-payment-img--vnpay"
+                      width="120"
+                      height="56"
+                      decoding="async"
+                    />
+                  </span>
+                  <div className="cart-payment-text">
+                    <span className="cart-payment-label">VNPay</span>
+                    <p className="cart-payment-hint">Thanh toán qua ví điện tử, thẻ ngân hàng</p>
+                  </div>
                 </label>
+                </div>
               </div>
 
               {items.length > 0 && (
                 <div className="cart-delivery-actions">
-                  {error && <p className="cart-error">{error}</p>}
+                  {error && (
+                    <div style={{ 
+                      padding: '12px 16px', 
+                      background: '#ffebee', 
+                      border: '1px solid #ffcdd2',
+                      borderRadius: '8px',
+                      color: '#c62828',
+                      fontSize: '14px',
+                      marginBottom: '12px'
+                    }}>
+                      {error}
+                    </div>
+                  )}
                   {isLoggedIn() ? (
                     <button
                       type="button"
@@ -445,7 +570,7 @@ export default function CartPage() {
                       onClick={handleCheckout}
                       disabled={loading}
                     >
-                      {loading ? 'Đang xử lý...' : 'Thanh toán'}
+                      {loading ? 'Đang xử lý...' : `Thanh toán ${total.toLocaleString('vi-VN')}₫`}
                     </button>
                   ) : (
                     <Link to="/dang-nhap" className="cart-checkout-btn cart-checkout-btn--block cart-checkout-btn--login">

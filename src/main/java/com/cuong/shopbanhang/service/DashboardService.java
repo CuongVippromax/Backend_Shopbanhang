@@ -1,7 +1,8 @@
 package com.cuong.shopbanhang.service;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "DashboardService")
 public class DashboardService {
 
+    /** Gom doanh thu theo tháng theo lịch VN — khớp câu SQL tay (vd. 2026-03-01 … 2026-04-01). */
+    private static final ZoneId VIETNAM = ZoneId.of("Asia/Ho_Chi_Minh");
+
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final OrderRepository orderRepository;
@@ -48,40 +52,32 @@ public class DashboardService {
     }
 
     private DashboardStats doGetDashboardStats() {
-        log.info("=== DashboardService.getDashboardStats() START ===");
-        // ── Đếm tổng ──
+        // Đếm tổng
         Long totalUsers = safeLong(userRepository.count());
-        log.info("totalUsers={}", totalUsers);
-
         Long totalBooks = safeLong(bookRepository.count());
         Long totalOrders = safeLong(orderRepository.count());
         Long totalCategories = safeLong(categoryRepository.count());
-        log.info("books={}, orders={}, categories={}", totalBooks, totalOrders, totalCategories);
 
-        // ── Doanh thu ──
-        log.info("Fetching getTotalRevenue...");
-        Object revenueObj = orderRepository.getTotalRevenue();
-        log.info("getTotalRevenue raw={} type={}", revenueObj, revenueObj != null ? revenueObj.getClass().getName() : "null");
-        Double totalRevenue = objToDouble(revenueObj);
-        log.info("totalRevenue={}", totalRevenue);
+        // Doanh thu (PAID + COMPLETED)
+        Double totalRevenue = objToDouble(orderRepository.getTotalRevenue());
 
-        // ── Đếm đơn hàng theo trạng thái ──
+        // Đếm đơn hàng theo trạng thái
         Long pendingOrders = safeLong(orderRepository.countByOrderStatus(OrderStatus.PENDING));
         Long shippedOrders = safeLong(orderRepository.countByOrderStatus(OrderStatus.SHIPPED));
         Long completedOrders = safeLong(orderRepository.countByOrderStatus(OrderStatus.COMPLETED));
         Long cancelledOrders = safeLong(orderRepository.countByOrderStatus(OrderStatus.CANCELLED));
 
-        // ── Tồn kho ──
+        // Tồn kho
         Long lowStockBooks = safeLong(bookRepository.countByQuantityBetween(1, 4));
         Long outOfStockBooks = safeLong(bookRepository.countByQuantity(0));
 
-        // ── Top sách bán chạy ──
+        // Top sách bán chạy
         List<TopBookStat> topBooks = loadTopSellingBooks(5);
 
-        // ── Doanh thu 6 tháng gần nhất ──
+        // Doanh thu 6 tháng gần nhất
         List<MonthlyRevenue> monthlyStats = loadMonthlyRevenue(6);
 
-        // ── Đơn hàng gần đây (KHÔNG gọi toOrderResponse, tự build DTO) ──
+        // Đơn hàng gần đây
         List<OrderResponse> recentOrders = loadRecentOrders(10);
 
         return DashboardStats.builder()
@@ -123,22 +119,11 @@ public class DashboardService {
     }
 
     private List<TopBookStat> loadTopSellingBooks(int limit) {
-        log.info("Fetching top {} selling books...", limit);
         List<TopBookStat> result = new ArrayList<>();
         try {
             List<Object[]> rows = orderDetailRepository.findTopSellingBooks(limit);
-            log.info("top books raw rows={} type={}", rows, rows != null ? rows.getClass().getName() : "null");
             if (rows == null) return result;
-            for (int i = 0; i < rows.size(); i++) {
-                Object[] row = rows.get(i);
-                log.info("  row[{}]: size={}, types=[{}, {}, {}, {}, {}]",
-                    i, row != null ? row.length : "null",
-                    row != null && row.length > 0 ? row[0].getClass().getName() : "null",
-                    row != null && row.length > 1 ? row[1].getClass().getName() : "null",
-                    row != null && row.length > 2 ? row[2].getClass().getName() : "null",
-                    row != null && row.length > 3 ? row[3].getClass().getName() : "null",
-                    row != null && row.length > 4 ? row[4].getClass().getName() : "null"
-                );
+            for (Object[] row : rows) {
                 if (row == null || row.length < 5) continue;
                 result.add(TopBookStat.builder()
                         .bookId(objToLong(row[0]))
@@ -156,32 +141,32 @@ public class DashboardService {
 
     private List<MonthlyRevenue> loadMonthlyRevenue(int months) {
         List<MonthlyRevenue> result = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate todayVn = LocalDate.now(VIETNAM);
         for (int i = months - 1; i >= 0; i--) {
-            LocalDateTime start = now.minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
-            LocalDateTime end = start.plusMonths(1);
+            LocalDate monthFirst = todayVn.minusMonths(i).withDayOfMonth(1);
+            LocalDateTime start = monthFirst.atStartOfDay(VIETNAM).toLocalDateTime();
+            LocalDateTime end = monthFirst.plusMonths(1).atStartOfDay(VIETNAM).toLocalDateTime();
             try {
-                log.info("Fetching revenue for {} to {}", start, end);
-                Object[] raw = orderRepository.getRevenueAndCountByDateRange(start, end);
-                log.info("  raw={} type={}", raw, raw != null ? raw.getClass().getName() : "null");
-                if (raw != null) {
-                    log.info("  raw[0]={} type={}, raw[1]={} type={}",
-                        raw[0], raw[0] != null ? raw[0].getClass().getName() : "null",
-                        raw[1], raw[1] != null ? raw[1].getClass().getName() : "null");
+                List<Object[]> rows = orderRepository.getRevenueAndCountByDateRange(start, end);
+                double revenue = 0.0;
+                long count = 0L;
+                if (rows != null && !rows.isEmpty() && rows.get(0) != null) {
+                    Object[] r = rows.get(0);
+                    if (r.length >= 2) {
+                        revenue = objToDouble(r[0]);
+                        count = objToLong(r[1]);
+                    }
                 }
-                Double revenue = raw != null ? objToDouble(raw[0]) : 0.0;
-                Long count = raw != null ? objToLong(raw[1]) : 0L;
                 result.add(MonthlyRevenue.builder()
-                        .month(start.getMonth().getDisplayName(TextStyle.SHORT, Locale.forLanguageTag("vi")))
-                        .year(start.getYear())
+                        .month(monthFirst.getMonth().getDisplayName(TextStyle.SHORT, Locale.forLanguageTag("vi")))
+                        .year(monthFirst.getYear())
                         .revenue(revenue)
                         .orderCount(count)
                         .build());
             } catch (Exception e) {
-                log.warn("Could not load monthly revenue for {}: {}", start, e.getMessage());
                 result.add(MonthlyRevenue.builder()
-                        .month(start.getMonth().getDisplayName(TextStyle.SHORT, Locale.forLanguageTag("vi")))
-                        .year(start.getYear())
+                        .month(monthFirst.getMonth().getDisplayName(TextStyle.SHORT, Locale.forLanguageTag("vi")))
+                        .year(monthFirst.getYear())
                         .revenue(0.0)
                         .orderCount(0L)
                         .build());

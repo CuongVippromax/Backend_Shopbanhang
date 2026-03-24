@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.cuong.shopbanhang.common.OrderStatus;
-import com.cuong.shopbanhang.common.PaymentStatus;
 import com.cuong.shopbanhang.model.Order;
 
 import java.time.LocalDateTime;
@@ -30,19 +29,25 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "o.shippingAddress LIKE CONCAT('%', :search, '%'))")
     Page<Order> searchOrders(@Param("search") String search, Pageable pageable);
 
-    // Thống kê: Tổng doanh thu (PAID=1 OR COMPLETED=3)
-    @Query("SELECT CAST(COALESCE(SUM(o.totalAmount), 0) AS DOUBLE) FROM Order o WHERE o.paymentStatus = com.cuong.shopbanhang.common.PaymentStatus.PAID OR o.orderStatus = com.cuong.shopbanhang.common.OrderStatus.COMPLETED")
+    /**
+     * Native SQL: khớp đúng cột số trong DB (ordinal PAID=1, COMPLETED=3).
+     * Tránh JPQL + enum không khớp khiến điều kiện lọc sai → doanh thu / số đơn sai.
+     */
+    @Query(value = "SELECT COALESCE(SUM(total_amount), 0) FROM orders " +
+           "WHERE payment_status = 1 AND order_status = 3", nativeQuery = true)
     Double getTotalRevenue();
 
     // Thống kê: Đếm đơn hàng theo trạng thái
     Long countByOrderStatus(OrderStatus orderStatus);
 
-    // Thống kê: Doanh thu theo tháng (PAID=1 OR COMPLETED=3)
-    @Query("SELECT CAST(COALESCE(SUM(o.totalAmount), 0) AS DOUBLE), COUNT(o) FROM Order o " +
-           "WHERE o.orderDate >= :startDate AND o.orderDate < :endDate " +
-           "AND (o.paymentStatus = com.cuong.shopbanhang.common.PaymentStatus.PAID " +
-           "OR o.orderStatus = com.cuong.shopbanhang.common.OrderStatus.COMPLETED)")
-    Object[] getRevenueAndCountByDateRange(
+    /**
+     * Doanh thu + số đơn theo tháng — cùng điều kiện {@link #getTotalRevenue()}.
+     * Trả về 1 dòng: [0]=tổng tiền, [1]=số đơn.
+     */
+    @Query(value = "SELECT COALESCE(SUM(total_amount), 0), COUNT(*) FROM orders " +
+           "WHERE order_date >= :startDate AND order_date < :endDate " +
+           "AND payment_status = 1 AND order_status = 3", nativeQuery = true)
+    List<Object[]> getRevenueAndCountByDateRange(
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 

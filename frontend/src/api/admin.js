@@ -18,7 +18,7 @@ export const updateBook = (bookId, data) => apiPostForm(`/admin/books/${bookId}`
 export const deleteBook = (bookId) => apiDelete(`/admin/books/${bookId}`)
 
 // Categories - Admin
-export const getAllCategoriesAdmin = () => apiGet('/admin/categories/all')
+export const getAllCategoriesAdmin = (params) => apiGet('/admin/categories/all', params)
 export const createCategory = (data) => apiPost('/admin/categories', data)
 export const updateCategory = (categoryId, data) => apiPut(`/admin/categories/${categoryId}`, data)
 export const deleteCategory = (categoryId) => apiDelete(`/admin/categories/${categoryId}`)

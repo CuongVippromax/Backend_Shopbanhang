@@ -33,14 +33,14 @@ function AdminBreadcrumb({ pathname }) {
 }
 
 const menuItems = [
-  { path: '/admin', label: 'Dashboard', icon: '◉', exact: true },
-  { path: '/admin/orders', label: 'Đơn hàng', icon: '🛒', hasDropdown: true },
-  { path: '/admin/categories', label: 'Danh mục', icon: '⊞', hasDropdown: true },
-  { path: '/admin/products', label: 'Sản phẩm', icon: '📦', hasDropdown: true },
-  { path: '/admin/statistics', label: 'Thống kê', icon: '📈', hasDropdown: true },
-  { path: '/admin/inventory', label: 'Quản lý kho', icon: '🏭' },
-  { path: '/admin/users', label: 'Thành viên', icon: '👥' },
-  { path: '/admin/comments', label: 'Bình luận', icon: '💬' },
+  { path: '/admin', label: 'Dashboard', exact: true },
+  { path: '/admin/orders', label: 'Đơn hàng', hasDropdown: true },
+  { path: '/admin/categories', label: 'Danh mục', hasDropdown: true },
+  { path: '/admin/products', label: 'Sản phẩm', hasDropdown: true },
+  { path: '/admin/statistics', label: 'Thống kê', hasDropdown: true },
+  { path: '/admin/inventory', label: 'Quản lý kho' },
+  { path: '/admin/users', label: 'Thành viên' },
+  { path: '/admin/comments', label: 'Bình luận' },
 ]
 
 export default function AdminLayout() {
@@ -81,8 +81,7 @@ export default function AdminLayout() {
     <div className={`admin-layout admin-layout--new ${!sidebarOpen ? 'admin-layout--sidebar-collapsed' : ''}`}>
       <aside className={`admin-sidebar admin-sidebar--new ${sidebarOpen ? '' : 'admin-sidebar--collapsed'}`}>
         <div className="admin-sidebar__brand">
-          <span className="admin-sidebar__brand-icon">📖</span>
-          <span className="admin-sidebar__brand-text">BookStore Admin</span>
+          <span className="admin-sidebar__brand-text">Hoàng Kim Book</span>
         </div>
         <nav className="admin-sidebar__nav">
           {menuItems.map((item) => (
@@ -91,18 +90,15 @@ export default function AdminLayout() {
               to={item.path}
               className={`admin-sidebar__link ${isActive(item.path, item.exact) ? 'admin-sidebar__link--active' : ''}`}
             >
-              <span className="admin-sidebar__icon">{item.icon}</span>
               <span className="admin-sidebar__label">{item.label}</span>
               {item.hasDropdown && <span className="admin-sidebar__arrow">▼</span>}
             </Link>
           ))}
           <div className="admin-sidebar__footer">
             <Link to="/" className="admin-sidebar__link admin-sidebar__link--out">
-              <span className="admin-sidebar__icon">🏠</span>
               <span className="admin-sidebar__label">Về shop</span>
             </Link>
-            <button onClick={handleLogout} className="admin-sidebar__link admin-sidebar__link--out">
-              <span className="admin-sidebar__icon">🚪</span>
+            <button type="button" onClick={handleLogout} className="admin-sidebar__link admin-sidebar__link--out">
               <span className="admin-sidebar__label">Đăng xuất</span>
             </button>
           </div>

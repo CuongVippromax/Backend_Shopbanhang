@@ -18,9 +18,9 @@ export default function ContactPage() {
   return (
     <>
       <div className="breadcrumb">
-        <Link to="/">TRANG CHỦ</Link>
-        <span className="breadcrumb__sep">»</span>
-        <span>LIÊN HỆ</span>
+        <Link to="/">Trang chủ</Link>
+        <span className="breadcrumb__sep">›</span>
+        <span>Liên hệ</span>
       </div>
 
       <div className="contact-page">
@@ -28,7 +28,7 @@ export default function ContactPage() {
         <div className="contact-map-wrap">
           <iframe
             title="Bản đồ cửa hàng"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.424281601071!2d106.701755!3d10.776889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f46a7e51f2f%3A0x2e2c348a2e2c348a!2sHo%20Chi%20Minh%20City!5e0!3m2!1svi!2s!4v1640000000000!5m2!1svi!2s"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.776415462!2d105.7748!3d21.0285!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313454b5e8070c2f%3A0xbb20b0b1c9c76e8!2zS-G6o2EgxJDhu5FuZyBUcnVuZywgS-G6o2EgxJDhu5FuZywgSMOgIE7hu5lp!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s"
             className="contact-map-iframe"
             allowFullScreen
             loading="lazy"
@@ -43,6 +43,12 @@ export default function ContactPage() {
               Nhà sách Hoàng Kim là cửa hàng chuyên bán những sản phẩm sách chất lượng.
               Với những dòng sản phẩm sách Kinh Tế, sách dạy con, sách kỹ năng, sách Phật pháp ứng dụng…
               sẽ giúp bạn đọc tiếp cận với nguồn tri thức chất lượng.
+            </p>
+            <p className="contact-text" style={{ marginTop: '16px' }}>
+              <strong>Địa chỉ:</strong> Số 123 Đường Quang Trung, Quận Hà Đông, Hà Nội<br />
+              <strong>Hotline:</strong> <a href="tel:02438567890">024 3856 7890</a><br />
+              <strong>Email:</strong> <a href="mailto:hotro@hoangkimbooks.vn">hotro@hoangkimbooks.vn</a><br />
+              <strong>Giờ làm việc:</strong> 8h00 - 22h00 (Thứ 2 - Chủ nhật)
             </p>
           </section>
 

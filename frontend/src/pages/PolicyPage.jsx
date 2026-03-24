@@ -2,22 +2,18 @@ import { Link } from 'react-router-dom'
 
 const policyHighlights = [
   {
-    icon: '⭐',
     title: '100% chính hãng',
     description: 'Sản phẩm mới, có nguồn gốc rõ ràng và kiểm định chất lượng trước khi giao.'
   },
   {
-    icon: '🔄',
     title: 'Đổi trả trong 7 ngày',
     description: 'Đổi trả nhanh chóng nếu sách bị lỗi in, hư hỏng hoặc không đúng mô tả.'
   },
   {
-    icon: '🚚',
     title: 'Giao hàng 24h',
     description: 'Với đơn hàng nội thành, chúng tôi cam kết giao trong 24 giờ làm việc.'
   },
   {
-    icon: '💬',
     title: 'Tư vấn nhiệt tình',
     description: 'Đội ngũ hỗ trợ luôn sẵn sàng giải đáp mọi thắc mắc về sản phẩm và đơn hàng.'
   }
@@ -27,35 +23,47 @@ export default function PolicyPage() {
   return (
     <>
       <div className="breadcrumb">
-        <Link to="/">TRANG CHỦ</Link>
-        <span className="breadcrumb__sep">»</span>
-        <span>CHÍNH SÁCH BÁN HÀNG</span>
+        <Link to="/">Trang chủ</Link>
+        <span className="breadcrumb__sep">›</span>
+        <span>Chính sách bán hàng</span>
       </div>
 
-      <div className="policy-banner">
-        <div className="policy-banner__content">
-          <p className="policy-banner__eyebrow">Cam kết phục vụ</p>
-          <h1 className="policy-banner__title">Chính sách bán hàng</h1>
-          <p className="policy-banner__desc">
-            Nhà sách Hoàng Kim luôn đặt quyền lợi của khách hàng lên hàng đầu. Mỗi chính sách đều
-            được xây dựng để đảm bảo trải nghiệm mua sắm an tâm, nhanh chóng và minh bạch.
-          </p>
+      <section className="page-hero policy-hero" aria-labelledby="policy-hero-title">
+        <div className="page-hero__inner">
+          <div className="policy-hero__art" aria-hidden>
+            <img
+              src="/images/6.jpg"
+              alt=""
+              className="policy-hero__img"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </div>
+
+          <div className="policy-hero__copy">
+            <p className="policy-hero__eyebrow">CAM KẾT PHỤC VỤ</p>
+            <h1 id="policy-hero-title" className="policy-hero__title">
+              Chính sách bán hàng
+            </h1>
+            <p className="policy-hero__desc">
+              Nhà sách Hoàng Kim luôn đặt quyền lợi của khách hàng lên hàng đầu. Mỗi chính sách đều
+              được xây dựng để đảm bảo trải nghiệm mua sắm an tâm, nhanh chóng và minh bạch.
+            </p>
+          </div>
         </div>
-        <div className="policy-banner__grid">
-          {policyHighlights.map((item) => (
-            <article key={item.title} className="policy-banner__item">
-              <span className="policy-banner__icon" aria-hidden="true">
-                {item.icon}
-              </span>
-              <h3 className="policy-banner__item-title">{item.title}</h3>
-              <p className="policy-banner__item-desc">{item.description}</p>
-            </article>
-          ))}
-        </div>
-      </div>
+      </section>
 
       <div className="main__content">
         <div className="policy-page">
+          <div className="policy-highlights-grid">
+            {policyHighlights.map((item) => (
+              <article key={item.title} className="policy-highlight-card">
+                <h3 className="policy-highlight-card__title">{item.title}</h3>
+                <p className="policy-highlight-card__desc">{item.description}</p>
+              </article>
+            ))}
+          </div>
+
           <h1 className="policy-page__title">Chính sách bán hàng</h1>
 
           <div className="policy-section">

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { getBooksSachHay } from '../api/books.js'
 import { ProductSection } from '../components/ProductCard.jsx'
+import SachHayHeroBanner from '../components/SachHayHeroBanner.jsx'
 
 const sortOptions = [
   { value: 'newest', label: 'Mới nhất' },
@@ -45,34 +46,35 @@ export default function FeaturedBooksPage() {
   }, [books, sortOption])
 
   return (
-    <>
+    <div className="featured-books-page">
       <div className="breadcrumb">
-        <Link to="/">TRANG CHỦ</Link>
-        <span className="breadcrumb__sep">»</span>
-        <span>SÁCH HAY</span>
+        <Link to="/">Trang chủ</Link>
+        <span className="breadcrumb__sep">›</span>
+        <span>Sách hay</span>
       </div>
 
-      <div className="new-books-banner new-books-banner--image">
-        <img src="/images/7.jpg" alt="Sách Hay" className="new-books-banner__img" />
-      </div>
+      <SachHayHeroBanner />
 
-      <div className="main__content">
+      <div id="sach-hay-danh-sach" className="main__content">
         <div className="products-toolbar">
-          <label className="products-toolbar__label" htmlFor="featured-books-sort">
-            Sắp xếp:
-          </label>
-          <select
-            id="featured-books-sort"
-            className="sort-select"
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <h1 className="products-title">Sách hay</h1>
+          <div className="products-actions">
+            <label className="products-toolbar__label" htmlFor="featured-books-sort">
+              Sắp xếp:
+            </label>
+            <select
+              id="featured-books-sort"
+              className="sort-select"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -80,7 +82,7 @@ export default function FeaturedBooksPage() {
         ) : sortedBooks.length > 0 ? (
           <ProductSection
             title="Sách hay"
-            highlight=""
+            highlight="Hay"
             products={sortedBooks}
             initialVisibleCount={4}
           />
@@ -94,6 +96,6 @@ export default function FeaturedBooksPage() {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }

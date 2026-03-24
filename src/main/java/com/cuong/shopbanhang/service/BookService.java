@@ -140,6 +140,11 @@ public class BookService {
     }
 
     public PageResponse<?> getAllBook(int pageNo, int pageSize, String sortBy, String search, String category) {
+        return getAllBook(pageNo, pageSize, sortBy, search, category, null);
+    }
+
+    public PageResponse<?> getAllBook(int pageNo, int pageSize, String sortBy, String search, String category,
+            Long categoryId) {
         if (pageNo > 1) {
             pageNo = pageNo - 1;
         }
@@ -159,7 +164,9 @@ public class BookService {
                 Sort.by(direction, sortField));
         
         Page<Book> books;
-        if (StringUtils.hasLength(category)) {
+        if (categoryId != null) {
+            books = bookRepository.findBooksWithSearchAndCategoryId(search, categoryId, pageable);
+        } else if (StringUtils.hasLength(category)) {
             books = bookRepository.findBooksWithSearchAndCategory(search, category, pageable);
         } else {
             books = bookRepository.findBooksWithSearch(search, pageable);

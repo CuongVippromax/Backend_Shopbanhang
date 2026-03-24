@@ -18,9 +18,11 @@ export default function AdminCategoriesPage() {
     setLoading(true)
     getAllCategoriesAdmin({ pageNo: pageNum, pageSize: 10, search })
       .then((res) => {
-        const data = res.data?.data || res.data || []
-        setCategories(Array.isArray(data) ? data : [])
-        const total = res.data?.totalPages || res.totalPages || 1
+        // Backend trả trực tiếp PageResponse: { pageNo, pageSize, totalElements, totalPages, data: [...] }
+        // KHÔNG dùng res.data || res — vì res.data là mảng danh mục, truthy → pageResp thành mảng → pageResp.data = undefined
+        const rows = Array.isArray(res?.data) ? res.data : []
+        setCategories(rows)
+        const total = Math.max(1, res?.totalPages ?? 1)
         setTotalPages(total)
         setPage(pageNum)
         window.scrollTo({ top: 0, behavior: 'smooth' })

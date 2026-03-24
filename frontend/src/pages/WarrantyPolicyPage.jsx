@@ -40,7 +40,7 @@ export default function WarrantyPolicyPage() {
 
           <div className="policy-section">
             <h2>4. Liên hệ</h2>
-            <p>Hotline: <a href="tel:19001234">1900 1234</a> | Email: <a href="mailto:hotro@hoangkimbooks.vn">hotro@hoangkimbooks.vn</a></p>
+            <p>Hotline: <a href="tel:02438567890">024 3856 7890</a> | Email: <a href="mailto:hotro@hoangkimbooks.vn">hotro@hoangkimbooks.vn</a></p>
           </div>
         </div>
       </div>

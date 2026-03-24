@@ -18,7 +18,8 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> 
             "JOIN cartitem ci ON ci.order_detail_id = od.id " +
             "JOIN book b ON b.book_id = ci.book_id " +
             "JOIN orders o ON o.order_id = od.order_id " +
-            "WHERE o.order_status = 3 OR o.payment_status = 1 " +
+            // Enum ordinal: order COMPLETED=3; payment PAID=1 — cả hai đều phải đạt
+            "WHERE o.order_status = 3 AND o.payment_status = 1 " +
             "GROUP BY ci.book_id, b.book_name, b.image " +
             "ORDER BY totalSold DESC " +
             "LIMIT :limit", nativeQuery = true)
