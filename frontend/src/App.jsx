@@ -30,6 +30,7 @@ import AdminCategoriesPage from './pages/admin/AdminCategoriesPage.jsx'
 import AdminStatisticsPage from './pages/admin/AdminStatisticsPage.jsx'
 import AdminInventoryPage from './pages/admin/AdminInventoryPage.jsx'
 import AdminCommentsPage from './pages/admin/AdminCommentsPage.jsx'
+import AdminFaqPage from './pages/admin/AdminFaqPage.jsx'
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
 import { getCart } from './utils/cart'
 
@@ -80,6 +81,7 @@ function App() {
           <Route path="statistics" element={<AdminStatisticsPage />} />
           <Route path="inventory" element={<AdminInventoryPage />} />
           <Route path="comments" element={<AdminCommentsPage />} />
+          <Route path="faq" element={<AdminFaqPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

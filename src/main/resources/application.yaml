@@ -62,6 +62,8 @@ app:
       - /api/v1/users/forgot-password
       - /api/v1/users/reset-password
       - /api/v1/payment/**
+      - /api/v1/faqs/**
+      - /api/faqs/**
 
 jwt:
   secretKey: c2hvcGJhbmhhbmcxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY=

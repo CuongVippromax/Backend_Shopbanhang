@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation, useNavigate, createSearchParams } from 'reac
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { getUser, isLoggedIn, logout } from '../api/client'
 import { getCartCount, getCart } from '../utils/cart'
+import Chatbot from './Chatbot'
 
 /* ================================================================
    ICONS - SVG Icons
@@ -719,6 +720,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <Chatbot />
     </div>
   )
 }
