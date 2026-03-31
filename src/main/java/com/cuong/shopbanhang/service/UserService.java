@@ -35,14 +35,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
+    // Create new user
     public UserResponse createUser(User user) {
         if(userRepository.findByEmail(user.getEmail().toString()).isPresent()){
             throw new RuntimeException("Email already exists");
         }
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
-        
-        // Gắn role USER mặc định
+
         user.setRole(Role.USER);
 
         User savedUser = userRepository.save(user);
@@ -58,6 +58,7 @@ public class UserService {
                 .build();
     }
 
+    // Get user by ID
     public UserResponse getUserById(Long userId) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -73,6 +74,7 @@ public class UserService {
                 .build();
     }
 
+    // Get all users with pagination
     public PageResponse<List<UserResponse>> getAllUserswithSearchandSort(int pageNo, int pageSize, String sortBy,
             String search) {
         int zeroBasedPage = pageNo <= 0 ? 0 : pageNo - 1;
@@ -109,6 +111,7 @@ public class UserService {
                 .build();
     }
 
+    // Update user
     public UserResponse updateUser(Long userId, User user) {
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -140,12 +143,14 @@ public class UserService {
                 .build();
     }
 
+    // Delete user
     public void deleteUser(Long userId) {
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.delete(existingUser);
     }
 
+    // Update user role
     @Transactional
     public UserResponse updateUserRole(Long userId, String role) {
         User user = userRepository.findByUserId(userId)
@@ -174,47 +179,45 @@ public class UserService {
                 .build();
     }
 
+    // Send password reset email
     @Transactional
     public void forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        
-        // Delete any existing tokens for this user
+
         passwordResetTokenRepository.deleteByUser(user);
-        
-        // Create new reset token
+
         String token = UUID.randomUUID().toString();
         LocalDateTime expiryDate = LocalDateTime.now().plusHours(24);
-        
+
         PasswordResetToken resetToken = PasswordResetToken.builder()
                 .token(token)
                 .user(user)
                 .expiryDate(expiryDate)
                 .build();
-        
+
         passwordResetTokenRepository.save(resetToken);
-        
-        // Send email
+
         emailService.sendPasswordResetEmail(email, token);
         log.info("Password reset token sent to email: {}", email);
     }
 
+    // Reset password with token
     @Transactional
     public void resetPassword(String token, String newPassword) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid reset token"));
-        
+
         if (resetToken.isExpired()) {
             throw new RuntimeException("Reset token has expired");
         }
-        
+
         User user = resetToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        
-        // Delete the used token
+
         passwordResetTokenRepository.delete(resetToken);
-        
+
         log.info("Password reset successfully for user: {}", user.getEmail());
     }
 

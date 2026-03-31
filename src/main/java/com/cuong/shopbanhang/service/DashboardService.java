@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "DashboardService")
 public class DashboardService {
 
-    /** Gom doanh thu theo tháng theo lịch VN — khớp câu SQL tay (vd. 2026-03-01 … 2026-04-01). */
     private static final ZoneId VIETNAM = ZoneId.of("Asia/Ho_Chi_Minh");
 
     private final UserRepository userRepository;
@@ -41,6 +40,7 @@ public class DashboardService {
     private final OrderDetailRepository orderDetailRepository;
     private final CategoryRepository categoryRepository;
 
+    // Get dashboard statistics
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public DashboardStats getDashboardStats() {
         try {
@@ -51,33 +51,25 @@ public class DashboardService {
         }
     }
 
+    // Calculate all dashboard statistics
     private DashboardStats doGetDashboardStats() {
-        // Đếm tổng
+
         Long totalUsers = safeLong(userRepository.count());
         Long totalBooks = safeLong(bookRepository.count());
         Long totalOrders = safeLong(orderRepository.count());
         Long totalCategories = safeLong(categoryRepository.count());
 
-        // Doanh thu (PAID + COMPLETED)
         Double totalRevenue = objToDouble(orderRepository.getTotalRevenue());
 
-        // Đếm đơn hàng theo trạng thái
         Long pendingOrders = safeLong(orderRepository.countByOrderStatus(OrderStatus.PENDING));
         Long shippedOrders = safeLong(orderRepository.countByOrderStatus(OrderStatus.SHIPPED));
         Long completedOrders = safeLong(orderRepository.countByOrderStatus(OrderStatus.COMPLETED));
         Long cancelledOrders = safeLong(orderRepository.countByOrderStatus(OrderStatus.CANCELLED));
 
-        // Tồn kho
         Long lowStockBooks = safeLong(bookRepository.countByQuantityBetween(1, 4));
         Long outOfStockBooks = safeLong(bookRepository.countByQuantity(0));
-
-        // Top sách bán chạy
         List<TopBookStat> topBooks = loadTopSellingBooks(5);
-
-        // Doanh thu 6 tháng gần nhất
         List<MonthlyRevenue> monthlyStats = loadMonthlyRevenue(6);
-
-        // Đơn hàng gần đây
         List<OrderResponse> recentOrders = loadRecentOrders(10);
 
         return DashboardStats.builder()
@@ -98,12 +90,12 @@ public class DashboardService {
                 .build();
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
-
+    // Safe null to Long conversion
     private Long safeLong(Long val) {
         return val != null ? val : 0L;
     }
 
+    // Safe Object to Double conversion
     private Double objToDouble(Object obj) {
         if (obj == null) return 0.0;
         if (obj instanceof Number) return ((Number) obj).doubleValue();
@@ -111,6 +103,7 @@ public class DashboardService {
         catch (Exception e) { return 0.0; }
     }
 
+    // Safe Object to Long conversion
     private Long objToLong(Object obj) {
         if (obj == null) return 0L;
         if (obj instanceof Number) return ((Number) obj).longValue();
@@ -118,6 +111,7 @@ public class DashboardService {
         catch (Exception e) { return 0L; }
     }
 
+    // Load top selling books
     private List<TopBookStat> loadTopSellingBooks(int limit) {
         List<TopBookStat> result = new ArrayList<>();
         try {
@@ -139,6 +133,7 @@ public class DashboardService {
         return result;
     }
 
+    // Load monthly revenue statistics
     private List<MonthlyRevenue> loadMonthlyRevenue(int months) {
         List<MonthlyRevenue> result = new ArrayList<>();
         LocalDate todayVn = LocalDate.now(VIETNAM);
@@ -175,6 +170,7 @@ public class DashboardService {
         return result;
     }
 
+    // Load recent orders
     private List<OrderResponse> loadRecentOrders(int limit) {
         List<OrderResponse> result = new ArrayList<>();
         try {
@@ -194,9 +190,7 @@ public class DashboardService {
         return result;
     }
 
-    /**
-     * Build OrderResponse trực tiếp, tránh toOrderResponse() vì có security check không cần.
-     */
+    // Convert Order to OrderResponse (light version)
     private OrderResponse toOrderResponseLight(Order order) {
         List<OrderItemResponse> items = new ArrayList<>();
         try {

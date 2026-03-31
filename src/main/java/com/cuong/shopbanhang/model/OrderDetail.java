@@ -1,6 +1,5 @@
 package com.cuong.shopbanhang.model;
 
-
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -27,8 +26,7 @@ public class OrderDetail {
     @JoinColumn(name = "order_id")
     @JsonIgnoreProperties({"orderDetails", "user"})
     private Order order;
-  
-   
+
     @OneToMany(mappedBy = "orderDetail", cascade = CascadeType.ALL)
     @JsonIgnoreProperties({"orderDetail", "cart", "book"})
     private List<CartItem> items;

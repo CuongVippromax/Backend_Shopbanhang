@@ -17,18 +17,21 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    // Get all categories list
     @GetMapping("/list")
     public ResponseEntity<List<CategoryResponse>> getAllCategoriesList() {
         List<CategoryResponse> categories = categoryService.getAllCategoriesList();
         return ResponseEntity.ok(categories);
     }
 
+    // Get category by ID
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
         CategoryResponse category = categoryService.getCategoryById(id);
         return ResponseEntity.ok(category);
     }
 
+    // Get books by category
     @GetMapping("/{categoryId}/books")
     public ResponseEntity<List<?>> getBooksByCategory(@PathVariable Long categoryId) {
         List<?> books = categoryService.loadBookWithCategory(String.valueOf(categoryId));

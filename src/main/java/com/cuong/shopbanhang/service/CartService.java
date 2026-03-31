@@ -40,10 +40,9 @@ public class CartService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    // Lấy giỏ hàng của user
+    // Get cart by user ID
     @Transactional(readOnly = true)
     public CartResponse getCartByUserId(Long userId) {
-        // Flush và clear để đảm bảo lấy dữ liệu mới nhất từ DB
         entityManager.flush();
         entityManager.clear();
 
@@ -51,10 +50,9 @@ public class CartService {
         return buildCartResponse(cart);
     }
 
-    // Thêm sách vào giỏ hàng
+    // Add item to cart
     @Transactional
     public CartResponse addToCart(Long userId, Long bookId, Integer quantity) {
-        // Validate quantity > 0
         if (quantity <= 0) {
             throw new BadRequestException("Quantity must be greater than 0");
         }
@@ -63,17 +61,14 @@ public class CartService {
             .orElseThrow(() -> new ResourceNotFoundException("Book", bookId));
         Cart cart = getOrCreateCart(userId);
 
-        // Check if book already in cart
         Optional<CartItem> existingItem = cartItemRepository
                 .findByCart_CartIdAndBook_BookId(cart.getCartId(), bookId);
 
         if (existingItem.isPresent()) {
-            // Update quantity
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + quantity);
             cartItemRepository.save(item);
         } else {
-            // Create new item
             CartItem newItem = CartItem.builder()
                     .cart(cart)
                     .book(book)
@@ -85,10 +80,9 @@ public class CartService {
         return getCartByUserId(userId);
     }
 
-    // Cập nhật số lượng sách
+    // Update item quantity
     @Transactional
     public CartResponse updateQuantity(Long userId, Long bookId, Integer quantity) {
-        // Validate quantity > 0
         if (quantity <= 0) {
             throw new BadRequestException("Quantity must be greater than 0");
         }
@@ -104,7 +98,7 @@ public class CartService {
         return getCartByUserId(userId);
     }
 
-    // Xóa sách khỏi giỏ hàng
+    // Remove item from cart
     @Transactional
     public CartResponse removeItem(Long userId, Long bookId) {
         Cart cart = cartRepository.findByUser_UserId(userId)
@@ -118,7 +112,7 @@ public class CartService {
         return getCartByUserId(userId);
     }
 
-    // Xóa toàn bộ giỏ hàng
+    // Clear all items from cart
     @Transactional
     public void clearCart(Long userId) {
         Cart cart = cartRepository.findByUser_UserId(userId)
@@ -126,7 +120,7 @@ public class CartService {
         cartItemRepository.deleteAll(cartItemRepository.findByCart_CartId(cart.getCartId()));
     }
 
-    // Helper methods
+    // Get or create cart for user
     private Cart getOrCreateCart(Long userId) {
         return cartRepository.findByUser_UserId(userId)
                 .orElseGet(() -> {
@@ -139,6 +133,7 @@ public class CartService {
                 });
     }
 
+    // Build cart response
     private CartResponse buildCartResponse(Cart cart) {
         List<CartItem> items = cartItemRepository.findByCart_CartId(cart.getCartId());
 

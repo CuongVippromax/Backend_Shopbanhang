@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 40" width="140" height="40" role="img" aria-label="J&amp;T Express">
+  <rect width="140" height="40" rx="6" fill="#E60012"/>
+  <text x="12" y="28" fill="#fff" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="20" font-weight="800">J&amp;T</text>
+  <text x="58" y="22" fill="#fff" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="9" font-style="italic" font-weight="600">EXPRESS</text>
+  <path fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" d="M108 10l10 4M112 8l8 6M116 6l6 8"/>
+</svg>

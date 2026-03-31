@@ -6,14 +6,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-
 public final class SecurityUtils {
 
     private SecurityUtils() {
-        
     }
 
-
+    // Get current authenticated user ID
     public static Optional<Long> getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
@@ -26,6 +24,7 @@ public final class SecurityUtils {
         return Optional.empty();
     }
 
+    // Get current user principal
     public static Optional<UserPrincipal> getCurrentUserPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
@@ -37,7 +36,8 @@ public final class SecurityUtils {
         }
         return Optional.empty();
     }
-    
+
+    // Check if user has specific role
     public static boolean hasRole(String role) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {

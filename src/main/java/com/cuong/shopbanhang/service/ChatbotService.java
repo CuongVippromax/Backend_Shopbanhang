@@ -1,0 +1,708 @@
+package com.cuong.shopbanhang.service;
+
+import com.cuong.shopbanhang.dto.request.ChatRequest;
+import com.cuong.shopbanhang.dto.response.ChatResponse;
+import com.cuong.shopbanhang.dto.response.FaqResponse;
+import com.cuong.shopbanhang.model.Book;
+import com.cuong.shopbanhang.repository.BookRepository;
+import com.cuong.shopbanhang.repository.FaqRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j(topic = "ChatbotService")
+public class ChatbotService {
+
+    /** Từ quá ngắn / phổ biến — khớp trong mô tả sách dễ gây dương tính giả (vd: "tin" trong "thông tin"). */
+    private static final Set<String> TOPIC_STOPWORDS = Set.of(
+            "tin", "va", "cac", "cho", "cua", "voi", "mot", "hai", "ba", "bon", "nam", "sau", "bay",
+            "hay", "co", "la", "de", "duoc", "trong", "nay", "do", "se", "khong", "chi", "ban", "toi",
+            "tui", "em", "anh", "nen", "rat", "qua", "ve", "nao", "gi", "the", "noi", "cung", "da",
+            "sach", "cuon", "quyen", "mua", "tim", "xem", "doc", "hoi", "xin", "cam", "on","tim sach","tim quyen","tim cuon");
+
+    private final BookRepository bookRepository;
+    private final FaqRepository faqRepository;
+    private final RestTemplate restTemplate;
+
+    private static final String GEMINI_URL_TEMPLATE =
+            "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
+
+    @Value("${spring.ai.google.genai.api-key:}")
+    private String apiKey;
+
+    @Value("${spring.ai.google.genai.model:gemini-2.0-flash}")
+    private String geminiModel;
+
+    private static final String SYSTEM_PROMPT = """
+        Bạn đóng vai nhân viên tư vấn trực tuyến của "Nhà sách Hoàng Kim" (cửa hàng sách trực tuyến).
+        Trò chuyện tự nhiên như người thật ở quầy hỗ trợ: xưng "mình/em" với khách, lịch sự, nhiệt tình.
+        Không nhắc đến việc bạn là mô hình AI, chatbot hay máy tính.
+        
+        NHIỆM VỤ:
+        1. Trả lời câu hỏi về sách, đơn hàng, thanh toán, vận chuyển
+        2. Gợi ý sách phù hợp với sở thích khách
+        3. Hỗ trợ khách trong giờ mô tả dưới đây (ngoài giờ có thể mời khách để lại câu hỏi hoặc gọi hotline)
+        
+        NGUYÊN TẮC:
+        - Trả lời ngắn gọn, thân thiện bằng tiếng Việt
+        - Nếu không biết: "Mình chưa có thông tin chính xác về phần này. Bạn gọi hotline 0123-456-789 hoặc nhắn lại sau giúp mình nhé."
+        - Không bịa đặt giá, khuyến mãi nếu không được cung cấp
+        - Khi khách cần sách, gợi ý cụ thể và thực tế
+        
+        Thông tin cửa hàng:
+        - Tên: Nhà sách Hoàng Kim
+        - Hotline: 0123-456-789
+        - Giờ làm việc: 8:00 - 22:00
+        - Thanh toán: COD, VNPay, PayPal
+        - Miễn phí vận chuyển cho đơn từ 200.000đ
+        """;
+
+    public ChatResponse chat(ChatRequest request) {
+        String userMessage = request.getMessage();
+        if (userMessage == null || userMessage.trim().isEmpty()) {
+            return ChatResponse.builder()
+                    .message("Chào bạn! Mình có thể giúp gì cho bạn hôm nay?")
+                    .type("text")
+                    .build();
+        }
+
+        String intent = detectIntent(userMessage);
+        log.info("Detected intent: {} for message: {}", intent, userMessage);
+
+        switch (intent) {
+            case "recommendation" -> {
+                return handleBookRecommendation(userMessage.toLowerCase(Locale.ROOT));
+            }
+            case "faq" -> {
+                return handleFaqMatch(userMessage);
+            }
+            case "search" -> {
+                return handleBookSearch(userMessage.toLowerCase(Locale.ROOT));
+            }
+            default -> {
+                return handleGeneralQuestion(userMessage);
+            }
+        }
+    }
+
+    /**
+     * So khớp trên chuỗi đã bỏ dấu — câu gõ không dấu vẫn vào đúng intent (vd: "tim sach kinh te").
+     */
+    private String detectIntent(String rawMessage) {
+        String norm = normalizeVietnamese(rawMessage.toLowerCase(Locale.ROOT));
+        String[] recommendationKeywords = {"gợi ý", "recommend", "đề xuất", "nên đọc", "muốn đọc",
+                "muốn tìm", "mua sách", "tìm sách", "tìm cuốn", "tìm quyển", "cho tôi xem", "hiển thị", "book"};
+        String[] faqKeywords = {"cách", "làm sao", "như thế nào", "hướng dẫn", "chính sách",
+                "đổi trả", "bảo hành", "thanh toán", "vận chuyển", "giao hàng", "liên hệ", "hotline"};
+        /* Ngắn hơn recommendation — xếp sau cụm "tìm sách" */
+        String[] searchKeywords = {"tìm kiếm", "search", "có bán", "còn hàng", "price", "giá", "mua", "tìm"};
+
+        for (String keyword : recommendationKeywords) {
+            if (norm.contains(normalizeVietnamese(keyword.toLowerCase(Locale.ROOT)))) {
+                return "recommendation";
+            }
+        }
+        for (String keyword : searchKeywords) {
+            if (norm.contains(normalizeVietnamese(keyword.toLowerCase(Locale.ROOT)))) {
+                return "search";
+            }
+        }
+        for (String keyword : faqKeywords) {
+            if (norm.contains(normalizeVietnamese(keyword.toLowerCase(Locale.ROOT)))) {
+                return "faq";
+            }
+        }
+        return "general";
+    }
+
+    private ChatResponse handleBookRecommendation(String message) {
+        List<Book> allBooks = bookRepository.findAll();
+        if (allBooks.isEmpty()) {
+            return ChatResponse.builder()
+                    .message("Xin lỗi, hiện tại cửa hàng chưa có sách để gợi ý.")
+                    .type("text")
+                    .intent("recommendation")
+                    .build();
+        }
+
+        String bookContext = buildBookContext(allBooks);
+        String aiPrompt = String.format("""
+            Dựa trên thông tin sách sau, hãy gợi ý 3-5 cuốn sách phù hợp với yêu cầu của khách hàng.
+            Nếu khách hàng không nêu rõ sở thích, hãy gợi ý các sách nổi bật.
+            QUAN TRỌNG: Nếu khách hàng nêu rõ thể loại/chủ đề (ví dụ: công nghệ thông tin, kinh tế, tiểu thuyết),
+            CHỈ được chọn sách có tên/tác giả/mô tả/thể loại khớp chủ đề đó trong danh sách.
+            Nếu trong danh sách không có sách phù hợp, trả về bookRecommendations là mảng rỗng và message giải thích ngắn.
+            
+            Thông tin các sách:
+            %s
+            
+            Yêu cầu khách hàng: %s
+            
+            Trả lời theo format JSON:
+            {
+              "message": "Lời chào và giới thiệu ngắn gọn",
+              "bookRecommendations": [
+                {"bookId": id, "bookName": "Tên sách", "price": giá, "author": "Tác giả", "category": "Thể loại", "image": "URL ảnh", "averageRating": rating}
+              ]
+            }
+            Chỉ trả lời JSON, không giải thích gì thêm.
+            """, bookContext, message);
+
+        try {
+            String response = callGeminiApi(SYSTEM_PROMPT, aiPrompt);
+            return parseAiBookResponse(response);
+        } catch (Exception e) {
+            log.error("Error calling AI for book recommendation: {}", e.getMessage());
+            return getFallbackRecommendation(message);
+        }
+    }
+
+    private ChatResponse handleBookSearch(String message) {
+        String searchQuery = extractSearchQuery(message);
+        List<Book> books = bookRepository.findAll();
+
+        String normalizedQuery = normalizeVietnamese(searchQuery.toLowerCase());
+        List<Book> matchedBooks = books.stream()
+                .filter(book -> matchesSearch(book, normalizedQuery, true))
+                .limit(5)
+                .collect(Collectors.toList());
+
+        if (matchedBooks.isEmpty()) {
+            return ChatResponse.builder()
+                    .message("Không tìm thấy sách phù hợp với từ khóa: " + searchQuery)
+                    .type("text")
+                    .intent("search")
+                    .build();
+        }
+
+        return ChatResponse.builder()
+                .message("Tìm thấy " + matchedBooks.size() + " sách phù hợp:")
+                .type("book_list")
+                .bookRecommendations(matchedBooks.stream()
+                        .map(this::toBookRecommendation)
+                        .collect(Collectors.toList()))
+                .intent("search")
+                .build();
+    }
+
+    private boolean matchesSearch(Book book, String query) {
+        return matchesSearch(book, query, true);
+    }
+
+    /**
+     * @param includeDescription false khi gợi ý theo chủ đề (tránh khớp nhầm vì từ ngắn trong mô tả dài).
+     */
+    private boolean matchesSearch(Book book, String query, boolean includeDescription) {
+        if (query == null || query.isBlank()) {
+            return false;
+        }
+        if (book.getBookName() != null && normalizeVietnamese(book.getBookName().toLowerCase()).contains(query)) {
+            return true;
+        }
+        if (book.getAuthor() != null && normalizeVietnamese(book.getAuthor().toLowerCase()).contains(query)) {
+            return true;
+        }
+        if (book.getCategory() != null && book.getCategory().getCategoryName() != null
+                && normalizeVietnamese(book.getCategory().getCategoryName().toLowerCase()).contains(query)) {
+            return true;
+        }
+        if (includeDescription && book.getDescription() != null
+                && normalizeVietnamese(book.getDescription().toLowerCase()).contains(query)) {
+            return true;
+        }
+        return false;
+    }
+
+    private String extractSearchQuery(String message) {
+        String norm = normalizeVietnamese(message.toLowerCase(Locale.ROOT));
+        String[] prefixes = {"tim kiem", "search", "muon tim sach", "muon mua sach", "tim sach", "tim cuon",
+                "tim quyen", "tim", "co ban", "con hang", "gia", "price", "mua"};
+        String queryNorm = norm;
+        for (String prefix : prefixes) {
+            int idx = norm.indexOf(prefix);
+            if (idx >= 0) {
+                queryNorm = norm.substring(idx + prefix.length()).trim();
+                break;
+            }
+        }
+        return queryNorm.replaceAll("^\\s+", "").replaceAll("\\s+$", "");
+    }
+
+    private ChatResponse handleFaqMatch(String message) {
+        FaqResponse faqMatch = findBestFaqMatch(message);
+        if (faqMatch != null) {
+            return ChatResponse.builder()
+                    .message(faqMatch.getAnswer())
+                    .type("faq")
+                    .intent("faq")
+                    .build();
+        }
+
+        return handleGeneralQuestion(message);
+    }
+
+    private FaqResponse findBestFaqMatch(String userMessage) {
+        String normalized = normalizeVietnamese(userMessage.trim());
+        Set<String> userWords = new HashSet<>(Arrays.asList(normalized.split("\\s+")));
+
+        var faqs = faqRepository.findByActiveTrueOrderBySortOrderAsc();
+        FaqResponse best = null;
+        int bestScore = 0;
+
+        for (var faq : faqs) {
+            int score = calculateMatchScore(faq.getQuestion(), faq.getKeywords(), userWords, normalized);
+            if (score > bestScore) {
+                bestScore = score;
+                best = FaqResponse.builder()
+                        .id(faq.getId())
+                        .question(faq.getQuestion())
+                        .answer(faq.getAnswer())
+                        .category(faq.getCategory())
+                        .keywords(faq.getKeywords())
+                        .active(faq.getActive())
+                        .sortOrder(faq.getSortOrder())
+                        .build();
+            }
+        }
+
+        return bestScore >= 2 ? best : null;
+    }
+
+    private int calculateMatchScore(String question, String keywords, Set<String> userWords, String normalizedMsg) {
+        int score = 0;
+
+        if (keywords != null && !keywords.isBlank()) {
+            for (String rawPhrase : keywords.split(",")) {
+                String phrase = normalizeVietnamese(rawPhrase.trim());
+                if (phrase.isEmpty()) continue;
+                if (normalizedMsg.contains(phrase)) {
+                    score += 3;
+                }
+            }
+        }
+
+        String normalizedQuestion = normalizeVietnamese(question);
+        Set<String> questionWords = new HashSet<>(Arrays.asList(normalizedQuestion.split("\\s+")));
+        for (String word : questionWords) {
+            if (word.length() > 2 && userWords.contains(word)) {
+                score += 2;
+            }
+        }
+
+        return score;
+    }
+
+    private ChatResponse handleGeneralQuestion(String message) {
+        String bookContext = buildBookContext(bookRepository.findAll());
+        String faqContext = buildFaqContext();
+        String userContext = String.format("""
+            Khách hàng hỏi: %s
+            
+            Thông tin sách có sẵn:
+            %s
+            
+            Câu hỏi thường gặp (FAQ):
+            %s
+            """, message, bookContext, faqContext);
+
+        try {
+            String response = callGeminiApi(SYSTEM_PROMPT, userContext);
+
+            return ChatResponse.builder()
+                    .message(response)
+                    .type("text")
+                    .intent("general")
+                    .build();
+        } catch (Exception e) {
+            log.error("Error calling AI: {}", e.getMessage());
+            return getFallbackResponse(message);
+        }
+    }
+
+    private void ensureGeminiApiKeyConfigured() {
+        if (apiKey == null || apiKey.isBlank()) {
+            log.error("Chưa cấu hình AI: đặt biến môi trường AI_API_KEY hoặc spring.ai.google.genai.api-key trong application.yaml");
+            throw new IllegalStateException("Missing Gemini API key (AI_API_KEY)");
+        }
+        if (apiKey.toLowerCase(Locale.ROOT).contains("your-api-key") || "changeme".equalsIgnoreCase(apiKey.trim())) {
+            log.error("API key Gemini không hợp lệ (đang là placeholder). Hãy dùng key từ https://aistudio.google.com/apikey");
+            throw new IllegalStateException("Invalid Gemini API key placeholder");
+        }
+    }
+
+    private List<String> geminiModelFallbackChain() {
+        LinkedHashSet<String> models = new LinkedHashSet<>();
+        if (geminiModel != null && !geminiModel.isBlank()) {
+            models.add(geminiModel.trim());
+        }
+        models.add("gemini-2.0-flash");
+        models.add("gemini-1.5-flash");
+        models.add("gemini-1.5-flash-8b");
+        return new ArrayList<>(models);
+    }
+
+    private String callGeminiApi(String systemPrompt, String userContent) {
+        ensureGeminiApiKeyConfigured();
+        RuntimeException last = null;
+        for (String model : geminiModelFallbackChain()) {
+            try {
+                return callGeminiApiOnce(model, systemPrompt, userContent);
+            } catch (HttpClientErrorException e) {
+                String body = e.getResponseBodyAsString();
+                log.error("Gemini HTTP {} (model={}): {}", e.getStatusCode(), model, body);
+                if (e.getStatusCode().value() == 404 || e.getStatusCode().value() == 400) {
+                    last = new RuntimeException("Gemini model/error: " + body, e);
+                    continue;
+                }
+                throw new RuntimeException("Gemini API error: " + body, e);
+            } catch (HttpServerErrorException e) {
+                log.error("Gemini server error {} (model={}): {}", e.getStatusCode(), model, e.getResponseBodyAsString());
+                throw new RuntimeException("Gemini server error", e);
+            }
+        }
+        if (last != null) {
+            throw last;
+        }
+        throw new IllegalStateException("No Gemini model to try");
+    }
+
+    @SuppressWarnings("unchecked")
+    private String callGeminiApiOnce(String model, String systemPrompt, String userContent) {
+        String url = String.format(GEMINI_URL_TEMPLATE, model, apiKey.trim());
+        log.debug("Calling Gemini model: {}", model);
+
+        Map<String, Object> requestBody = new HashMap<>();
+
+        Map<String, Object> systemInstruction = new HashMap<>();
+        List<Map<String, Object>> sysParts = new ArrayList<>();
+        Map<String, Object> sysPart = new HashMap<>();
+        sysPart.put("text", systemPrompt);
+        sysParts.add(sysPart);
+        systemInstruction.put("parts", sysParts);
+        requestBody.put("systemInstruction", systemInstruction);
+
+        List<Map<String, Object>> contents = new ArrayList<>();
+        Map<String, Object> content = new HashMap<>();
+        content.put("role", "user");
+        List<Map<String, Object>> parts = new ArrayList<>();
+        Map<String, Object> part = new HashMap<>();
+        part.put("text", userContent);
+        parts.add(part);
+        content.put("parts", parts);
+        contents.add(content);
+        requestBody.put("contents", contents);
+
+        Map<String, Object> generationConfig = new HashMap<>();
+        generationConfig.put("temperature", 0.7);
+        generationConfig.put("maxOutputTokens", 2048);
+        requestBody.put("generationConfig", generationConfig);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+
+        Map<String, Object> responseBody = response.getBody();
+        if (responseBody == null) {
+            throw new IllegalStateException("Empty Gemini response body");
+        }
+        if (responseBody.containsKey("error")) {
+            log.error("Gemini response error field: {}", responseBody.get("error"));
+            throw new IllegalStateException("Gemini error: " + responseBody.get("error"));
+        }
+        if (responseBody.containsKey("promptFeedback")) {
+            log.warn("Gemini promptFeedback: {}", responseBody.get("promptFeedback"));
+        }
+        if (responseBody.containsKey("candidates")) {
+            List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
+            if (candidates != null && !candidates.isEmpty()) {
+                Map<String, Object> candidate = candidates.get(0);
+                if (candidate.containsKey("finishReason") && "SAFETY".equals(String.valueOf(candidate.get("finishReason")))) {
+                    log.warn("Gemini blocked by safety: {}", candidate);
+                }
+                Map<String, Object> contentResponse = (Map<String, Object>) candidate.get("content");
+                if (contentResponse != null) {
+                    List<Map<String, Object>> responseParts =
+                            (List<Map<String, Object>>) contentResponse.get("parts");
+                    if (responseParts != null && !responseParts.isEmpty()) {
+                        Object text = responseParts.get(0).get("text");
+                        if (text != null) {
+                            return text.toString();
+                        }
+                    }
+                }
+            }
+        }
+        log.error("Gemini response không có candidates hợp lệ: {}", responseBody);
+        throw new IllegalStateException("Unexpected Gemini response shape");
+    }
+
+    private String buildBookContext(List<Book> books) {
+        if (books.isEmpty()) {
+            return "Hiện tại chưa có sách trong cửa hàng.";
+        }
+
+        return books.stream()
+                .limit(50)
+                .map(book -> String.format(
+                        "- ID: %d | Tên: %s | Giá: %s | Tác giả: %s | Thể loại: %s | Mô tả: %s | Rating: %s",
+                        book.getBookId(),
+                        book.getBookName(),
+                        book.getPrice() != null ? String.format("%.0fđ", book.getPrice()) : "Liên hệ",
+                        book.getAuthor() != null ? book.getAuthor() : "Không rõ",
+                        book.getCategory() != null ? book.getCategory().getCategoryName() : "Không rõ",
+                        book.getDescription() != null ? book.getDescription().substring(0, Math.min(100, book.getDescription().length())) : "Không có",
+                        book.getAverageRating() != null ? String.format("%.1f/5", book.getAverageRating()) : "Chưa có"
+                ))
+                .collect(Collectors.joining("\n"));
+    }
+
+    private String buildFaqContext() {
+        var faqs = faqRepository.findByActiveTrueOrderBySortOrderAsc();
+        if (faqs.isEmpty()) {
+            return "Chưa có FAQ.";
+        }
+
+        return faqs.stream()
+                .limit(20)
+                .map(faq -> String.format("Q: %s\nA: %s", faq.getQuestion(), faq.getAnswer()))
+                .collect(Collectors.joining("\n\n"));
+    }
+
+    private ChatResponse parseAiBookResponse(String response) {
+        try {
+            int jsonStart = response.indexOf("{");
+            int jsonEnd = response.lastIndexOf("}");
+            if (jsonStart == -1 || jsonEnd == -1) {
+                return ChatResponse.builder()
+                        .message(response)
+                        .type("text")
+                        .intent("recommendation")
+                        .build();
+            }
+
+            String jsonStr = response.substring(jsonStart, jsonEnd + 1);
+            var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            var node = mapper.readTree(jsonStr);
+
+            String message = node.has("message") ? node.get("message").asText() : "";
+            List<ChatResponse.BookRecommendation> books = new ArrayList<>();
+
+            if (node.has("bookRecommendations")) {
+                for (var bookNode : node.get("bookRecommendations")) {
+                    books.add(ChatResponse.BookRecommendation.builder()
+                            .bookId(bookNode.has("bookId") ? bookNode.get("bookId").asLong() : null)
+                            .bookName(getTextOrNull(bookNode, "bookName"))
+                            .price(bookNode.has("price") ? bookNode.get("price").asDouble() : null)
+                            .author(getTextOrNull(bookNode, "author"))
+                            .category(getTextOrNull(bookNode, "category"))
+                            .image(getTextOrNull(bookNode, "image"))
+                            .averageRating(bookNode.has("averageRating") ? bookNode.get("averageRating").asDouble() : null)
+                            .build());
+                }
+            }
+
+            return ChatResponse.builder()
+                    .message(message)
+                    .type(books.isEmpty() ? "text" : "book_list")
+                    .bookRecommendations(books)
+                    .intent("recommendation")
+                    .build();
+        } catch (Exception e) {
+            log.error("Error parsing AI response: {}", e.getMessage());
+            return ChatResponse.builder()
+                    .message(response)
+                    .type("text")
+                    .intent("recommendation")
+                    .build();
+        }
+    }
+
+    private String getTextOrNull(com.fasterxml.jackson.databind.JsonNode node, String field) {
+        return node.has(field) && !node.get(field).isNull() ? node.get(field).asText() : null;
+    }
+
+    private ChatResponse.BookRecommendation toBookRecommendation(Book book) {
+        return ChatResponse.BookRecommendation.builder()
+                .bookId(book.getBookId())
+                .bookName(book.getBookName())
+                .price(book.getPrice())
+                .author(book.getAuthor())
+                .category(book.getCategory() != null ? book.getCategory().getCategoryName() : null)
+                .image(book.getImage())
+                .averageRating(book.getAverageRating())
+                .build();
+    }
+
+    private ChatResponse getFallbackResponse(String message) {
+        String lowerMessage = message.toLowerCase();
+        if (lowerMessage.contains("đơn hàng") || lowerMessage.contains("order")) {
+            return ChatResponse.builder()
+                    .message("Bạn có thể theo dõi đơn hàng tại mục 'Đơn hàng của tôi' trên website. Nếu cần hỗ trợ, gọi hotline: 0123-456-789")
+                    .type("text")
+                    .intent("faq")
+                    .build();
+        }
+        if (lowerMessage.contains("thanh toán") || lowerMessage.contains("payment")) {
+            return ChatResponse.builder()
+                    .message("Chúng tôi hỗ trợ thanh toán qua: COD, VNPay, PayPal. Miễn phí vận chuyển cho đơn từ 200.000đ")
+                    .type("text")
+                    .intent("faq")
+                    .build();
+        }
+        if (lowerMessage.contains("liên hệ") || lowerMessage.contains("hotline")) {
+            return ChatResponse.builder()
+                    .message("Hotline: 0123-456-789 (8:00 - 22:00) | Email: support@shopsachcuong.com")
+                    .type("text")
+                    .intent("faq")
+                    .build();
+        }
+        return ChatResponse.builder()
+                .message("Xin lỗi, tôi chưa hiểu ý của bạn. Bạn có thể hỏi về sách, đơn hàng, thanh toán hoặc liên hệ hotline: 0123-456-789")
+                .type("text")
+                .intent("general")
+                .build();
+    }
+
+    private ChatResponse getFallbackRecommendation(String message) {
+        List<Book> books = bookRepository.findAll();
+        if (books.isEmpty()) {
+            return ChatResponse.builder()
+                    .message("Xin lỗi, hiện tại cửa hàng chưa có sách nào.")
+                    .type("text")
+                    .intent("recommendation")
+                    .build();
+        }
+
+        String topic = extractTopicFromBookRequest(message);
+        if (topic != null && !topic.isBlank()) {
+            String normalizedTopic = normalizeVietnamese(topic.toLowerCase(Locale.ROOT));
+            List<Book> matched = books.stream()
+                    .filter(book -> matchesTopicInCoreFields(book, normalizedTopic))
+                    .sorted((a, b) -> Double.compare(
+                            b.getAverageRating() != null ? b.getAverageRating() : 0,
+                            a.getAverageRating() != null ? a.getAverageRating() : 0))
+                    .limit(5)
+                    .collect(Collectors.toList());
+            if (!matched.isEmpty()) {
+                return ChatResponse.builder()
+                        .message("Dưới đây là một số đầu sách trong kho phù hợp với bạn:")
+                        .type("book_list")
+                        .bookRecommendations(matched.stream()
+                                .map(this::toBookRecommendation)
+                                .collect(Collectors.toList()))
+                        .intent("recommendation")
+                        .build();
+            }
+            return ChatResponse.builder()
+                    .message("Trong cửa hàng hiện không có sách khớp chủ đề \"" + topic.trim() + "\". Dưới đây là một số sách được đánh giá cao khác:")
+                    .type("book_list")
+                    .bookRecommendations(topRatedBooks(books, 5).stream()
+                            .map(this::toBookRecommendation)
+                            .collect(Collectors.toList()))
+                    .intent("recommendation")
+                    .build();
+        }
+
+        return ChatResponse.builder()
+                .message("Đây là một số sách được đánh giá cao:")
+                .type("book_list")
+                .bookRecommendations(topRatedBooks(books, 5).stream()
+                        .map(this::toBookRecommendation)
+                        .collect(Collectors.toList()))
+                .intent("recommendation")
+                .build();
+    }
+
+    /**
+     * Lấy phần chủ đề sau cụm như "mua sách", "tìm sách" (để lọc DB khi không gọi được AI).
+     */
+    private String extractTopicFromBookRequest(String message) {
+        if (message == null) {
+            return null;
+        }
+        String lower = message.toLowerCase(Locale.ROOT).trim();
+        String[] markers = {"muốn mua sách", "mua sách", "tim sach", "tìm sách", "gợi ý sách", "goi y sach",
+                "đề xuất sách", "de xuat sach", "muốn đọc", "muon doc"};
+        for (String m : markers) {
+            int idx = lower.indexOf(m);
+            if (idx >= 0) {
+                String rest = lower.substring(idx + m.length()).trim();
+                if (!rest.isEmpty()) {
+                    return rest;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gợi ý nội bộ: chỉ tên / tác giả / thể loại; cụm đầy đủ hoặc ≥2 từ khóa đủ dài (tránh "tin", "cong" lẻ).
+     */
+    private boolean matchesTopicInCoreFields(Book book, String normalizedTopic) {
+        if (matchesSearch(book, normalizedTopic, false)) {
+            return true;
+        }
+        List<String> tokens = extractSignificantTopicTokens(normalizedTopic);
+        if (tokens.isEmpty()) {
+            return false;
+        }
+        if (tokens.size() >= 2) {
+            int hits = 0;
+            for (String t : tokens) {
+                if (matchesSearch(book, t, false)) {
+                    hits++;
+                }
+            }
+            return hits >= 2;
+        }
+        return matchesSearch(book, tokens.get(0), false);
+    }
+
+    private List<String> extractSignificantTopicTokens(String normalizedTopic) {
+        List<String> out = new ArrayList<>();
+        for (String raw : normalizedTopic.split("\\s+")) {
+            if (raw.length() < 4 || TOPIC_STOPWORDS.contains(raw)) {
+                continue;
+            }
+            out.add(raw);
+        }
+        return out;
+    }
+
+    private List<Book> topRatedBooks(List<Book> books, int limit) {
+        return books.stream()
+                .sorted((a, b) -> Double.compare(
+                        b.getAverageRating() != null ? b.getAverageRating() : 0,
+                        a.getAverageRating() != null ? a.getAverageRating() : 0))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    private String normalizeVietnamese(String text) {
+        if (text == null) return "";
+        return text.toLowerCase()
+                .replaceAll("[àáạảãâầấậẩẫăằắặẳẵ]", "a")
+                .replaceAll("[èéẹẻẽêềếệểễ]", "e")
+                .replaceAll("[ìíịỉĩ]", "i")
+                .replaceAll("[òóọỏõôồốộổỗơờớợởỡ]", "o")
+                .replaceAll("[ùúụủũưừứựửữ]", "u")
+                .replaceAll("[ỳýỵỷỹ]", "y")
+                .replaceAll("[đ]", "d")
+                .replaceAll("[^a-z0-9\\s]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+}

@@ -25,6 +25,7 @@ public class AdminOrderController {
         this.orderService = orderService;
     }
 
+    // Get all orders with pagination
     @GetMapping
     public ResponseEntity<PageResponse<List<OrderResponse>>> getAllOrders(
             @RequestParam(defaultValue = "1") int page,
@@ -36,11 +37,13 @@ public class AdminOrderController {
         return ResponseEntity.ok(orderService.getAllOrders(page, size, sort, search, startDate, endDate));
     }
 
+    // Get order detail
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrderDetail(@PathVariable Long orderId) {
         return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 
+    // Update order status
     @PutMapping("/{orderId}/status")
     public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable Long orderId,
@@ -49,6 +52,7 @@ public class AdminOrderController {
         return ResponseEntity.ok(orderService.toOrderResponse(order));
     }
 
+    // Update payment status
     @PutMapping("/{orderId}/payment-status")
     public ResponseEntity<OrderResponse> updatePaymentStatus(
             @PathVariable Long orderId,

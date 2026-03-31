@@ -191,6 +191,42 @@ export async function apiPostForm(path, body) {
   }
 }
 
+export async function apiPutForm(path, body) {
+  const url = new URL(path, window.location.origin)
+  url.pathname = API_BASE + path
+
+  const headers = {}
+  const token = getToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const res = await fetch(url.toString(), {
+    method: 'PUT',
+    headers,
+    body
+  })
+
+  if (res.status === 401) {
+    logout()
+    window.location.href = '/dang-nhap'
+    throw new Error('Unauthorized')
+  }
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => res.statusText)
+    throw new Error(errorText)
+  }
+
+  const text = await res.text()
+  if (!text) return null
+  try {
+    return JSON.parse(text)
+  } catch {
+    return { message: text }
+  }
+}
+
 export async function updateUser(userId, userData) {
   return apiPut(`/users/update/${userId}`, userData)
 }

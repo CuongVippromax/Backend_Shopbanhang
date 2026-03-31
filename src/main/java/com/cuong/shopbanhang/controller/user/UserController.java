@@ -24,6 +24,7 @@ public class UserController {
 
     private final UserService userService;
 
+    // Register new user
     @PostMapping("/register")
     public DataResponse<UserResponse> createUser(@Valid @RequestBody User user) {
         UserResponse newUser = userService.createUser(user);
@@ -34,6 +35,7 @@ public class UserController {
                 .build();
     }
 
+    // Update user profile
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAuthority('USER')")
     public DataResponse<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
@@ -45,6 +47,7 @@ public class UserController {
                 .build();
     }
 
+    // Request password reset
     @PostMapping("/forgot-password")
     public DataResponse<Void> forgotPassword(@RequestBody java.util.Map<String, String> request) {
         String email = request.get("email");
@@ -55,6 +58,7 @@ public class UserController {
                 .build();
     }
 
+    // Reset password with token
     @PostMapping("/reset-password")
     public DataResponse<Void> resetPassword(@RequestBody java.util.Map<String, String> request) {
         String token = request.get("token");

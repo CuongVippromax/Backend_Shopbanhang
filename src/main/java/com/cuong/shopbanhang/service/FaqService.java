@@ -21,11 +21,7 @@ public class FaqService {
 
     private final FaqRepository faqRepository;
 
-    // ==================== Public API ====================
-
-    /**
-     * Lấy danh sách FAQ active cho chatbot (frontend)
-     */
+    // Get all active FAQs
     public List<FaqResponse> getActiveFaqs() {
         return faqRepository.findByActiveTrueOrderBySortOrderAsc()
                 .stream()
@@ -33,9 +29,7 @@ public class FaqService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Lấy danh sách categories unique từ FAQ active
-     */
+    // Get FAQ categories
     public List<String> getCategories() {
         return faqRepository.findByActiveTrueOrderBySortOrderAsc()
                 .stream()
@@ -44,10 +38,7 @@ public class FaqService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Tìm FAQ phù hợp nhất dựa trên tin nhắn người dùng
-     * Sử dụng keyword matching: so khớp từ khóa trong question + keywords với userMessage
-     */
+    // Find best matching FAQ for user message
     public FaqResponse findBestMatch(String userMessage) {
         if (userMessage == null || userMessage.trim().isEmpty()) {
             return null;
@@ -69,38 +60,57 @@ public class FaqService {
             }
         }
 
-        // Ngưỡng: cần ít nhất 1 từ trùng khớp hoàn toàn hoặc 2 từ gần đúng
         if (bestScore >= 1) {
             return toResponse(best);
         }
         return null;
     }
 
+    // Calculate match score between FAQ and user message
     private int calculateMatchScore(Faq faq, Set<String> userWords, String normalizedMsg) {
         int score = 0;
 
-        // 1. So khớp từ khóa (keywords) — trọng số cao nhất
+        boolean profileIntent = normalizedMsg.contains("thong tin ca nhan")
+                || normalizedMsg.contains("ho so ca nhan")
+                || normalizedMsg.contains("thay doi thong tin")
+                || normalizedMsg.contains("cap nhat thong tin")
+                || normalizedMsg.contains("chinh sua ho so");
+        if (profileIntent && "DON_HANG".equals(faq.getCategory())) {
+            score -= 25;
+        }
+
+        // 关键词按逗号分段：整段多词用短语包含；单词必须与用户分词完全一致，避免 "phi" 误匹配 "phieu"
         if (faq.getKeywords() != null && !faq.getKeywords().isBlank()) {
-            Set<String> keywordWords = new HashSet<>(Arrays.asList(
-                    normalize(faq.getKeywords()).split("\\s+")
-            ));
-            for (String kw : keywordWords) {
-                if (normalizedMsg.contains(kw) || kw.length() > 3 && normalizedMsg.contains(kw)) {
-                    score += 3;
+            for (String rawPhrase : faq.getKeywords().split(",")) {
+                String phrase = normalize(rawPhrase.trim());
+                if (phrase.isEmpty()) {
+                    continue;
+                }
+                String[] parts = phrase.split("\\s+");
+                if (parts.length == 1) {
+                    String kw = parts[0];
+                    if (kw.length() < 2) {
+                        continue;
+                    }
+                    if (userWords.contains(kw)) {
+                        score += 3;
+                    }
+                } else {
+                    if (normalizedMsg.contains(phrase)) {
+                        score += 3;
+                    }
                 }
             }
         }
 
-        // 2. So khớp trong câu hỏi (question)
         String normalizedQuestion = normalize(faq.getQuestion());
         Set<String> questionWords = new HashSet<>(Arrays.asList(normalizedQuestion.split("\\s+")));
         for (String word : questionWords) {
-            if (word.length() > 2 && normalizedMsg.contains(word)) {
+            if (word.length() > 2 && userWords.contains(word)) {
                 score += 2;
             }
         }
 
-        // 3. So khớp chính xác toàn bộ câu hỏi (partial)
         if (normalizedMsg.length() >= 5) {
             for (String word : userWords) {
                 if (word.length() > 4 && normalizedQuestion.contains(word)) {
@@ -112,6 +122,7 @@ public class FaqService {
         return score;
     }
 
+    // Normalize text (remove diacritics)
     private String normalize(String text) {
         return text.toLowerCase()
                 .replaceAll("[àáạảãâầấậẩẫăằắặẳẵ]", "a")
@@ -126,8 +137,7 @@ public class FaqService {
                 .trim();
     }
 
-    // ==================== Admin API ====================
-
+    // Get all FAQs (admin)
     public List<FaqResponse> getAllFaqs() {
         return faqRepository.findAllByOrderBySortOrderAsc()
                 .stream()
@@ -135,12 +145,14 @@ public class FaqService {
                 .collect(Collectors.toList());
     }
 
+    // Get FAQ by ID
     public FaqResponse getFaqById(Long id) {
         Faq faq = faqRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("FAQ not found with id: " + id));
         return toResponse(faq);
     }
 
+    // Create new FAQ
     @Transactional
     public FaqResponse createFaq(FaqRequest request) {
         Faq faq = Faq.builder()
@@ -154,6 +166,7 @@ public class FaqService {
         return toResponse(faqRepository.save(faq));
     }
 
+    // Update FAQ
     @Transactional
     public FaqResponse updateFaq(Long id, FaqRequest request) {
         Faq faq = faqRepository.findById(id)
@@ -169,6 +182,7 @@ public class FaqService {
         return toResponse(faqRepository.save(faq));
     }
 
+    // Delete FAQ
     @Transactional
     public void deleteFaq(Long id) {
         if (!faqRepository.existsById(id)) {
@@ -177,8 +191,7 @@ public class FaqService {
         faqRepository.deleteById(id);
     }
 
-    // ==================== Mapper ====================
-
+    // Convert Faq to FaqResponse
     private FaqResponse toResponse(Faq faq) {
         return FaqResponse.builder()
                 .id(faq.getId())

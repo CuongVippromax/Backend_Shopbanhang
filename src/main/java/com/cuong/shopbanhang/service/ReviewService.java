@@ -33,14 +33,13 @@ public class ReviewService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
-    // Thêm đánh giá sách
+    // Add new review
     @Transactional
     public ReviewResponse addReview(ReviewRequest request) {
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
         User user = userRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User", userId));
         Book book = bookRepository.findByBookId(request.getBookId()).orElseThrow(() -> new ResourceNotFoundException("Book", request.getBookId()));
 
-        // Check if user already reviewed this book
         var existingReview = reviewRepository.findByBook_BookIdAndUser_UserId(request.getBookId(), userId);
         if (existingReview.isPresent()) {
             throw new RuntimeException("You have already reviewed this book");
@@ -57,13 +56,12 @@ public class ReviewService {
         return toReviewResponse(review);
     }
 
-    // Cập nhật đánh giá
+    // Update existing review
     @Transactional
     public ReviewResponse updateReview(Long reviewId, ReviewRequest request) {
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ResourceNotFoundException("Review", reviewId));
 
-        // Check ownership
         if (!review.getUser().getUserId().equals(userId)) {
             throw new RuntimeException("You can only update your own review");
         }
@@ -75,14 +73,13 @@ public class ReviewService {
         return toReviewResponse(review);
     }
 
-    // Xóa đánh giá
+    // Delete review
     @Transactional
     public void deleteReview(Long reviewId) {
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
         boolean isAdmin = SecurityUtils.hasRole("ADMIN");
         Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ResourceNotFoundException("Review", reviewId));
 
-        // Check ownership or admin
         if (!review.getUser().getUserId().equals(userId) && !isAdmin) {
             throw new RuntimeException("You can only delete your own review");
         }
@@ -90,16 +87,16 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
-    // Lấy tất cả đánh giá của sách
+    // Get reviews by book
     public PageResponse<List<ReviewResponse>> getReviewsByBook(Long bookId, int page, int size) {
         if (page > 0) page = page - 1;
         Pageable pageable = PageRequest.of(page, size);
         Page<Review> reviews = reviewRepository.findByBook_BookId(bookId, pageable);
-        
+
         List<ReviewResponse> reviewResponses = reviews.getContent().stream()
                 .map(this::toReviewResponse)
                 .collect(Collectors.toList());
-        
+
         return PageResponse.<List<ReviewResponse>>builder()
                 .pageNo(page)
                 .pageSize(size)
@@ -109,14 +106,14 @@ public class ReviewService {
                 .build();
     }
 
-    // Lấy tất cả đánh giá của user hiện tại
+    // Get current user's reviews
     public List<ReviewResponse> getMyReviews() {
         Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
         List<Review> reviews = reviewRepository.findByUser_UserId(userId);
         return reviews.stream().map(this::toReviewResponse).collect(Collectors.toList());
     }
 
-    // Chuyển Review -> ReviewResponse
+    // Convert Review to ReviewResponse
     private ReviewResponse toReviewResponse(Review review) {
         return ReviewResponse.builder()
                 .reviewId(review.getReviewId())

@@ -23,6 +23,7 @@ public class AdminReviewController {
 
     private final ReviewRepository reviewRepository;
 
+    // Get all reviews with pagination
     @GetMapping
     public ResponseEntity<PageResponse<?>> getAllReviews(
             @RequestParam(defaultValue = "1") int page,
@@ -40,7 +41,6 @@ public class AdminReviewController {
 
         Page<Review> reviewPage;
 
-        // Ưu tiên tìm kiếm trước
         boolean hasSearch = search != null && !search.trim().isEmpty();
         if (hasSearch) {
             String keyword = search.trim();
@@ -70,6 +70,7 @@ public class AdminReviewController {
         return ResponseEntity.ok(response);
     }
 
+    // Get review by ID
     @GetMapping("/{id}")
     public ResponseEntity<ReviewResponse> getReviewById(@PathVariable Long id) {
         return reviewRepository.findById(id)
@@ -78,6 +79,7 @@ public class AdminReviewController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // Delete review
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
         if (!reviewRepository.existsById(id)) {
@@ -87,6 +89,7 @@ public class AdminReviewController {
         return ResponseEntity.noContent().build();
     }
 
+    // Convert Review to ReviewResponse
     private ReviewResponse toResponse(Review review) {
         return ReviewResponse.builder()
                 .reviewId(review.getReviewId())

@@ -16,14 +16,14 @@ public class FaqDataSeeder implements CommandLineRunner {
 
     private final FaqRepository faqRepository;
 
+    // Seed FAQ data on startup
     @Override
     public void run(String... args) {
         if (faqRepository.count() > 0) {
-            return; // Da co du lieu, khong seed lai
+            return;
         }
 
         List<Faq> faqs = List.of(
-                // CHINH_SACH
                 Faq.builder()
                         .question("Chính sách đổi trả sách như thế nào?")
                         .answer("Hoàng Kim Book hỗ trợ đổi trả sách trong vòng 7 ngày kể từ ngày nhận hàng nếu sách bị lỗi in, rách trang, thiếu trang hoặc giao sai sách. Sách đổi trả phải còn nguyên vẹn, chưa qua sử dụng và còn đầy đủ phiếu mua hàng. Quý khách vui lòng liên hệ hotline 1900 1234 để được hướng dẫn chi tiết.")
@@ -60,7 +60,6 @@ public class FaqDataSeeder implements CommandLineRunner {
                         .active(true)
                         .build(),
 
-                // TAI_KHOAN
                 Faq.builder()
                         .question("Quên mật khẩu thì làm sao?")
                         .answer("Tại trang đăng nhập, nhấn 'Quên mật khẩu', nhập email đã đăng ký. Chúng tôi sẽ gửi link đặt lại mật khẩu qua email trong vòng 5 phút. Nếu không nhận được email, hãy kiểm tra hộp thư spam hoặc liên hệ hotline 1900 1234.")
@@ -80,6 +79,15 @@ public class FaqDataSeeder implements CommandLineRunner {
                         .build(),
 
                 Faq.builder()
+                        .question("Làm sao cập nhật thông tin cá nhân hoặc địa chỉ?")
+                        .answer("Đăng nhập → chọn <b>Tài khoản</b> / <b>Thông tin tài khoản</b>. Tại đây bạn có thể chỉnh sửa họ tên, số điện thoại, email và địa chỉ giao hàng mặc định, rồi nhấn <b>Lưu</b>. Nếu cần đổi thông tin đã xác thực, liên hệ hotline 1900 1234 hoặc cskh@hoangkimbook.vn.")
+                        .category("TAI_KHOAN")
+                        .keywords("thong tin ca nhan, cap nhat ho so, thay doi thong tin, chinh sua ho so, dia chi, email, so dien thoai, ho ten, cap nhat dia chi")
+                        .sortOrder(19)
+                        .active(true)
+                        .build(),
+
+                Faq.builder()
                         .question("Đăng ký tài khoản như thế nào?")
                         .answer("Nhấn 'Đăng ký' ở góc phải màn hình, điền họ tên, email và mật khẩu (ít nhất 8 ký tự). Sau khi đăng ký, hệ thống sẽ gửi email xác thực. Nhấn link trong email để kích hoạt tài khoản và bắt đầu mua sắm.")
                         .category("TAI_KHOAN")
@@ -88,7 +96,6 @@ public class FaqDataSeeder implements CommandLineRunner {
                         .active(true)
                         .build(),
 
-                // SAN_PHAM
                 Faq.builder()
                         .question("Sách có được bọc plastic không?")
                         .answer("Hầu hết các đầu sách tại Hoàng Kim Book đều được đóng gói cẩn thận trong túi plastic hoặc hộp carton chống sốc. Một số sách hiếm hoặc sách cũ có thể không có vỏ bọc plastic. Thông tin chi tiết về tình trạng đóng gói được ghi chú trong trang sản phẩm.")
@@ -125,7 +132,6 @@ public class FaqDataSeeder implements CommandLineRunner {
                         .active(true)
                         .build(),
 
-                // DON_HANG
                 Faq.builder()
                         .question("Tôi chưa nhận được đơn hàng?")
                         .answer("Nếu đơn hàng đã quá thời gian giao hàng dự kiến mà bạn chưa nhận được, vui lòng kiểm tra lại địa chỉ giao hàng trong 'Đơn hàng của tôi'. Gọi hotline 1900 1234 hoặc nhắn tin qua Zalo OA Hoàng Kim Book để được kiểm tra và hỗ trợ nhanh nhất.")
@@ -153,7 +159,6 @@ public class FaqDataSeeder implements CommandLineRunner {
                         .active(true)
                         .build(),
 
-                // KHAC
                 Faq.builder()
                         .question("Số điện thoại liên hệ là gì?")
                         .answer("Hotline hỗ trợ khách hàng: 1900 1234 (8:00 - 21:00, thứ 2 - thứ 7). Bạn cũng có thể liên hệ qua Zalo OA 'Hoàng Kim Book', email cskh@hoangkimbook.vn, hoặc chat trực tiếp trên website. Đội ngũ tư vấn sẵn sàng hỗ trợ 24/7 qua các kênh này.")

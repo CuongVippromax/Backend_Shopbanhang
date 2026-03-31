@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// DTO for login request
 @Data
 @Builder
 @NoArgsConstructor

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
+// DTO for checkout request
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

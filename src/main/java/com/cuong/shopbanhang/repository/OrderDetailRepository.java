@@ -10,15 +10,16 @@ import com.cuong.shopbanhang.model.OrderDetail;
 
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
 
+    // find order details by order id
     List<OrderDetail> findByOrder_OrderId(Long orderId);
 
+    // get top selling books
     @Query(value = "SELECT ci.book_id, b.book_name, b.image, " +
             "SUM(ci.quantity) as totalSold, SUM(b.price * ci.quantity) as totalRevenue " +
             "FROM orderdetail od " +
             "JOIN cartitem ci ON ci.order_detail_id = od.id " +
             "JOIN book b ON b.book_id = ci.book_id " +
             "JOIN orders o ON o.order_id = od.order_id " +
-            // Enum ordinal: order COMPLETED=3; payment PAID=1 — cả hai đều phải đạt
             "WHERE o.order_status = 3 AND o.payment_status = 1 " +
             "GROUP BY ci.book_id, b.book_name, b.image " +
             "ORDER BY totalSold DESC " +

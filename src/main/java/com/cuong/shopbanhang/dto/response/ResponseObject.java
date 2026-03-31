@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
+// Wrapper for API responses with status code and message
 public class ResponseObject<T> extends ResponseEntity<ResponseObject.Payload<T>> {
     public ResponseObject(HttpStatusCode code, String message, T data) {
-        super(new Payload<>(code.value(), message, data),code);
+        super(new Payload<>(code.value(), message, data), code);
     }
+
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor

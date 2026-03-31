@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+// DTO for error response
 @Getter
 @Setter
 @Builder

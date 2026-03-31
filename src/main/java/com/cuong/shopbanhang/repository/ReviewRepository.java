@@ -15,29 +15,32 @@ import com.cuong.shopbanhang.model.Review;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
+    // find review by book and user
     Optional<Review> findByBook_BookIdAndUser_UserId(Long bookId, Long userId);
 
+    // find reviews by book id
     Page<Review> findByBook_BookId(Long bookId, Pageable pageable);
 
+    // find reviews by user id
     List<Review> findByUser_UserId(Long userId);
 
-    // Tìm kiếm reviews theo tên sách hoặc tên người dùng (không phân biệt hoa thường)
+    // search reviews by keyword
     @Query("SELECT r FROM Review r WHERE LOWER(r.book.bookName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(r.user.username) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Review> searchReviews(@Param("keyword") String keyword, Pageable pageable);
 
-    // Tìm kiếm reviews theo tên sách hoặc tên người dùng kết hợp với bookId
+    // search reviews by keyword and book id
     @Query("SELECT r FROM Review r WHERE (:bookId IS NULL OR r.book.bookId = :bookId) AND (LOWER(r.book.bookName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(r.user.username) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Review> searchReviewsByBookId(@Param("keyword") String keyword, @Param("bookId") Long bookId, Pageable pageable);
 
-    // Tính điểm trung bình và số lượng review của sản phẩm
+    // get rating stats by book id
     @Query("SELECT AVG(r.rating), COUNT(r) FROM Review r WHERE r.book.bookId = :bookId")
     Object[] getRatingStatsByBookId(@Param("bookId") Long bookId);
     
-    // Lấy điểm trung bình
+    // get average rating for book
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.book.bookId = :bookId")
     Double getAverageRating(@Param("bookId") Long bookId);
     
-    // Đếm số review
+    // get review count for book
     @Query("SELECT COUNT(r) FROM Review r WHERE r.book.bookId = :bookId")
     Integer getReviewCount(@Param("bookId") Long bookId);
 }

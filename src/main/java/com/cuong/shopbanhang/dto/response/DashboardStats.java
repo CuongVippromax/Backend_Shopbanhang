@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
+// DTO for dashboard statistics
 @Data
 @Builder
 @NoArgsConstructor
@@ -21,19 +21,11 @@ public class DashboardStats {
     private Long shippedOrders;
     private Long completedOrders;
     private Long cancelledOrders;
-
-    // Thống kê sản phẩm
     private Long lowStockBooks;
     private Long outOfStockBooks;
     private Long totalCategories;
-
-    // Top sách bán chạy
     private List<TopBookStat> topSellingBooks;
-
-    // Doanh thu theo tháng
     private List<MonthlyRevenue> revenueByMonth;
-
-    // Đơn hàng gần đây
     private List<OrderResponse> recentOrders;
 
     @Data

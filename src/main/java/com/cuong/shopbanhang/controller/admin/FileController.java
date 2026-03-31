@@ -23,6 +23,7 @@ public class FileController {
 
     private final MinIOService minIOService;
 
+    // Upload file to MinIO
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadFile(
             @RequestParam("file") MultipartFile file) {
@@ -34,6 +35,7 @@ public class FileController {
         return ResponseEntity.ok(Map.of("url", fileUrl));
     }
 
+    // Delete file from MinIO
     @DeleteMapping("/delete")
     public ResponseEntity<Map<String, String>> deleteFile(
             @RequestParam("objectName") String objectName) {

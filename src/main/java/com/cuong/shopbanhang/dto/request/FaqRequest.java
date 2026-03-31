@@ -6,12 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// DTO for FAQ create/update request
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FaqRequest {
-
     @NotBlank(message = "Câu hỏi không được để trống")
     private String question;
 

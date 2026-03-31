@@ -65,7 +65,6 @@ export default function AdminCommentsPage() {
   })
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Xóa bình luận này?')) return
     try {
       await deleteReview(id)
       fetchReviews(page, search)

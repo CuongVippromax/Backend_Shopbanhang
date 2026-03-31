@@ -128,6 +128,9 @@
   --z-modal: 500;
   --z-tooltip: 600;
   --z-toast: 700;
+  /* Cao hơn modal (9999) và hero có transform/z-index — tránh khung chatbot bị che */
+  --z-chatbot: 10050;
+  --z-chatbot-toggle: 10060;
 
   /* Layout */
   --container-max: 1200px;

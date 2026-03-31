@@ -31,9 +31,7 @@ public class MinIOService {
     @Value("${minio.url}")
     private String minioUrl;
 
-    /**
-     * Upload file lên MinIO, trả về URL truy cập trực tiếp.
-     */
+    // Upload file to MinIO
     public String uploadFile(MultipartFile file) {
         try {
             ensureBucketExists();
@@ -64,9 +62,7 @@ public class MinIOService {
         }
     }
 
-    /**
-     * Xóa file khỏi MinIO theo tên object (phần cuối của URL).
-     */
+    // Delete file from MinIO
     public void deleteFile(String objectName) {
         try {
             minioClient.removeObject(
@@ -81,9 +77,7 @@ public class MinIOService {
         }
     }
 
-    /**
-     * Lấy presigned URL có thời hạn (giây) để truy cập private object.
-     */
+    // Generate presigned URL for file
     public String getPresignedUrl(String objectName, int expirySeconds) {
         try {
             return minioClient.getPresignedObjectUrl(
@@ -99,19 +93,19 @@ public class MinIOService {
         }
     }
 
-    /**
-     * Trích xuất tên object từ URL đầy đủ.
-     */
+    // Extract object name from file URL
     public String extractObjectName(String fileUrl) {
         if (fileUrl == null || fileUrl.isBlank()) return null;
         String prefix = minioUrl + "/" + bucket + "/";
         return fileUrl.startsWith(prefix) ? fileUrl.substring(prefix.length()) : fileUrl;
     }
 
+    // Build public URL for object
     private String buildPublicUrl(String objectName) {
         return minioUrl + "/" + bucket + "/" + objectName;
     }
 
+    // Ensure bucket exists, create if not
     private void ensureBucketExists() throws Exception {
         boolean exists = minioClient.bucketExists(
                 BucketExistsArgs.builder().bucket(bucket).build());
@@ -119,13 +113,10 @@ public class MinIOService {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
             log.info("Created bucket: {}", bucket);
         }
-        // Set bucket policy to allow public read access
         setBucketPolicyToPublic();
     }
 
-    /**
-     * Set bucket policy to allow public read access for all objects.
-     */
+    // Set bucket policy to public read
     private void setBucketPolicyToPublic() {
         try {
             String policyJson = """

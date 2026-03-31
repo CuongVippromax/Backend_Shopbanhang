@@ -29,23 +29,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsServiceImpl userDetailsServiceImpl;
     private final @Qualifier("redisTemplate") RedisTemplate<String, String> redisTemplate;
 
+    // Process JWT authentication filter
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-
-                // 1. Check blacklist trong Redis
                 String key = "blacklist:" + jwt;
                 String blacklisted = redisTemplate.opsForValue().get(key);
                 if (blacklisted != null) {
-                    // token đã được đưa vào blacklist (logout) => không set Authentication
                     filterChain.doFilter(request, response);
                     return;
                 }
 
-                // 2. Nếu không nằm trong blacklist thì tiếp tục xác thực user
                 Long userId = tokenProvider.getUserIdFromToken(jwt);
                 UserDetails userDetails = userDetailsServiceImpl.loadUserById(userId);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -61,6 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    // Extract JWT from request header
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
 

@@ -24,11 +24,13 @@ public class PaymentController {
     private final OrderService orderService;
     private final EmailService emailService;
 
+    // Create VNPay payment
     @GetMapping("/vn-pay")
     public ResponseObject<PaymentDTO.VNPayResponse> pay(HttpServletRequest request) {
         return new ResponseObject<>(HttpStatus.OK, "Success", paymentService.createVnPayPayment(request));
     }
 
+    // Handle VNPay callback
     @GetMapping("/vn-pay-callback")
     public ResponseObject<PaymentDTO.VNPayResponse> payCallbackHandler(HttpServletRequest request) {
         String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");

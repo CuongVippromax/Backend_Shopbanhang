@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
+    // Create new category
     @Transactional
     public CategoryResponse createCategory(Category category) {
         if (categoryRepository.existsByCategoryName(category.getCategoryName())) {
@@ -42,6 +43,7 @@ public class CategoryService {
                 .build();
     }
 
+    // Get all categories with pagination
     public PageResponse<?> getAllCategories(int pageNo, int pageSize, String sortBy, String search) {
         if (pageNo > 0) {
             pageNo = pageNo - 1;
@@ -79,6 +81,7 @@ public class CategoryService {
                 .build();
     }
 
+    // Get category by ID
     public CategoryResponse getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id));
@@ -89,6 +92,7 @@ public class CategoryService {
                 .build();
     }
 
+    // Update category
     @Transactional
     public CategoryResponse updateCategory(Long id, String categoryName, String description) {
         Category category = categoryRepository.findById(id)
@@ -109,6 +113,7 @@ public class CategoryService {
                 .build();
     }
 
+    // Delete category
     @Transactional
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
@@ -116,15 +121,18 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
+    // Delete all categories
     @Transactional
     public void deleteAllCategories() {
         categoryRepository.deleteAll();
     }
 
+    // Load books by category name
     public List<Book> loadBookWithCategory(String category) {
         return categoryRepository.findBooksByCategoryName(category);
     }
 
+    // Get all categories as list
     public List<CategoryResponse> getAllCategoriesList() {
         List<Category> categories = categoryRepository.findAll();
         return categories.stream()
@@ -136,12 +144,13 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
+    // Seed default categories
     @Transactional
     public void seedDefaultCategories() {
         if (categoryRepository.count() > 0) {
             return;
         }
-        
+
         List<Category> categories = Arrays.asList(
             Category.builder().categoryName("Văn học").description("Sách văn học Việt Nam và nước ngoài").build(),
             Category.builder().categoryName("Tiểu thuyết").description("Tiểu thuyết hay nhất").build(),
@@ -156,7 +165,7 @@ public class CategoryService {
             Category.builder().categoryName("Tôn giáo").description("Sách tôn giáo - Tâm linh").build(),
             Category.builder().categoryName("Nghệ thuật").description("Sách nghệ thuật - Cuộc sống").build()
         );
-        
+
         categoryRepository.saveAll(categories);
     }
 }

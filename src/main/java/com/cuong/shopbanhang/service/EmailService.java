@@ -26,7 +26,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    // Gửi email xác nhận đơn hàng
+    // Send order confirmation email
     public void sendOrderConfirmation(String toEmail, String orderId, Double totalAmount, String orderDetails) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -60,7 +60,7 @@ public class EmailService {
         }
     }
 
-    // Gửi email reset password
+    // Send password reset email
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();

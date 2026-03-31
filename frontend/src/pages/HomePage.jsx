@@ -409,7 +409,7 @@ export default function HomePage() {
             title="Sản phẩm bán chạy"
             highlight="Bán chạy"
             products={loadingBest ? [] : bestSellerBooks}
-            initialVisibleCount={4}
+            initialVisibleCount={6}
             linkTo="/san-pham?sortBy=price:desc"
           />
 
@@ -424,7 +424,7 @@ export default function HomePage() {
             title="Sách hay"
             highlight="Hay"
             products={loadingFeatured ? [] : featuredBooks}
-            initialVisibleCount={4}
+            initialVisibleCount={6}
             linkTo="/sach-hay"
           />
 
@@ -439,7 +439,7 @@ export default function HomePage() {
             title="Sách mới"
             highlight="Mới"
             products={loadingNew ? [] : newBooks}
-            initialVisibleCount={4}
+            initialVisibleCount={6}
             linkTo="/sach-moi"
           />
 
@@ -454,7 +454,7 @@ export default function HomePage() {
             title="Truyện tranh & Thiếu nhi"
             highlight="Comic & Kids"
             products={loadingComic ? [] : comicBooks}
-            initialVisibleCount={4}
+            initialVisibleCount={6}
             linkTo="/truyen-tranh-thieu-nhi"
           />
         </div>

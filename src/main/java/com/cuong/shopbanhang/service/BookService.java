@@ -30,6 +30,7 @@ public class BookService {
     private final BookRepository bookRepository;
     private final MinIOService minIOService;
 
+    // Create new book
     @Transactional
     public BookResponse createBook(Book book, MultipartFile image) {
         if (bookRepository.existsByBookName(book.getBookName())) {
@@ -54,6 +55,7 @@ public class BookService {
                 .build();
     }
 
+    // Get book by ID
     public BookResponse getBookById(Long id) {
         Book book = bookRepository.findByBookId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", id));
@@ -73,6 +75,7 @@ public class BookService {
                 .build();
     }
 
+    // Update book
     @Transactional
     public BookResponse updateBook(long id, Book book, MultipartFile image) {
         Optional<Book> gettedBook = bookRepository.findByBookId(id);
@@ -106,9 +109,7 @@ public class BookService {
             existingBook.setCategory(book.getCategory());
         }
 
-        // Xử lý upload ảnh mới nếu có
         if (image != null && !image.isEmpty()) {
-            // Xóa ảnh cũ nếu có
             if (existingBook.getImage() != null && !existingBook.getImage().isEmpty()) {
                 try {
                     String oldFileName = existingBook.getImage().substring(existingBook.getImage().lastIndexOf("/") + 1);
@@ -139,10 +140,12 @@ public class BookService {
                 .build();
     }
 
+    // Get all books with pagination (overload)
     public PageResponse<?> getAllBook(int pageNo, int pageSize, String sortBy, String search, String category) {
         return getAllBook(pageNo, pageSize, sortBy, search, category, null);
     }
 
+    // Get all books with pagination
     public PageResponse<?> getAllBook(int pageNo, int pageSize, String sortBy, String search, String category,
             Long categoryId) {
         if (pageNo > 1) {
@@ -162,7 +165,7 @@ public class BookService {
 
         Pageable pageable = PageRequest.of(pageNo, pageSize,
                 Sort.by(direction, sortField));
-        
+
         Page<Book> books;
         if (categoryId != null) {
             books = bookRepository.findBooksWithSearchAndCategoryId(search, categoryId, pageable);
@@ -199,12 +202,12 @@ public class BookService {
                 .build();
     }
 
+    // Delete book
     @Transactional
     public void deleteBook(long id) {
         Book book = bookRepository.findByBookId(id)
                 .orElseThrow(() -> new RuntimeException("Khong ton tai sach"));
-        
-        // Xóa ảnh sách nếu có
+
         if (book.getImage() != null && !book.getImage().isEmpty()) {
             try {
                 String fileName = book.getImage().substring(book.getImage().lastIndexOf("/") + 1);
@@ -213,7 +216,7 @@ public class BookService {
                 log.warn("Could not delete book image: {}", e.getMessage());
             }
         }
-        
+
         bookRepository.deleteByBookId(id);
     }
 }

@@ -12,16 +12,22 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+    // find user by id
     Optional<User> findByUserId(Long id);
 
+    // find user by email
     Optional<User> findByEmail(String email);
 
+    // check if email exists
     boolean existsByEmail(String email);
 
+    // check if username exists
     boolean existsByUsername(String username);
 
+    // find user by username
     Optional<User> findByUsername(String username);
 
+    // search users by multiple fields
     @Query("SELECT u FROM User u WHERE " +
             "(:search IS NULL OR :search = '' OR " +
             "LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

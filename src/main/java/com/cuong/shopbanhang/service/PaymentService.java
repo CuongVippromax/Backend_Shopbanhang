@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 public class PaymentService {
     private final VNPayConfig vnPayConfig;
 
+    // Create VNPay payment URL
     public PaymentDTO.VNPayResponse createVnPayPayment(HttpServletRequest request) {
         String orderIdStr = request.getParameter("orderId");
         if (orderIdStr == null || orderIdStr.isEmpty()) {
@@ -24,7 +25,7 @@ public class PaymentService {
         Long orderId = Long.parseLong(orderIdStr);
         long amount = Integer.parseInt(request.getParameter("amount")) * 100L;
         String bankCode = request.getParameter("bankCode");
-        
+
         Map<String, String> vnpParamsMap = vnPayConfig.getVNPayConfig();
         if (vnpParamsMap != null && !vnpParamsMap.isEmpty()) {
             vnpParamsMap.put("vnp_Amount", String.valueOf(amount));
@@ -39,7 +40,7 @@ public class PaymentService {
         String vnpSecureHash = VNPayUtil.hmacSHA512(vnPayConfig.getSecretKey(), hashData);
         queryUrl += "&vnp_SecureHash=" + vnpSecureHash;
         String paymentUrl = vnPayConfig.getVnp_PayUrl() + "?" + queryUrl;
-        
+
         return PaymentDTO.VNPayResponse.builder()
                 .code("ok")
                 .message("success")

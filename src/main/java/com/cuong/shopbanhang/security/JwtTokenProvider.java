@@ -2,8 +2,6 @@ package com.cuong.shopbanhang.security;
 
 import java.util.Date;
 
-
-
 import javax.crypto.SecretKey;
 
 import io.jsonwebtoken.Claims;
@@ -29,11 +27,13 @@ public class JwtTokenProvider {
 
     private final JwtProperties jwtProperties;
 
+    // Build signing key from secret
     private SecretKey signingKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecretKey());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // Generate token from authentication
     public String generateToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         String role = authentication.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElseThrow(null);
@@ -51,6 +51,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // Generate token from user ID
     public String generateTokenFromUserId(Long userId) {
         Date now = new Date();
         Date expriryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
@@ -63,6 +64,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // Extract user ID from token
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(signingKey())
@@ -72,6 +74,7 @@ public class JwtTokenProvider {
         return Long.parseLong(claims.getSubject());
     }
 
+    // Validate token signature
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -85,6 +88,7 @@ public class JwtTokenProvider {
         }
     }
 
+    // Extract username from token
     public String getUsernameFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(signingKey())
@@ -95,6 +99,7 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
+    // Extract role from token
     public String getRoleFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(signingKey())
@@ -104,6 +109,7 @@ public class JwtTokenProvider {
         return claims.get("role", String.class);
     }
 
+    // Generate refresh token
     public String generateRefreshToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         Date now = new Date();
@@ -118,6 +124,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // Generate refresh token from user ID
     public String generateRefreshTokenFromUserId(Long userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshToken().getExpiration());
@@ -131,6 +138,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    // Generate access token with user details
     public String generateAccessTokenFromUserId(Long userId, String username, String email, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
@@ -146,7 +154,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // dùng cho logout: lấy thời điểm hết hạn của token
+    // Get token expiration date
     public Date getExpirationDateFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(signingKey())

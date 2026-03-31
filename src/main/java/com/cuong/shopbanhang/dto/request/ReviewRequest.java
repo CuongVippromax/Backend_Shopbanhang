@@ -9,12 +9,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// DTO for review submission request
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewRequest {
-
     @NotNull(message = "Book ID is required")
     private Long bookId;
 

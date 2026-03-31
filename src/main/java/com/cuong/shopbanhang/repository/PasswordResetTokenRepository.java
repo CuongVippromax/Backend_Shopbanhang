@@ -10,7 +10,9 @@ import com.cuong.shopbanhang.model.User;
 
 @Repository
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
+    // find token by token string
     Optional<PasswordResetToken> findByToken(String token);
     
+    // delete tokens by user
     void deleteByUser(User user);
 }

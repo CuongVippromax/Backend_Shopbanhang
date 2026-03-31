@@ -26,6 +26,7 @@ public class AdminUserController {
 
     private final UserService userService;
 
+    // Get all users with pagination
     @GetMapping
     public DataResponse<PageResponse<List<UserResponse>>> getAllUsers(
             @RequestParam(name = "search", required = false) String search,
@@ -40,6 +41,7 @@ public class AdminUserController {
                 .build();
     }
 
+    // Get user by ID
     @GetMapping("/{id}")
     public DataResponse<UserResponse> getUserById(@PathVariable @Min(1) Long id) {
         UserResponse user = userService.getUserById(id);
@@ -50,6 +52,7 @@ public class AdminUserController {
                 .build();
     }
 
+    // Delete user
     @DeleteMapping("/{id}")
     public DataResponse<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
@@ -59,6 +62,7 @@ public class AdminUserController {
                 .build();
     }
 
+    // Update user role
     @PutMapping("/{id}/role")
     public DataResponse<UserResponse> updateUserRole(
             @PathVariable Long id,

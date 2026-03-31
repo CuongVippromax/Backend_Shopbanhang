@@ -16,6 +16,7 @@ public class BookController {
 
     private final BookService bookService;
 
+    // Get all books with pagination
     @GetMapping("/all")
     public ResponseEntity<PageResponse<?>> getAllBooks(
             @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
@@ -28,12 +29,14 @@ public class BookController {
         return ResponseEntity.ok(books);
     }
 
+    // Get book by ID
     @GetMapping("/{id}")
     public ResponseEntity<BookResponse> getBookById(@PathVariable Long id) {
         BookResponse book = bookService.getBookById(id);
         return ResponseEntity.ok(book);
     }
 
+    // Search books
     @GetMapping("/search")
     public ResponseEntity<PageResponse<?>> searchBooks(
             @RequestParam(name = "search", required = false) String search,

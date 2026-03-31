@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// DTO for order data
 @Data
 @Builder
 @NoArgsConstructor

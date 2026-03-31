@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Kết quả gom theo khoảng thời gian: tổng tiền + số đơn (JPQL constructor).
- * Tránh nhầm cột khi dùng {@code Object[]} với các driver/Hibernate khác nhau.
+ * DTO for aggregated order revenue by time period (JPQL constructor).
  */
 @Getter
 @NoArgsConstructor

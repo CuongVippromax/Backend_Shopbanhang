@@ -46,7 +46,6 @@ public class Order {
 
     private String paymentMethod;
 
-   
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     @JsonIgnoreProperties({"order", "items"})
     private OrderDetail orderDetails;

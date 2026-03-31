@@ -5,6 +5,7 @@ import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 
+// DTO for security error response
 @Data
 @Builder
 public class SecurityErrorResponse {

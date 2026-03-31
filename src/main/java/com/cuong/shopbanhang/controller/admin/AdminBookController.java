@@ -24,15 +24,16 @@ public class AdminBookController {
 
     private final BookService bookService;
 
+    // Get all books with pagination
     @GetMapping("/all")
     public ResponseEntity<PageResponse<?>> getAllBooks(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) String search) {
-        // Convert 1-based to 0-based for service
         return ResponseEntity.ok(bookService.getAllBook(page - 1, size, null, search, null));
     }
 
+    // Create new book
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BookResponse> createBook(
             @RequestParam("bookName") String bookName,
@@ -65,8 +66,9 @@ public class AdminBookController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBook);
     }
 
+    // Update existing book (PUT — REST standard)
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<BookResponse> updateBook(
+    public ResponseEntity<BookResponse> updateBookPut(
             @PathVariable Long id,
             @RequestParam(value = "bookName", required = false) String bookName,
             @RequestParam(value = "price", required = false) Double price,
@@ -97,6 +99,40 @@ public class AdminBookController {
         return ResponseEntity.ok(updatedBook);
     }
 
+    // Update existing book (POST — matches frontend apiPostForm which sends POST)
+    @PostMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<BookResponse> updateBookPost(
+            @PathVariable Long id,
+            @RequestParam(value = "bookName", required = false) String bookName,
+            @RequestParam(value = "price", required = false) Double price,
+            @RequestParam(value = "quantity", required = false) Integer quantity,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "author", required = false) String author,
+            @RequestParam(value = "publisher", required = false) String publisher,
+            @RequestParam(value = "publicationYear", required = false) Integer publicationYear,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+
+        Book bookUpdate = new Book();
+        bookUpdate.setBookName(bookName);
+        bookUpdate.setPrice(price);
+        bookUpdate.setQuantity(quantity);
+        bookUpdate.setDescription(description);
+        bookUpdate.setAuthor(author);
+        bookUpdate.setPublisher(publisher);
+        bookUpdate.setPublicationYear(publicationYear);
+
+        if (categoryId != null) {
+            Category category = new Category();
+            category.setCategoryId(categoryId);
+            bookUpdate.setCategory(category);
+        }
+
+        BookResponse updatedBook = bookService.updateBook(id, bookUpdate, image);
+        return ResponseEntity.ok(updatedBook);
+    }
+
+    // Delete book
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);

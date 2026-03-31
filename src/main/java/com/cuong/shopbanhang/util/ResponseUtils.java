@@ -9,6 +9,7 @@ public class ResponseUtils {
     private ResponseUtils() {
     }
 
+    // Return success response with data
     public static <T> ResponseEntity<ResponseObject<T>> success(T data) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.OK, "Success", data),
@@ -16,6 +17,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return success response with message and data
     public static <T> ResponseEntity<ResponseObject<T>> success(String message, T data) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.OK, message, data),
@@ -23,6 +25,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return created response
     public static <T> ResponseEntity<ResponseObject<T>> created(T data) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.CREATED, "Created successfully", data),
@@ -30,6 +33,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return created response with message
     public static <T> ResponseEntity<ResponseObject<T>> created(String message, T data) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.CREATED, message, data),
@@ -37,6 +41,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return no content response
     public static <T> ResponseEntity<ResponseObject<T>> noContent() {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.NO_CONTENT, "No content", null),
@@ -44,6 +49,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return bad request response
     public static <T> ResponseEntity<ResponseObject<T>> badRequest(String message) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.BAD_REQUEST, message, null),
@@ -51,6 +57,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return unauthorized response
     public static <T> ResponseEntity<ResponseObject<T>> unauthorized(String message) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.UNAUTHORIZED, message, null),
@@ -58,6 +65,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return forbidden response
     public static <T> ResponseEntity<ResponseObject<T>> forbidden(String message) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.FORBIDDEN, message, null),
@@ -65,6 +73,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return not found response
     public static <T> ResponseEntity<ResponseObject<T>> notFound(String message) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.NOT_FOUND, message, null),
@@ -72,6 +81,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return conflict response
     public static <T> ResponseEntity<ResponseObject<T>> conflict(String message) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.CONFLICT, message, null),
@@ -79,6 +89,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return internal server error response
     public static <T> ResponseEntity<ResponseObject<T>> internalError(String message) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.INTERNAL_SERVER_ERROR, message, null),
@@ -86,6 +97,7 @@ public class ResponseUtils {
         );
     }
 
+    // Return service unavailable response
     public static <T> ResponseEntity<ResponseObject<T>> serviceUnavailable(String message) {
         return new ResponseEntity<>(
                 new ResponseObject<>(HttpStatus.SERVICE_UNAVAILABLE, message, null),

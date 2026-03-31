@@ -5,12 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// DTO for FAQ data
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FaqResponse {
-
     private Long id;
     private String question;
     private String answer;

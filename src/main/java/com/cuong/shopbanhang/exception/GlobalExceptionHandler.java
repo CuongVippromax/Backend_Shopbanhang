@@ -24,11 +24,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
-   
+    // Handle resource not found
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
-
         log.warn("Resource not found: {}", ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -42,11 +41,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    // Handle Resource Already Exists
+    // Handle resource already exists
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleResourceAlreadyExistsException(
             ResourceAlreadyExistsException ex, WebRequest request) {
-
         log.warn("Resource already exists: {}", ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -60,11 +58,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-    
+    // Handle bad request
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(
             BadRequestException ex, WebRequest request) {
-
         log.warn("Bad request: {}", ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -78,11 +75,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-   
+    // Handle validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(
             MethodArgumentNotValidException ex, WebRequest request) {
-
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             if (error instanceof FieldError fieldError) {
@@ -113,10 +109,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    // Handle authentication exceptions
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
             AuthenticationException ex, WebRequest request) {
-
         log.warn("Authentication failed: {}", ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -130,11 +126,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
-  
+    // Handle access denied
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(
             AccessDeniedException ex, WebRequest request) {
-
         log.warn("Access denied: {}", ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -148,10 +143,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
+    // Handle runtime exceptions
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(
             RuntimeException ex, WebRequest request) {
-
         log.error("Runtime exception [{}]: {} | path={}",
                 ex.getClass().getSimpleName(), ex.getMessage(), request.getDescription(false), ex);
 
@@ -166,10 +161,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    // Handle JSON serialization errors
     @ExceptionHandler(HttpMessageNotWritableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotWritable(
             HttpMessageNotWritableException ex, WebRequest request) {
-
         log.error("JSON serialization error: {}", ex.getMessage(), ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
@@ -183,10 +178,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    // Handle method not allowed
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotAllowed(
             HttpRequestMethodNotSupportedException ex, WebRequest request) {
-
         log.warn("Method not allowed: {} - {}", request.getDescription(false), ex.getMessage());
 
         String hint = "";
@@ -206,10 +201,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
+    // Handle generic exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex, WebRequest request) {
-
         log.error("Unexpected error occurred: ", ex);
 
         ErrorResponse errorResponse = ErrorResponse.builder()

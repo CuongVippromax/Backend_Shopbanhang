@@ -500,7 +500,7 @@
 
 .product-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 16px;
   padding: 14px;
 }
@@ -4121,14 +4121,14 @@
 }
 
 /* ================================================================
-   SÁCH HAY — gradient tím/cam, SVG trang trí sách
+   SÁCH HAY — cùng phong cách banner Sách mới (nền kem, ảnh trái, chữ đỏ)
    ================================================================ */
 .featured-books-page .sach-hay-hero {
   --page-hero-inner-height: 340px;
   min-height: var(--page-hero-inner-height);
   height: auto;
   max-height: none;
-  background: linear-gradient(135deg, #4a148c 0%, #7b1fa2 30%, #ff8a65 70%, #e64a19 100%);
+  background: linear-gradient(180deg, #fff8e6 0%, #ffe9a0 48%, #ffd966 100%);
 }
 
 .featured-books-page .sach-hay-hero .page-hero__inner {
@@ -4144,36 +4144,86 @@
   max-width: 520px;
 }
 
+.featured-books-page .sach-hay-hero__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 210px;
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 8px;
+}
+
 .featured-books-page .sach-hay-hero__icon {
   max-height: 210px;
 }
 
 .featured-books-page .sach-hay-hero__eyebrow {
+  margin: 0 0 8px;
+  font-family: 'Nunito', system-ui, sans-serif;
   font-size: clamp(10px, 1.6vw, 13px);
-  margin-bottom: 8px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: rgba(80, 40, 0, 0.65);
+  text-transform: uppercase;
 }
 
 .featured-books-page .sach-hay-hero__title {
+  margin: 0;
+  padding: 0;
+  font-family: 'Dancing Script', cursive;
   font-size: clamp(2.25rem, 6vw, 3.5rem);
+  font-weight: 700;
   line-height: 1.05;
+  letter-spacing: 0.02em;
+  color: #c62828;
 }
 
 .featured-books-page .sach-hay-hero__sub {
-  margin-top: 10px;
+  margin: 10px 0 0;
+  font-family: 'Nunito', system-ui, sans-serif;
   font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  color: rgba(61, 50, 41, 0.85);
+  text-transform: uppercase;
 }
 
 .featured-books-page .sach-hay-hero__desc {
   margin-top: 10px;
   font-size: clamp(12px, 1.5vw, 14px);
+  color: rgba(61, 50, 41, 0.78);
+  line-height: 1.45;
   -webkit-line-clamp: 3;
 }
 
 .featured-books-page .sach-hay-hero__btn {
+  display: inline-block;
   margin-top: 14px;
   padding: 10px 26px;
+  font-family: 'Nunito', system-ui, sans-serif;
   font-size: clamp(11px, 1.4vw, 13px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #fff;
+  background: #c62828;
   border-radius: 28px;
+  border: 2px solid #fff;
+  box-shadow: 0 3px 10px rgba(198, 40, 40, 0.3);
+  transition: background 0.18s ease, transform 0.15s ease;
+}
+
+.featured-books-page .sach-hay-hero__btn:hover {
+  background: #b71c1c;
+  transform: translateY(-1px);
+  color: #fff;
+}
+
+.featured-books-page .sach-hay-hero__btn:focus-visible {
+  outline: 2px solid var(--primary, #ff6a00);
+  outline-offset: 2px;
 }
 
 .sach-hay-hero__gradient {
@@ -4766,6 +4816,7 @@
 
   /* Sách hay / Sách mới: ảnh & icon cao hơn policy trên mobile */
   .featured-books-page .sach-hay-hero__icon,
+  .featured-books-page .sach-hay-hero__img,
   .new-books-page .new-books-hero__img {
     max-height: min(200px, 48vw);
   }
@@ -5847,7 +5898,8 @@
 .footer__partners {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   margin-top: 16px;
 }
 
@@ -5859,6 +5911,31 @@
   font-size: 12px;
   color: var(--gray-400);
   font-weight: 500;
+}
+
+.footer__partner-img {
+  height: 34px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 4px 8px;
+  box-sizing: content-box;
+  display: block;
+}
+
+.footer__partner-img--inline-svg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  min-height: 42px;
+}
+
+.footer__partner-img--inline-svg svg {
+  display: block;
+  flex-shrink: 0;
 }
 
 /* Footer Bottom */
@@ -6144,9 +6221,15 @@
 /* Product List */
 .product-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 20px;
   padding: 16px;
+}
+
+@media (max-width: 1280px) {
+  .product-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 @media (max-width: 1200px) {

@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPostForm, apiPut, apiDelete } from './client'
+import { apiGet, apiPost, apiPostForm, apiPut, apiPutForm, apiDelete } from './client'
 
 // FAQ - Admin
 export const getAllFaqsAdmin = () => apiGet('/admin/faqs')
@@ -20,7 +20,7 @@ export const updatePaymentStatus = (orderId, status) =>
 // Books - Admin (CRUD)
 export const getAllBooksAdmin = (params) => apiGet('/admin/books/all', params)
 export const createBook = (data) => apiPostForm('/admin/books', data)
-export const updateBook = (bookId, data) => apiPostForm(`/admin/books/${bookId}`, data)
+export const updateBook = (bookId, data) => apiPutForm(`/admin/books/${bookId}`, data)
 export const deleteBook = (bookId) => apiDelete(`/admin/books/${bookId}`)
 
 // Categories - Admin

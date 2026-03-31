@@ -31,6 +31,8 @@ public class VNPayConfig {
     private String vnp_Command;
     @Value("${payment.vnPay.orderType}")
     private String orderType;
+
+    // Get VNPay configuration map
     @Bean
     public Map<String, String> getVNPayConfig() {
         Map<String, String> vnpParamsMap = new HashMap<>();

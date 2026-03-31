@@ -25,12 +25,14 @@ public class AdminCategoryController {
 
     private final CategoryService categoryService;
 
+    // Create new category
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody Category category) {
         CategoryResponse createdCategory = categoryService.createCategory(category);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
     }
 
+    // Update category
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable Long id,
@@ -43,24 +45,28 @@ public class AdminCategoryController {
         return ResponseEntity.ok(updatedCategory);
     }
 
+    // Delete category
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }
 
+    // Seed default categories
     @PostMapping("/seed")
     public ResponseEntity<String> seedCategories() {
         categoryService.seedDefaultCategories();
         return ResponseEntity.ok("Categories seeded successfully");
     }
 
+    // Delete all categories
     @DeleteMapping("/delete-all")
     public ResponseEntity<String> deleteAllCategories() {
         categoryService.deleteAllCategories();
         return ResponseEntity.ok("All categories deleted");
     }
 
+    // Get all categories with pagination
     @GetMapping("/all")
     public ResponseEntity<PageResponse<?>> getAllCategories(
             @RequestParam(defaultValue = "1") int pageNo,
@@ -71,6 +77,7 @@ public class AdminCategoryController {
         return ResponseEntity.ok(categories);
     }
 
+    // Get category by ID
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
         CategoryResponse category = categoryService.getCategoryById(id);

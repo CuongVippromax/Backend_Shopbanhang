@@ -1,8 +1,10 @@
 import { Outlet, Link, useLocation, useNavigate, createSearchParams } from 'react-router-dom'
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { getUser, isLoggedIn, logout } from '../api/client'
 import { getCartCount, getCart } from '../utils/cart'
 import Chatbot from './Chatbot'
+import './Chatbot.css'
 
 /* ================================================================
    ICONS - SVG Icons
@@ -147,6 +149,14 @@ const Icons = {
       <path d="M16 10a4 4 0 0 1-8 0"></path>
     </svg>
   ),
+  LayoutDashboard: () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+      <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+      <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+      <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+    </svg>
+  ),
   List: () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="8" y1="6" x2="21" y2="6"></line>
@@ -155,24 +165,6 @@ const Icons = {
       <line x1="3" y1="6" x2="3.01" y2="6"></line>
       <line x1="3" y1="12" x2="3.01" y2="12"></line>
       <line x1="3" y1="18" x2="3.01" y2="18"></line>
-    </svg>
-  ),
-  Facebook: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-    </svg>
-  ),
-  Instagram: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-    </svg>
-  ),
-  Youtube: () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
-      <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff"></polygon>
     </svg>
   ),
   Zalo: () => (
@@ -228,6 +220,28 @@ function LogoBookMark({ size = 24 }) {
         strokeLinejoin="round"
       />
     </svg>
+  )
+}
+
+/** Logo GHN (inline — tránh lỗi tải file SVG / encoding) */
+function FooterLogoGhn() {
+  return (
+    <span className="footer__partner-img footer__partner-img--inline-svg" role="img" aria-label="Giao Hàng Nhanh (GHN)">
+      <svg viewBox="0 0 48 48" width="40" height="40" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <rect width="48" height="48" rx="10" fill="#F47920" />
+        <rect x="14" y="12" width="20" height="14" rx="2" fill="none" stroke="#fff" strokeWidth="1.8" />
+        <line x1="14" y1="17" x2="34" y2="17" stroke="#fff" strokeWidth="1.2" />
+        <text
+          x="24"
+          y="38"
+          textAnchor="middle"
+          fill="#fff"
+          style={{ fontFamily: 'system-ui, Segoe UI, Arial, sans-serif', fontSize: 10, fontWeight: 800 }}
+        >
+          GHN
+        </text>
+      </svg>
+    </span>
   )
 }
 
@@ -368,6 +382,11 @@ function Header() {
               <Link to="/san-pham?favorites=true" className="dropdown-item" onClick={() => setShowDropdown(false)}>
                 <Icons.Heart /> Sách yêu thích
               </Link>
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                  <Icons.LayoutDashboard /> Dashboard
+                </Link>
+              )}
               <div className="dropdown-divider" />
               <button onClick={handleLogout} className="dropdown-item dropdown-item--danger">
                 <Icons.LogOut /> Đăng xuất
@@ -593,21 +612,7 @@ function Footer() {
               <p className="footer__desc">
                 Nhà sách Hoàng Kim là hệ thống sách online với hàng ngàn đầu sách trong và ngoài nước. Cam kết mang đến những cuốn sách chất lượng, đóng gói cẩn thận và giao hàng nhanh chóng.
               </p>
-              <div className="footer__badges">
-                <span className="footer__badge">
-                  <Icons.Shield /> Đã đăng ký Bộ Công Thương
-                </span>
-              </div>
               <div className="footer__social">
-                <a href="#" className="footer__social-link" title="Facebook">
-                  <Icons.Facebook />
-                </a>
-                <a href="#" className="footer__social-link" title="Instagram">
-                  <Icons.Instagram />
-                </a>
-                <a href="#" className="footer__social-link" title="YouTube">
-                  <Icons.Youtube />
-                </a>
                 <a href="#" className="footer__social-link" title="Zalo">
                   <Icons.Zalo />
                 </a>
@@ -665,10 +670,24 @@ function Footer() {
                   <span>8h00 - 22h00 (T2 - CN)</span>
                 </div>
               </div>
-              <div className="footer__partners">
-                <span className="footer__partner">VNPay</span>
-                <span className="footer__partner">Momo</span>
-                <span className="footer__partner">ZaloPay</span>
+              <div className="footer__partners" aria-label="Thanh toán và đơn vị vận chuyển">
+                <img
+                  className="footer__partner-img"
+                  src="/images/vnpay-logo.png"
+                  alt="VNPay — thanh toán"
+                  width="90"
+                  height="32"
+                  loading="lazy"
+                />
+                <img
+                  className="footer__partner-img"
+                  src="/images/partner-jnt.svg"
+                  alt="J&amp;T Express — vận chuyển"
+                  width="120"
+                  height="34"
+                  loading="lazy"
+                />
+                <FooterLogoGhn />
                 <span className="footer__partner">ShopeePay</span>
               </div>
             </div>
@@ -711,6 +730,11 @@ function ScrollToTop() {
 }
 
 export default function Layout() {
+  const [showChatbot, setShowChatbot] = useState(false)
+
+  const toggleChatbot = () => setShowChatbot(!showChatbot)
+  const closeChatbot = () => setShowChatbot(false)
+
   return (
     <div className="app">
       <ScrollToTop />
@@ -720,7 +744,31 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
-      <Chatbot />
+
+      {/* Chatbot */}
+      {showChatbot && <Chatbot onClose={closeChatbot} />}
+      {createPortal(
+        <div className="chatbot-wrapper">
+          <button
+            type="button"
+            className="chatbot-toggle-btn"
+            onClick={toggleChatbot}
+            aria-label={showChatbot ? 'Đóng cửa sổ tư vấn' : 'Mở chat tư vấn nhà sách'}
+          >
+            {showChatbot ? (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              </svg>
+            )}
+          </button>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

@@ -34,6 +34,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
+
+    // Authenticate user and generate tokens
     public LoginResponse login(LoginRequest request) {
         try {
         log.info("Login attempt for: {}", request.getUsernameOrEmail());
@@ -71,6 +73,7 @@ public class AuthService {
 }
 }
 
+    // Create access token from refresh token
     public LoginResponse createAccessTooken(String refreshToken) {
         long userId = tokenProvider.getUserIdFromToken(refreshToken);
         User user = userRepository.findByUserId(userId).orElseThrow(() -> new BadRequestException("Invalid username or password"));
@@ -85,6 +88,8 @@ public class AuthService {
                 .role(role)
                 .build();
     }
+
+    // Change user password
     @Transactional
     public void changePassword(ChangePasswordRequest request) {
         Long userId = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
@@ -103,6 +108,8 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
+
+    // Logout and blacklist token
     @Transactional
     public void logout(String token) {
         if (!StringUtils.hasText(token)) {
@@ -120,11 +127,10 @@ public class AuthService {
         long expiryTime = tokenProvider.getExpirationDateFromToken(token).getTime();
         long ttlMillis = expiryTime - now;
         if (ttlMillis <= 0) {
-            // Token đã hết hạn hoặc sắp hết hạn, không cần blacklist
             return;
         }
 
-        String key = "blacklist:" + token; 
+        String key = "blacklist:" + token;
        redisTemplate.opsForValue().set(key,"a",ttlMillis,TimeUnit.MILLISECONDS);
         log.info("Token has been blacklisted with key {}", key);
 
@@ -132,26 +138,28 @@ public class AuthService {
         redisTemplate.delete("refreshToken:" + userId);
         log.info("Refresh token has been removed for user {}", userId);
     }
+
+    // Refresh token
     public String refreshToken(String refreshToken) {
-       
+
         if (!tokenProvider.validateToken(refreshToken)) {
             throw new BadRequestException("Invalid refresh token");
         }
 
         Long userId = tokenProvider.getUserIdFromToken(refreshToken);
 
-        
+
         String storedToken = redisTemplate.opsForValue().get("refreshToken:" + userId);
         if (storedToken == null || !storedToken.equals(refreshToken)) {
             throw new BadRequestException("Refresh token has been revoked or not found");
         }
 
-        
+
         String newRefreshToken = tokenProvider.generateRefreshTokenFromUserId(userId);
 
         redisTemplate.delete("refreshToken:" + userId);
 
-        
+
         redisTemplate.opsForValue().set(
                 "refreshToken:" + userId,
                 newRefreshToken,

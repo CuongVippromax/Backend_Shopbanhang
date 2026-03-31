@@ -17,6 +17,7 @@ public class RedisConfig {
     @Value("${spring.data.redis.port}")
     private int port;
 
+    // Configure RedisTemplate bean
     @Bean
     @Primary
     public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
@@ -25,6 +26,7 @@ public class RedisConfig {
         return template;
 }   
 
+    // Configure Redis connection factory
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(new RedisStandaloneConfiguration(host, port));

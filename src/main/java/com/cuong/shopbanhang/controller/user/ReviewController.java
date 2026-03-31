@@ -20,11 +20,13 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
+    // Add new review
     @PostMapping
     public ResponseEntity<ReviewResponse> addReview(@Valid @RequestBody ReviewRequest request) {
         return ResponseEntity.ok(reviewService.addReview(request));
     }
 
+    // Update existing review
     @PutMapping("/{reviewId}")
     public ResponseEntity<ReviewResponse> updateReview(
             @PathVariable Long reviewId,
@@ -32,12 +34,14 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.updateReview(reviewId, request));
     }
 
+    // Delete review
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId) {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.ok().build();
     }
 
+    // Get reviews by book
     @GetMapping("/book/{bookId}")
     public ResponseEntity<PageResponse<?>> getReviewsByBook(
             @PathVariable Long bookId,
@@ -46,6 +50,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByBook(bookId, page, size));
     }
 
+    // Get current user's reviews
     @GetMapping("/my-reviews")
     public ResponseEntity<List<ReviewResponse>> getMyReviews() {
         return ResponseEntity.ok(reviewService.getMyReviews());

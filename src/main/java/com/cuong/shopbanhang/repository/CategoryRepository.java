@@ -14,6 +14,7 @@ import com.cuong.shopbanhang.model.Book;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+    // check if category exists by name
     boolean existsByCategoryName(String name);
 
     @Query("SELECT c FROM Category c WHERE " +
@@ -23,6 +24,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
         )
     Page<Category> findCategoriesWithSearch(@Param("search") String search, Pageable pageable);
 
+    // find books by category name
     @Query("SELECT b FROM Book b WHERE LOWER(b.category.categoryName) = LOWER(:categoryName)")
     List<Book> findBooksByCategoryName(String categoryName);
 }

@@ -29,7 +29,7 @@ public class Review {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private Integer rating; // 1-5 sao
+    private Integer rating;
 
     @Column(length = 500)
     private String comment;

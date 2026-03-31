@@ -16,6 +16,7 @@ public class ValidationUtils {
     private ValidationUtils() {
     }
 
+    // Validate email format
     public static boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return false;
@@ -23,6 +24,7 @@ public class ValidationUtils {
         return EMAIL_PATTERN.matcher(email).matches();
     }
 
+    // Validate phone number format
     public static boolean isValidPhone(String phone) {
         if (phone == null || phone.trim().isEmpty()) {
             return false;
@@ -30,6 +32,7 @@ public class ValidationUtils {
         return PHONE_PATTERN.matcher(phone.replaceAll("\\s", "")).matches();
     }
 
+    // Validate username format
     public static boolean isValidUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
             return false;
@@ -37,6 +40,7 @@ public class ValidationUtils {
         return USERNAME_PATTERN.matcher(username).matches();
     }
 
+    // Validate password length
     public static boolean isValidPassword(String password) {
         if (password == null) {
             return false;
@@ -44,24 +48,28 @@ public class ValidationUtils {
         return password.length() >= 6 && password.length() <= 50;
     }
 
+    // Validate email and throw on invalid
     public static void validateEmail(String email) {
         if (!isValidEmail(email)) {
             throw new IllegalArgumentException("Invalid email format");
         }
     }
 
+    // Validate phone and throw on invalid
     public static void validatePhone(String phone) {
         if (!isValidPhone(phone)) {
             throw new IllegalArgumentException("Invalid phone number format");
         }
     }
 
+    // Validate username and throw on invalid
     public static void validateUsername(String username) {
         if (!isValidUsername(username)) {
             throw new IllegalArgumentException("Invalid username format");
         }
     }
 
+    // Validate password and throw on invalid
     public static void validatePassword(String password) {
         if (!isValidPassword(password)) {
             throw new IllegalArgumentException("Password must be between 6 and 50 characters");

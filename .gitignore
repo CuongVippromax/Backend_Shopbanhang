@@ -38,6 +38,7 @@ out/
 
 ### Environment Variables ###
 *.env
+local.env
 
 ### Rule ###
 /rule/**

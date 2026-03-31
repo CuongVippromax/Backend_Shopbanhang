@@ -19,30 +19,35 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
 
+    // Handle user login
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok().body(response);
     }
 
+    // Handle user logout
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
         return ResponseEntity.ok().body("Logout successfully");
     }
 
+    // Refresh access token
     @PostMapping("/refresh-token")
     public ResponseEntity<String> refreshToken(@RequestBody String refreshToken) {
         String response = authService.refreshToken(refreshToken);
         return ResponseEntity.ok().body(response);
     }
 
+    // Create new access token from refresh token
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refresh(@RequestBody String refreshToken) {
         LoginResponse response = authService.createAccessTooken(refreshToken);
         return ResponseEntity.ok().body(response);
     }
 
+    // Change user password
     @PostMapping("/change-password")
     public ResponseObject<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);

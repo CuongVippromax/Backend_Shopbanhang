@@ -10,8 +10,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-
 public class VNPayUtil {
+
+    // Generate HMAC SHA512 hash
     public static String hmacSHA512(final String key, final String data) {
         try {
             if (key == null || data == null) {
@@ -34,6 +35,7 @@ public class VNPayUtil {
         }
     }
 
+    // Get client IP address from request
     public static String getIpAddress(HttpServletRequest request) {
         String ipAdress;
         try {
@@ -47,6 +49,7 @@ public class VNPayUtil {
         return ipAdress;
     }
 
+    // Generate random numeric string
     public static String getRandomNumber(int len) {
         Random rnd = new Random();
         String chars = "0123456789";
@@ -56,6 +59,8 @@ public class VNPayUtil {
         }
         return sb.toString();
     }
+
+    // Build payment URL query string
     public static String getPaymentURL(Map<String, String> paramsMap, boolean encodeKey) {
         return paramsMap.entrySet().stream()
                 .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty())

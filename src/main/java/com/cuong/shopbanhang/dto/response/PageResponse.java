@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+// DTO for paginated response
 @Getter
 @Setter
 @Builder
