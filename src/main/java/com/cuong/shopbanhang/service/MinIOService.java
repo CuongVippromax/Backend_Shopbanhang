@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cuong.shopbanhang.exception.FileStorageException;
+
 import io.minio.BucketExistsArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
@@ -31,7 +33,15 @@ public class MinIOService {
     @Value("${minio.url}")
     private String minioUrl;
 
-    // Upload file to MinIO
+    /**
+     * Upload file lên MinIO.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - FileStorageException (1): Khi không thể upload file
+     * 
+     * @param file MultipartFile cần upload
+     * @return String URL công khai của file đã upload
+     */
     public String uploadFile(MultipartFile file) {
         try {
             ensureBucketExists();
@@ -57,12 +67,20 @@ public class MinIOService {
             return buildPublicUrl(objectName);
 
         } catch (Exception e) {
-            log.error("Error uploading file to MinIO", e);
-            throw new RuntimeException("Không thể upload file: " + e.getMessage(), e);
+            log.error("Error uploading file to MinIO: {}", e.getMessage(), e);
+            // EXCEPTION: FileStorageException - Khi upload file thất bại
+            throw new FileStorageException("Không thể upload file: " + e.getMessage(), e); // EX-010
         }
     }
 
-    // Delete file from MinIO
+    /**
+     * Xóa file khỏi MinIO.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - FileStorageException (1): Khi không thể xóa file
+     * 
+     * @param objectName Tên object cần xóa
+     */
     public void deleteFile(String objectName) {
         try {
             minioClient.removeObject(
@@ -72,12 +90,22 @@ public class MinIOService {
                             .build());
             log.info("Deleted file: {}", objectName);
         } catch (Exception e) {
-            log.error("Error deleting file from MinIO", e);
-            throw new RuntimeException("Không thể xóa file: " + e.getMessage(), e);
+            log.error("Error deleting file from MinIO: {}", e.getMessage(), e);
+            // EXCEPTION: FileStorageException - Khi xóa file thất bại
+            throw new FileStorageException("Không thể xóa file: " + e.getMessage(), e); // EX-010
         }
     }
 
-    // Generate presigned URL for file
+    /**
+     * Tạo presigned URL để truy cập file private.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - FileStorageException (1): Khi không thể tạo presigned URL
+     * 
+     * @param objectName Tên object
+     * @param expirySeconds Thời gian hết hạn (giây)
+     * @return String presigned URL
+     */
     public String getPresignedUrl(String objectName, int expirySeconds) {
         try {
             return minioClient.getPresignedObjectUrl(
@@ -88,35 +116,61 @@ public class MinIOService {
                             .expiry(expirySeconds)
                             .build());
         } catch (Exception e) {
-            log.error("Error generating presigned URL", e);
-            throw new RuntimeException("Không thể tạo presigned URL: " + e.getMessage(), e);
+            log.error("Error generating presigned URL: {}", e.getMessage(), e);
+            // EXCEPTION: FileStorageException - Khi tạo presigned URL thất bại
+            throw new FileStorageException("Không thể tạo presigned URL: " + e.getMessage(), e); // EX-010
         }
     }
 
-    // Extract object name from file URL
+    /**
+     * Trích xuất tên object từ URL file.
+     * 
+     * @param fileUrl URL đầy đủ của file
+     * @return String tên object hoặc null nếu không trích xuất được
+     */
     public String extractObjectName(String fileUrl) {
         if (fileUrl == null || fileUrl.isBlank()) return null;
         String prefix = minioUrl + "/" + bucket + "/";
         return fileUrl.startsWith(prefix) ? fileUrl.substring(prefix.length()) : fileUrl;
     }
 
-    // Build public URL for object
+    /**
+     * Xây dựng URL công khai cho object.
+     * 
+     * @param objectName Tên object
+     * @return String URL đầy đủ
+     */
     private String buildPublicUrl(String objectName) {
         return minioUrl + "/" + bucket + "/" + objectName;
     }
 
-    // Ensure bucket exists, create if not
+    /**
+     * Đảm bảo bucket tồn tại, tạo mới nếu chưa có.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - FileStorageException (1): Khi không thể tạo bucket
+     * 
+     * @throws Exception khi có lỗi kết nối MinIO
+     */
     private void ensureBucketExists() throws Exception {
-        boolean exists = minioClient.bucketExists(
-                BucketExistsArgs.builder().bucket(bucket).build());
-        if (!exists) {
-            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
-            log.info("Created bucket: {}", bucket);
+        try {
+            boolean exists = minioClient.bucketExists(
+                    BucketExistsArgs.builder().bucket(bucket).build());
+            if (!exists) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+                log.info("Created bucket: {}", bucket);
+            }
+            setBucketPolicyToPublic();
+        } catch (Exception e) {
+            log.error("Error ensuring bucket exists: {}", e.getMessage(), e);
+            // EXCEPTION: FileStorageException - Khi không thể tạo bucket
+            throw new FileStorageException("Không thể tạo bucket: " + bucket, e); // EX-010
         }
-        setBucketPolicyToPublic();
     }
 
-    // Set bucket policy to public read
+    /**
+     * Thiết lập bucket policy thành public read.
+     */
     private void setBucketPolicyToPublic() {
         try {
             String policyJson = """

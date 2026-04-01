@@ -10,6 +10,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.cuong.shopbanhang.exception.BadRequestException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +28,17 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    // Send order confirmation email
+    /**
+     * Gửi email xác nhận đơn hàng.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - BadRequestException (1): Khi gửi email thất bại
+     * 
+     * @param toEmail Email người nhận
+     * @param orderId Mã đơn hàng
+     * @param totalAmount Tổng số tiền
+     * @param orderDetails Chi tiết đơn hàng (HTML)
+     */
     public void sendOrderConfirmation(String toEmail, String orderId, Double totalAmount, String orderDetails) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -55,12 +67,21 @@ public class EmailService {
             javaMailSender.send(message);
             log.info("Order confirmation email sent to: {}", toEmail);
         } catch (MessagingException e) {
-            log.error("Error sending order confirmation email", e);
-            throw new RuntimeException("Failed to send order confirmation email", e);
+            log.error("Error sending order confirmation email to {}: {}", toEmail, e.getMessage());
+            // EXCEPTION: BadRequestException - Khi gửi email thất bại
+            throw new BadRequestException("Không thể gửi email xác nhận đơn hàng. Vui lòng thử lại sau."); // EX-003
         }
     }
 
-    // Send password reset email
+    /**
+     * Gửi email đặt lại mật khẩu.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - BadRequestException (1): Khi gửi email thất bại
+     * 
+     * @param toEmail Email người nhận
+     * @param resetToken Token đặt lại mật khẩu
+     */
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -85,8 +106,9 @@ public class EmailService {
             javaMailSender.send(message);
             log.info("Password reset email sent to: {}", toEmail);
         } catch (MessagingException e) {
-            log.error("Error sending password reset email", e);
-            throw new RuntimeException("Failed to send password reset email", e);
+            log.error("Error sending password reset email to {}: {}", toEmail, e.getMessage());
+            // EXCEPTION: BadRequestException - Khi gửi email thất bại
+            throw new BadRequestException("Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau."); // EX-003
         }
     }
 }

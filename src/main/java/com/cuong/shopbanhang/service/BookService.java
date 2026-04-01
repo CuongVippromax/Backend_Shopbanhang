@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cuong.shopbanhang.exception.BadRequestException;
+import com.cuong.shopbanhang.exception.FileStorageException;
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
 import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.dto.response.BookResponse;
@@ -30,17 +32,38 @@ public class BookService {
     private final BookRepository bookRepository;
     private final MinIOService minIOService;
 
-    // Create new book
+    /**
+     * Tạo sách mới với hình ảnh.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceAlreadyExistsException (1): Khi tên sách đã tồn tại
+     * - FileStorageException (2): Khi upload hình ảnh thất bại
+     * 
+     * @param book Thông tin sách cần tạo
+     * @param image Hình ảnh sách (có thể null)
+     * @return BookResponse thông tin sách đã tạo
+     */
     @Transactional
     public BookResponse createBook(Book book, MultipartFile image) {
+        // EXCEPTION: ResourceAlreadyExistsException - Khi tên sách đã tồn tại
         if (bookRepository.existsByBookName(book.getBookName())) {
-            throw new ResourceAlreadyExistsException("Book", "name", book.getBookName());
+            throw new ResourceAlreadyExistsException("Book", "bookName", book.getBookName()); // EX-002
         }
+        
+        // Upload image nếu có
         if (image != null && !image.isEmpty()) {
-            String imageUrl = minIOService.uploadFile(image);
-            book.setImage(imageUrl);
+            try {
+                String imageUrl = minIOService.uploadFile(image);
+                book.setImage(imageUrl);
+            } catch (Exception e) {
+                // EXCEPTION: FileStorageException - Khi upload image thất bại
+                throw new FileStorageException("Không thể upload hình ảnh sách: " + e.getMessage(), e); // EX-010
+            }
         }
+        
         bookRepository.save(book);
+        log.info("Book created: {}", book.getBookId());
+        
         return BookResponse.builder()
                 .bookId(book.getBookId())
                 .bookName(book.getBookName())
@@ -55,10 +78,20 @@ public class BookService {
                 .build();
     }
 
-    // Get book by ID
+    /**
+     * Lấy thông tin sách theo ID.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy sách với ID tương ứng
+     * 
+     * @param id ID của sách cần lấy
+     * @return BookResponse thông tin sách
+     */
     public BookResponse getBookById(Long id) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy sách
         Book book = bookRepository.findByBookId(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Book", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Book", id)); // EX-001
+        
         return BookResponse.builder()
                 .bookId(book.getBookId())
                 .bookName(book.getBookName())
@@ -75,7 +108,19 @@ public class BookService {
                 .build();
     }
 
-    // Update book
+    /**
+     * Cập nhật thông tin sách.
+     * Nếu có hình ảnh mới, hình ảnh cũ sẽ bị xóa.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy sách (nếu tìm thấy thì tạo mới)
+     * - FileStorageException (2): Khi upload/xóa hình ảnh thất bại
+     * 
+     * @param id ID của sách cần cập nhật
+     * @param book Thông tin mới của sách
+     * @param image Hình ảnh mới (có thể null)
+     * @return BookResponse thông tin sách đã cập nhật
+     */
     @Transactional
     public BookResponse updateBook(long id, Book book, MultipartFile image) {
         Optional<Book> gettedBook = bookRepository.findByBookId(id);
@@ -109,7 +154,9 @@ public class BookService {
             existingBook.setCategory(book.getCategory());
         }
 
+        // Xử lý hình ảnh
         if (image != null && !image.isEmpty()) {
+            // Xóa hình ảnh cũ nếu có
             if (existingBook.getImage() != null && !existingBook.getImage().isEmpty()) {
                 try {
                     String oldFileName = existingBook.getImage().substring(existingBook.getImage().lastIndexOf("/") + 1);
@@ -118,11 +165,18 @@ public class BookService {
                     log.warn("Could not delete old image: {}", e.getMessage());
                 }
             }
-            String imageUrl = minIOService.uploadFile(image);
-            existingBook.setImage(imageUrl);
+            // Upload hình ảnh mới
+            try {
+                String imageUrl = minIOService.uploadFile(image);
+                existingBook.setImage(imageUrl);
+            } catch (Exception e) {
+                // EXCEPTION: FileStorageException - Khi upload image thất bại
+                throw new FileStorageException("Không thể upload hình ảnh sách: " + e.getMessage(), e); // EX-010
+            }
         }
 
         Book updatedBook = bookRepository.save(existingBook);
+        log.info("Book updated: {}", id);
 
         return BookResponse.builder()
                 .bookId(updatedBook.getBookId())
@@ -140,12 +194,31 @@ public class BookService {
                 .build();
     }
 
-    // Get all books with pagination (overload)
+    /**
+     * Lấy danh sách tất cả sách với phân trang, tìm kiếm và lọc theo thể loại.
+     * 
+     * @param pageNo Số trang (bắt đầu từ 1)
+     * @param pageSize Kích thước trang
+     * @param sortBy Trường sắp xếp (VD: price:desc)
+     * @param search Từ khóa tìm kiếm
+     * @param category Tên thể loại để lọc
+     * @return PageResponse chứa danh sách BookResponse
+     */
     public PageResponse<?> getAllBook(int pageNo, int pageSize, String sortBy, String search, String category) {
         return getAllBook(pageNo, pageSize, sortBy, search, category, null);
     }
 
-    // Get all books with pagination
+    /**
+     * Lấy danh sách tất cả sách với phân trang, tìm kiếm và lọc theo thể loại (overload).
+     * 
+     * @param pageNo Số trang (bắt đầu từ 1)
+     * @param pageSize Kích thước trang
+     * @param sortBy Trường sắp xếp (VD: price:desc)
+     * @param search Từ khóa tìm kiếm
+     * @param category Tên thể loại để lọc
+     * @param categoryId ID thể loại để lọc (ưu tiên hơn category)
+     * @return PageResponse chứa danh sách BookResponse
+     */
     public PageResponse<?> getAllBook(int pageNo, int pageSize, String sortBy, String search, String category,
             Long categoryId) {
         if (pageNo > 1) {
@@ -202,12 +275,22 @@ public class BookService {
                 .build();
     }
 
-    // Delete book
+    /**
+     * Xóa sách và hình ảnh liên quan.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy sách với ID tương ứng
+     * - FileStorageException (2): Khi xóa hình ảnh thất bại
+     * 
+     * @param id ID của sách cần xóa
+     */
     @Transactional
     public void deleteBook(long id) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy sách
         Book book = bookRepository.findByBookId(id)
-                .orElseThrow(() -> new RuntimeException("Khong ton tai sach"));
+                .orElseThrow(() -> new ResourceNotFoundException("Book", id)); // EX-001
 
+        // Xóa hình ảnh nếu có
         if (book.getImage() != null && !book.getImage().isEmpty()) {
             try {
                 String fileName = book.getImage().substring(book.getImage().lastIndexOf("/") + 1);
@@ -218,5 +301,6 @@ public class BookService {
         }
 
         bookRepository.deleteByBookId(id);
+        log.info("Book deleted: {}", id);
     }
 }

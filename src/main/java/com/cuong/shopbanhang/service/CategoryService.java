@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
+import com.cuong.shopbanhang.exception.ResourceAlreadyExistsException;
 import com.cuong.shopbanhang.dto.response.CategoryResponse;
 import com.cuong.shopbanhang.dto.response.PageResponse;
-import com.cuong.shopbanhang.exception.ResourceAlreadyExistsException;
 import com.cuong.shopbanhang.model.Category;
 import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.repository.CategoryRepository;
@@ -25,17 +25,29 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
-@Slf4j
+@Slf4j(topic = "CategoryService")
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
-    // Create new category
+    /**
+     * Tạo danh mục mới.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceAlreadyExistsException (1): Khi tên danh mục đã tồn tại
+     * 
+     * @param category Thông tin danh mục cần tạo
+     * @return CategoryResponse thông tin danh mục đã tạo
+     */
     @Transactional
     public CategoryResponse createCategory(Category category) {
+        // EXCEPTION: ResourceAlreadyExistsException - Khi tên danh mục đã tồn tại
         if (categoryRepository.existsByCategoryName(category.getCategoryName())) {
-            throw new ResourceAlreadyExistsException("Category", "name", category.getCategoryName());
+            throw new ResourceAlreadyExistsException("Category", "categoryName", category.getCategoryName()); // EX-002
         }
+        
         categoryRepository.save(category);
+        log.info("Category created: {}", category.getCategoryName());
+        
         return CategoryResponse.builder()
                 .categoryId(category.getCategoryId())
                 .categoryName(category.getCategoryName())
@@ -43,7 +55,15 @@ public class CategoryService {
                 .build();
     }
 
-    // Get all categories with pagination
+    /**
+     * Lấy danh sách tất cả danh mục với phân trang, tìm kiếm và sắp xếp.
+     * 
+     * @param pageNo Số trang (bắt đầu từ 1)
+     * @param pageSize Kích thước trang
+     * @param sortBy Trường sắp xếp (VD: categoryName:desc)
+     * @param search Từ khóa tìm kiếm
+     * @return PageResponse chứa danh sách CategoryResponse
+     */
     public PageResponse<?> getAllCategories(int pageNo, int pageSize, String sortBy, String search) {
         if (pageNo > 0) {
             pageNo = pageNo - 1;
@@ -81,10 +101,20 @@ public class CategoryService {
                 .build();
     }
 
-    // Get category by ID
+    /**
+     * Lấy thông tin danh mục theo ID.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy danh mục
+     * 
+     * @param id ID của danh mục cần lấy
+     * @return CategoryResponse thông tin danh mục
+     */
     public CategoryResponse getCategoryById(Long id) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy danh mục
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id)); // EX-001
+        
         return CategoryResponse.builder()
                 .categoryId(category.getCategoryId())
                 .categoryName(category.getCategoryName())
@@ -92,11 +122,22 @@ public class CategoryService {
                 .build();
     }
 
-    // Update category
+    /**
+     * Cập nhật thông tin danh mục.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy danh mục
+     * 
+     * @param id ID của danh mục cần cập nhật
+     * @param categoryName Tên mới
+     * @param description Mô tả mới
+     * @return CategoryResponse thông tin danh mục đã cập nhật
+     */
     @Transactional
     public CategoryResponse updateCategory(Long id, String categoryName, String description) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy danh mục
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id)); // EX-001
 
         if (categoryName != null && !categoryName.isEmpty()) {
             category.setCategoryName(categoryName);
@@ -106,6 +147,8 @@ public class CategoryService {
         }
 
         Category updatedCategory = categoryRepository.save(category);
+        log.info("Category {} updated", id);
+        
         return CategoryResponse.builder()
                 .categoryId(updatedCategory.getCategoryId())
                 .categoryName(updatedCategory.getCategoryName())
@@ -113,26 +156,49 @@ public class CategoryService {
                 .build();
     }
 
-    // Delete category
+    /**
+     * Xóa danh mục.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy danh mục
+     * 
+     * @param id ID của danh mục cần xóa
+     */
     @Transactional
     public void deleteCategory(Long id) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy danh mục
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id)); // EX-001
+        
         categoryRepository.delete(category);
+        log.info("Category {} deleted", id);
     }
 
-    // Delete all categories
+    /**
+     * Xóa tất cả danh mục.
+     * Cẩn thận: Có thể ảnh hưởng đến các sách đang sử dụng danh mục này.
+     */
     @Transactional
     public void deleteAllCategories() {
         categoryRepository.deleteAll();
+        log.warn("All categories deleted");
     }
 
-    // Load books by category name
+    /**
+     * Lấy danh sách sách theo tên danh mục.
+     * 
+     * @param category Tên danh mục
+     * @return List<Book> danh sách sách trong danh mục
+     */
     public List<Book> loadBookWithCategory(String category) {
         return categoryRepository.findBooksByCategoryName(category);
     }
 
-    // Get all categories as list
+    /**
+     * Lấy danh sách tất cả danh mục (không phân trang).
+     * 
+     * @return List<CategoryResponse> danh sách danh mục
+     */
     public List<CategoryResponse> getAllCategoriesList() {
         List<Category> categories = categoryRepository.findAll();
         return categories.stream()
@@ -144,7 +210,10 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
-    // Seed default categories
+    /**
+     * Tạo danh mục mặc định (seed data).
+     * Chỉ tạo khi chưa có danh mục nào trong hệ thống.
+     */
     @Transactional
     public void seedDefaultCategories() {
         if (categoryRepository.count() > 0) {
@@ -167,5 +236,6 @@ public class CategoryService {
         );
 
         categoryRepository.saveAll(categories);
+        log.info("Seeded {} default categories", categories.size());
     }
 }

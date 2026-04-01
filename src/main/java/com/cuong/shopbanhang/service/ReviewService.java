@@ -13,6 +13,9 @@ import com.cuong.shopbanhang.dto.request.ReviewRequest;
 import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.dto.response.ReviewResponse;
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
+import com.cuong.shopbanhang.exception.BadRequestException;
+import com.cuong.shopbanhang.exception.UnauthorizedException;
+import com.cuong.shopbanhang.exception.ForbiddenException;
 import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.model.Review;
 import com.cuong.shopbanhang.model.User;
@@ -33,16 +36,37 @@ public class ReviewService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
 
-    // Add new review
+    /**
+     * Thêm đánh giá mới cho sách.
+     * Mỗi user chỉ được đánh giá một lần cho mỗi cuốn sách.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - UnauthorizedException (1): Khi người dùng chưa đăng nhập
+     * - ResourceNotFoundException (2): Khi không tìm thấy user hoặc book
+     * - BadRequestException (3): Khi user đã đánh giá sách này
+     * 
+     * @param request ReviewRequest chứa bookId, rating, comment
+     * @return ReviewResponse thông tin đánh giá đã tạo
+     */
     @Transactional
     public ReviewResponse addReview(ReviewRequest request) {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
-        User user = userRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("User", userId));
-        Book book = bookRepository.findByBookId(request.getBookId()).orElseThrow(() -> new ResourceNotFoundException("Book", request.getBookId()));
+        // EXCEPTION: UnauthorizedException - Khi người dùng chưa đăng nhập
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập để đánh giá.")); // EX-004
+        
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId)); // EX-001
+        
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy book
+        Book book = bookRepository.findByBookId(request.getBookId())
+                .orElseThrow(() -> new ResourceNotFoundException("Book", request.getBookId())); // EX-001
 
         var existingReview = reviewRepository.findByBook_BookIdAndUser_UserId(request.getBookId(), userId);
+        
+        // EXCEPTION: BadRequestException - Khi user đã đánh giá sách này
         if (existingReview.isPresent()) {
-            throw new RuntimeException("You have already reviewed this book");
+            throw new BadRequestException("Bạn đã đánh giá cuốn sách này rồi. Không thể đánh giá lại."); // EX-003
         }
 
         Review review = Review.builder()
@@ -52,44 +76,97 @@ public class ReviewService {
                 .comment(request.getComment())
                 .build();
         review = reviewRepository.save(review);
+        log.info("Review added for book {} by user {}", request.getBookId(), userId);
 
         return toReviewResponse(review);
     }
 
-    // Update existing review
+    /**
+     * Cập nhật đánh giá.
+     * User chỉ được cập nhật đánh giá của chính mình.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - UnauthorizedException (1): Khi người dùng chưa đăng nhập
+     * - ResourceNotFoundException (2): Khi không tìm thấy review
+     * - ForbiddenException (3): Khi user không phải người tạo review
+     * 
+     * @param reviewId ID của đánh giá cần cập nhật
+     * @param request ReviewRequest chứa rating, comment mới
+     * @return ReviewResponse thông tin đánh giá đã cập nhật
+     */
     @Transactional
     public ReviewResponse updateReview(Long reviewId, ReviewRequest request) {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
-        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ResourceNotFoundException("Review", reviewId));
+        // EXCEPTION: UnauthorizedException - Khi người dùng chưa đăng nhập
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập.")); // EX-004
+        
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy review
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", reviewId)); // EX-001
 
+        // EXCEPTION: ForbiddenException - Khi user không phải người tạo review
         if (!review.getUser().getUserId().equals(userId)) {
-            throw new RuntimeException("You can only update your own review");
+            throw new ForbiddenException("Bạn chỉ có thể cập nhật đánh giá của chính mình."); // EX-005
         }
 
         review.setRating(request.getRating());
         review.setComment(request.getComment());
         review = reviewRepository.save(review);
+        log.info("Review {} updated by user {}", reviewId, userId);
 
         return toReviewResponse(review);
     }
 
-    // Delete review
+    /**
+     * Xóa đánh giá.
+     * User chỉ được xóa đánh giá của chính mình, admin có thể xóa tất cả.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - UnauthorizedException (1): Khi người dùng chưa đăng nhập
+     * - ResourceNotFoundException (2): Khi không tìm thấy review
+     * - ForbiddenException (3): Khi user không có quyền xóa
+     * 
+     * @param reviewId ID của đánh giá cần xóa
+     */
     @Transactional
     public void deleteReview(Long reviewId) {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
+        // EXCEPTION: UnauthorizedException - Khi người dùng chưa đăng nhập
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập.")); // EX-004
+        
         boolean isAdmin = SecurityUtils.hasRole("ADMIN");
-        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ResourceNotFoundException("Review", reviewId));
+        
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy review
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", reviewId)); // EX-001
 
+        // EXCEPTION: ForbiddenException - Khi user không có quyền xóa
         if (!review.getUser().getUserId().equals(userId) && !isAdmin) {
-            throw new RuntimeException("You can only delete your own review");
+            throw new ForbiddenException("Bạn chỉ có thể xóa đánh giá của chính mình."); // EX-005
         }
 
         reviewRepository.delete(review);
+        log.info("Review {} deleted by user {}", reviewId, userId);
     }
 
-    // Get reviews by book
+    /**
+     * Lấy danh sách đánh giá theo sách.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy book
+     * 
+     * @param bookId ID của sách
+     * @param page Số trang (bắt đầu từ 1)
+     * @param size Kích thước trang
+     * @return PageResponse chứa danh sách ReviewResponse
+     */
     public PageResponse<List<ReviewResponse>> getReviewsByBook(Long bookId, int page, int size) {
         if (page > 0) page = page - 1;
+        
+        // Kiểm tra sách có tồn tại không
+        bookRepository.findByBookId(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", bookId)); // EX-001
+        
         Pageable pageable = PageRequest.of(page, size);
         Page<Review> reviews = reviewRepository.findByBook_BookId(bookId, pageable);
 
@@ -106,14 +183,29 @@ public class ReviewService {
                 .build();
     }
 
-    // Get current user's reviews
+    /**
+     * Lấy danh sách đánh giá của người dùng hiện tại.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - UnauthorizedException (1): Khi người dùng chưa đăng nhập
+     * 
+     * @return List<ReviewResponse> danh sách đánh giá
+     */
     public List<ReviewResponse> getMyReviews() {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
+        // EXCEPTION: UnauthorizedException - Khi người dùng chưa đăng nhập
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập.")); // EX-004
+        
         List<Review> reviews = reviewRepository.findByUser_UserId(userId);
         return reviews.stream().map(this::toReviewResponse).collect(Collectors.toList());
     }
 
-    // Convert Review to ReviewResponse
+    /**
+     * Chuyển đổi Review entity sang ReviewResponse DTO.
+     * 
+     * @param review Review entity
+     * @return ReviewResponse
+     */
     private ReviewResponse toReviewResponse(Review review) {
         return ReviewResponse.builder()
                 .reviewId(review.getReviewId())

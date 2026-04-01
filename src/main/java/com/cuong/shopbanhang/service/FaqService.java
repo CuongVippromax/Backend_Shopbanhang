@@ -21,7 +21,11 @@ public class FaqService {
 
     private final FaqRepository faqRepository;
 
-    // Get all active FAQs
+    /**
+     * Lấy danh sách FAQ đang hoạt động (cho người dùng).
+     * 
+     * @return List<FaqResponse> danh sách FAQ
+     */
     public List<FaqResponse> getActiveFaqs() {
         return faqRepository.findByActiveTrueOrderBySortOrderAsc()
                 .stream()
@@ -29,7 +33,11 @@ public class FaqService {
                 .collect(Collectors.toList());
     }
 
-    // Get FAQ categories
+    /**
+     * Lấy danh sách categories của FAQ.
+     * 
+     * @return List<String> danh sách categories
+     */
     public List<String> getCategories() {
         return faqRepository.findByActiveTrueOrderBySortOrderAsc()
                 .stream()
@@ -38,7 +46,13 @@ public class FaqService {
                 .collect(Collectors.toList());
     }
 
-    // Find best matching FAQ for user message
+    /**
+     * Tìm FAQ phù hợp nhất với câu hỏi của người dùng.
+     * Sử dụng thuật toán tính điểm để khớp từ khóa.
+     * 
+     * @param userMessage Câu hỏi của người dùng
+     * @return FaqResponse FAQ phù hợp nhất hoặc null nếu không tìm thấy
+     */
     public FaqResponse findBestMatch(String userMessage) {
         if (userMessage == null || userMessage.trim().isEmpty()) {
             return null;
@@ -66,10 +80,18 @@ public class FaqService {
         return null;
     }
 
-    // Calculate match score between FAQ and user message
+    /**
+     * Tính điểm khớp giữa FAQ và câu hỏi người dùng.
+     * 
+     * @param faq FAQ cần đánh giá
+     * @param userWords Tập từ của người dùng (đã normalize)
+     * @param normalizedMsg Câu hỏi đã normalize
+     * @return int Điểm khớp (cao hơn = phù hợp hơn)
+     */
     private int calculateMatchScore(Faq faq, Set<String> userWords, String normalizedMsg) {
         int score = 0;
 
+        // Giảm điểm nếu user hỏi về profile nhưng FAQ lại về đơn hàng
         boolean profileIntent = normalizedMsg.contains("thong tin ca nhan")
                 || normalizedMsg.contains("ho so ca nhan")
                 || normalizedMsg.contains("thay doi thong tin")
@@ -79,7 +101,7 @@ public class FaqService {
             score -= 25;
         }
 
-        // 关键词按逗号分段：整段多词用短语包含；单词必须与用户分词完全一致，避免 "phi" 误匹配 "phieu"
+        // Khớp từ khóa (keywords) - 3 điểm mỗi từ khóa
         if (faq.getKeywords() != null && !faq.getKeywords().isBlank()) {
             for (String rawPhrase : faq.getKeywords().split(",")) {
                 String phrase = normalize(rawPhrase.trim());
@@ -103,6 +125,7 @@ public class FaqService {
             }
         }
 
+        // Khớp từ trong câu hỏi FAQ - 2 điểm mỗi từ
         String normalizedQuestion = normalize(faq.getQuestion());
         Set<String> questionWords = new HashSet<>(Arrays.asList(normalizedQuestion.split("\\s+")));
         for (String word : questionWords) {
@@ -111,6 +134,7 @@ public class FaqService {
             }
         }
 
+        // Khớp từ dài trong câu hỏi - 1 điểm mỗi từ
         if (normalizedMsg.length() >= 5) {
             for (String word : userWords) {
                 if (word.length() > 4 && normalizedQuestion.contains(word)) {
@@ -122,7 +146,12 @@ public class FaqService {
         return score;
     }
 
-    // Normalize text (remove diacritics)
+    /**
+     * Normalize text: chuyển thành chữ thường và loại bỏ dấu tiếng Việt.
+     * 
+     * @param text Text cần normalize
+     * @return String đã normalize
+     */
     private String normalize(String text) {
         return text.toLowerCase()
                 .replaceAll("[àáạảãâầấậẩẫăằắặẳẵ]", "a")
@@ -137,7 +166,11 @@ public class FaqService {
                 .trim();
     }
 
-    // Get all FAQs (admin)
+    /**
+     * Lấy tất cả FAQ (cho admin).
+     * 
+     * @return List<FaqResponse> danh sách FAQ
+     */
     public List<FaqResponse> getAllFaqs() {
         return faqRepository.findAllByOrderBySortOrderAsc()
                 .stream()
@@ -145,14 +178,28 @@ public class FaqService {
                 .collect(Collectors.toList());
     }
 
-    // Get FAQ by ID
+    /**
+     * Lấy FAQ theo ID.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy FAQ
+     * 
+     * @param id ID của FAQ cần lấy
+     * @return FaqResponse thông tin FAQ
+     */
     public FaqResponse getFaqById(Long id) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy FAQ
         Faq faq = faqRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("FAQ not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("FAQ", id)); // EX-001
         return toResponse(faq);
     }
 
-    // Create new FAQ
+    /**
+     * Tạo FAQ mới.
+     * 
+     * @param request FaqRequest chứa thông tin FAQ
+     * @return FaqResponse thông tin FAQ đã tạo
+     */
     @Transactional
     public FaqResponse createFaq(FaqRequest request) {
         Faq faq = Faq.builder()
@@ -163,14 +210,26 @@ public class FaqService {
                 .active(request.getActive() != null ? request.getActive() : true)
                 .sortOrder(request.getSortOrder() != null ? request.getSortOrder() : 0)
                 .build();
-        return toResponse(faqRepository.save(faq));
+        
+        Faq saved = faqRepository.save(faq);
+        return toResponse(saved);
     }
 
-    // Update FAQ
+    /**
+     * Cập nhật FAQ.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy FAQ
+     * 
+     * @param id ID của FAQ cần cập nhật
+     * @param request FaqRequest chứa thông tin mới
+     * @return FaqResponse thông tin FAQ đã cập nhật
+     */
     @Transactional
     public FaqResponse updateFaq(Long id, FaqRequest request) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy FAQ
         Faq faq = faqRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("FAQ not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("FAQ", id)); // EX-001
 
         if (request.getQuestion() != null) faq.setQuestion(request.getQuestion());
         if (request.getAnswer() != null) faq.setAnswer(request.getAnswer());
@@ -182,16 +241,29 @@ public class FaqService {
         return toResponse(faqRepository.save(faq));
     }
 
-    // Delete FAQ
+    /**
+     * Xóa FAQ.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy FAQ
+     * 
+     * @param id ID của FAQ cần xóa
+     */
     @Transactional
     public void deleteFaq(Long id) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy FAQ
         if (!faqRepository.existsById(id)) {
-            throw new ResourceNotFoundException("FAQ not found with id: " + id);
+            throw new ResourceNotFoundException("FAQ", id); // EX-001
         }
         faqRepository.deleteById(id);
     }
 
-    // Convert Faq to FaqResponse
+    /**
+     * Chuyển đổi Faq entity sang FaqResponse DTO.
+     * 
+     * @param faq Faq entity
+     * @return FaqResponse
+     */
     private FaqResponse toResponse(Faq faq) {
         return FaqResponse.builder()
                 .id(faq.getId())

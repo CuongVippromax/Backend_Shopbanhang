@@ -21,6 +21,10 @@ import com.cuong.shopbanhang.dto.request.CheckoutRequest;
 import com.cuong.shopbanhang.dto.response.OrderItemResponse;
 import com.cuong.shopbanhang.dto.response.OrderResponse;
 import com.cuong.shopbanhang.dto.response.PageResponse;
+import com.cuong.shopbanhang.exception.OrderException;
+import com.cuong.shopbanhang.exception.ResourceNotFoundException;
+import com.cuong.shopbanhang.exception.UnauthorizedException;
+import com.cuong.shopbanhang.exception.ForbiddenException;
 import com.cuong.shopbanhang.model.Cart;
 import com.cuong.shopbanhang.model.CartItem;
 import com.cuong.shopbanhang.model.Order;
@@ -38,6 +42,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "OrderService")
@@ -53,27 +58,47 @@ public class OrderService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    // Process checkout
+    /**
+     * Xử lý thanh toán (checkout).
+     * Tạo đơn hàng từ giỏ hàng và trừ số lượng tồn kho.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - UnauthorizedException (1): Khi người dùng chưa đăng nhập
+     * - ResourceNotFoundException (2): Khi không tìm thấy user, cart
+     * - OrderException (3): Khi giỏ hàng trống, hoặc không đủ hàng trong kho
+     * 
+     * @param request Thông tin checkout (địa chỉ giao hàng, phương thức thanh toán, etc.)
+     * @return Order đơn hàng đã tạo
+     */
     @Transactional
     public Order checkout(CheckoutRequest request) {
+        // EXCEPTION: UnauthorizedException - Khi người dùng chưa đăng nhập
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập để đặt hàng.")); // EX-004
 
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId)); // EX-001
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy cart
+        Cart cart = cartRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId)); // EX-001
 
-        Cart cart = cartRepository.findByUser_UserId(userId).orElseThrow(() -> new RuntimeException("Cart not found"));
-
+        // EXCEPTION: OrderException - Khi giỏ hàng trống
         if (cart.getCartItems().isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new OrderException("Giỏ hàng trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt hàng."); // EX-009
         }
 
+        // Kiểm tra số lượng tồn kho
         for (CartItem item : cart.getCartItems()) {
             Book book = item.getBook();
             if (book.getQuantity() < item.getQuantity()) {
-                throw new RuntimeException("Sách '" + book.getBookName() + "' không đủ hàng trong kho. Còn lại: " + book.getQuantity() + " quyển");
+                // EXCEPTION: OrderException - Khi không đủ hàng trong kho
+                throw new OrderException("Sách '" + book.getBookName() + "' không đủ hàng trong kho. Còn lại: " + book.getQuantity() + " quyển"); // EX-009
             }
         }
 
+        // Trừ số lượng tồn kho
         for (CartItem item : cart.getCartItems()) {
             Book book = item.getBook();
             book.setQuantity(book.getQuantity() - item.getQuantity());
@@ -83,6 +108,7 @@ public class OrderService {
         Double totalPrice = cart.getCartItems().stream()
         .map(item -> item.getBook().getPrice().doubleValue() * item.getQuantity())
         .reduce(0.0, Double::sum);
+        
         OrderDetail orderDetail = OrderDetail.builder()
         .items(cart.getCartItems().stream().toList())
         .totalPrice(totalPrice)
@@ -90,7 +116,7 @@ public class OrderService {
 
         PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
-        Order order =  Order.builder()
+        Order order = Order.builder()
         .user(user)
         .orderDate(LocalDateTime.now())
         .totalAmount(totalPrice)
@@ -114,26 +140,37 @@ public class OrderService {
         cart.getCartItems().clear();
         cartRepository.save(cart);
 
+        log.info("Order created successfully: {}", savedOrder.getOrderId());
         return savedOrder;
-
     }
 
-    // Cancel and delete order (for failed payments)
+    /**
+     * Hủy và xóa đơn hàng (dùng khi thanh toán thất bại).
+     * Khôi phục số lượng tồn kho và các mặt hàng trong giỏ.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy đơn hàng
+     * - OrderException (2): Khi đơn hàng đã thanh toán thành công
+     * 
+     * @param orderId ID của đơn hàng cần hủy và xóa
+     */
     @Transactional
     public void cancelAndDeleteOrder(Long orderId) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy đơn hàng
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
 
+        // EXCEPTION: OrderException - Khi đơn hàng đã thanh toán thành công
         if (order.getPaymentStatus() == PaymentStatus.PAID) {
             log.warn("Cannot delete order {} - already paid", orderId);
-            throw new RuntimeException("Không thể xóa đơn hàng đã thanh toán thành công");
+            throw new OrderException("Không thể xóa đơn hàng đã thanh toán thành công."); // EX-009
         }
 
         Long userId = order.getUser() != null ? order.getUser().getUserId() : null;
 
         List<CartItem> itemsToRestore = null;
         if (order.getOrderDetails() != null && order.getOrderDetails().getItems() != null) {
-            itemsToRestore = new java.util.ArrayList<>(order.getOrderDetails().getItems());
+            itemsToRestore = new ArrayList<>(order.getOrderDetails().getItems());
         }
 
         if (itemsToRestore != null) {
@@ -146,6 +183,7 @@ public class OrderService {
             log.info("Updated {} CartItems to remove orderDetail reference", itemsToRestore.size());
         }
 
+        // Khôi phục số lượng tồn kho
         if (itemsToRestore != null) {
             for (CartItem item : itemsToRestore) {
                 Book book = item.getBook();
@@ -158,9 +196,9 @@ public class OrderService {
 
         Cart userCart = userId != null ? cartRepository.findByUser_UserId(userId).orElse(null) : null;
 
+        // Khôi phục các mặt hàng vào giỏ hàng
         if (userCart != null && itemsToRestore != null) {
             for (CartItem item : itemsToRestore) {
-
                 var existing = cartItemRepository.findByCart_CartIdAndBook_BookId(
                         userCart.getCartId(), item.getBook().getBookId());
                 if (existing.isPresent()) {
@@ -168,7 +206,6 @@ public class OrderService {
                     existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
                     cartItemRepository.save(existingItem);
                 } else {
-
                     item.setCart(userCart);
                     cartItemRepository.save(item);
                 }
@@ -182,24 +219,47 @@ public class OrderService {
         orderRepository.delete(order);
 
         entityManager.clear();
+        log.info("Order {} cancelled and deleted", orderId);
     }
 
-    // Cancel order
+    /**
+     * Hủy đơn hàng (bởi user hoặc admin).
+     * Khôi phục số lượng tồn kho nếu đơn hàng chưa được giao.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - UnauthorizedException (1): Khi người dùng chưa đăng nhập
+     * - ResourceNotFoundException (2): Khi không tìm thấy đơn hàng
+     * - ForbiddenException (3): Khi người dùng không có quyền hủy đơn hàng
+     * - OrderException (4): Khi đơn hàng đã được giao hoặc không thể hủy
+     * 
+     * @param orderId ID của đơn hàng cần hủy
+     * @return Order đơn hàng đã được hủy
+     */
     @Transactional
     public Order cancelOrder(Long orderId) {
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
+        // EXCEPTION: UnauthorizedException - Khi người dùng chưa đăng nhập
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập.")); // EX-004
+        
         boolean isAdmin = SecurityUtils.hasRole("ADMIN");
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy đơn hàng
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
 
         boolean isOwner = order.getUser().getUserId().equals(userId);
+        
+        // EXCEPTION: ForbiddenException - Khi người dùng không có quyền hủy
         if (!isOwner && !isAdmin) {
-            throw new RuntimeException("You don't have permission to cancel this order");
+            throw new ForbiddenException("Bạn không có quyền hủy đơn hàng này."); // EX-005
         }
 
+        // EXCEPTION: OrderException - Khi đơn hàng đã được giao
         if (order.getOrderStatus() == OrderStatus.SHIPPED) {
-            throw new RuntimeException("Cannot cancel order that is shipped");
+            throw new OrderException("Không thể hủy đơn hàng đã được giao."); // EX-009
         }
 
+        // Khôi phục số lượng tồn kho nếu đơn hàng chưa bị hủy
         if (order.getOrderStatus() != OrderStatus.CANCELLED && order.getOrderDetails() != null) {
             for (CartItem item : order.getOrderDetails().getItems()) {
                 Book book = item.getBook();
@@ -209,16 +269,30 @@ public class OrderService {
         }
 
         order.setOrderStatus(OrderStatus.CANCELLED);
+        log.info("Order {} cancelled by user {}", orderId, userId);
         return orderRepository.save(order);
     }
 
-    // Get orders by user
+    /**
+     * Lấy danh sách đơn hàng của người dùng hiện tại.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - UnauthorizedException (1): Khi người dùng chưa đăng nhập
+     * 
+     * @param page Số trang (bắt đầu từ 1)
+     * @param size Kích thước trang
+     * @return PageResponse chứa danh sách OrderResponse
+     */
     @Transactional(readOnly = true)
     public PageResponse<List<OrderResponse>> getOrdersByUser(int page, int size) {
         if(page > 0) {
             page = page - 1;
         }
-        Long userId = SecurityUtils.getCurrentUserId().orElseThrow(() -> new RuntimeException("User not login"));
+        
+        // EXCEPTION: UnauthorizedException - Khi người dùng chưa đăng nhập
+        Long userId = SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập.")); // EX-004
+        
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.findByUser_UserId(userId, pageable);
 
@@ -234,7 +308,18 @@ public class OrderService {
         .build();
     }
 
-    // Get all orders (admin)
+    /**
+     * Lấy danh sách tất cả đơn hàng (cho admin).
+     * Hỗ trợ tìm kiếm và lọc theo ngày.
+     * 
+     * @param page Số trang (bắt đầu từ 1)
+     * @param size Kích thước trang
+     * @param sort Trường sắp xếp (VD: orderDate:desc)
+     * @param search Từ khóa tìm kiếm
+     * @param startDate Ngày bắt đầu lọc
+     * @param endDate Ngày kết thúc lọc
+     * @return PageResponse chứa danh sách OrderResponse
+     */
     public PageResponse<List<OrderResponse>> getAllOrders(int page, int size, String sort, String search, String startDate, String endDate) {
        if(page > 0) {
         page = page - 1;
@@ -269,23 +354,54 @@ public class OrderService {
            .build();
     }
 
-    // Update order status
+    /**
+     * Cập nhật trạng thái đơn hàng (cho admin).
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy đơn hàng
+     * 
+     * @param orderId ID của đơn hàng cần cập nhật
+     * @param status Trạng thái mới
+     * @return Order đơn hàng đã cập nhật
+     */
     @Transactional
     public Order updateOrderStatus(Long orderId, OrderStatus status) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy đơn hàng
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
+        
         order.setOrderStatus(status);
+        log.info("Order {} status updated to {}", orderId, status);
         return orderRepository.save(order);
     }
 
-    // Update payment status
+    /**
+     * Cập nhật trạng thái thanh toán của đơn hàng.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy đơn hàng
+     * 
+     * @param orderId ID của đơn hàng cần cập nhật
+     * @param status Trạng thái thanh toán mới
+     * @return Order đơn hàng đã cập nhật
+     */
     @Transactional
     public Order updatePaymentStatus(Long orderId, PaymentStatus status) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy đơn hàng
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
+        
         order.setPaymentStatus(status);
+        log.info("Order {} payment status updated to {}", orderId, status);
         return orderRepository.save(order);
     }
 
-    // Convert Order to OrderResponse
+    /**
+     * Chuyển đổi Order entity sang OrderResponse DTO.
+     * 
+     * @param order Order entity
+     * @return OrderResponse
+     */
     public OrderResponse toOrderResponse(Order order) {
         List<OrderItemResponse> items = null;
         if (order.getOrderDetails() != null && order.getOrderDetails().getItems() != null) {
@@ -322,25 +438,50 @@ public class OrderService {
                 .build();
     }
 
-    // Get order by ID
+    /**
+     * Lấy thông tin đơn hàng theo ID.
+     * User chỉ có thể xem đơn hàng của mình, admin có thể xem tất cả.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - ResourceNotFoundException (1): Khi không tìm thấy đơn hàng
+     * - ForbiddenException (2): Khi người dùng không có quyền xem đơn hàng
+     * 
+     * @param orderId ID của đơn hàng
+     * @return OrderResponse thông tin đơn hàng
+     */
     public OrderResponse getOrderById(Long orderId) {
+        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy đơn hàng
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
+        
         Long userId = SecurityUtils.getCurrentUserId().orElse(null);
         boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        
+        // EXCEPTION: ForbiddenException - Khi người dùng không có quyền xem đơn hàng
         if (userId != null && !order.getUser().getUserId().equals(userId) && !isAdmin) {
-            throw new RuntimeException("You don't have permission to view this order");
+            throw new ForbiddenException("Bạn không có quyền xem đơn hàng này."); // EX-005
         }
+        
         return toOrderResponse(order);
     }
 
-    // Get order entity for email
+    /**
+     * Lấy Order entity để gửi email (không dùng cho API).
+     * 
+     * @param orderId ID của đơn hàng
+     * @return Optional<Order>
+     */
     @Transactional(readOnly = true)
     public java.util.Optional<Order> getOrderByIdForEmail(Long orderId) {
         return orderRepository.findById(orderId);
     }
 
-    // Build HTML for order details email
+    /**
+     * Xây dựng HTML cho email chi tiết đơn hàng.
+     * 
+     * @param order Đơn hàng cần tạo HTML
+     * @return String HTML content
+     */
     public String buildOrderDetailsHtml(Order order) {
         StringBuilder sb = new StringBuilder();
         sb.append("<table style='width: 100%; border-collapse: collapse;'>");
