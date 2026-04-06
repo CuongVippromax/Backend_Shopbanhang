@@ -217,8 +217,8 @@ shopbanhang/
 
 | Loại | Email | Mật khẩu | Ghi chú |
 |------|-------|----------|---------|
-| **Admin** | admin@hoangkimbook.vn | admin123 | Full quyền quản trị |
-| **User** | user@example.com | user123 | Người dùng thông thường |
+| **Admin** | test@gmail.vncom | 123 | Full quyền quản trị |
+| **User** | cuongdayne1811@gmail.com | 123 | Người dùng thông thường |
 
 ---
 

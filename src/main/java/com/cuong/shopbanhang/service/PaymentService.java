@@ -19,45 +19,37 @@ public class PaymentService {
 
     /**
      * Tạo URL thanh toán VNPay.
-     * 
-     * EXCEPTIONS CÓ THỂ NÉM RA:
-     * - PaymentException (1): Khi thiếu orderId hoặc amount, hoặc cấu hình VNPay không hợp lệ
-     * - IllegalArgumentException (2): Khi định dạng tham số không hợp lệ
-     * 
+     *
      * @param request HttpServletRequest chứa orderId, amount, bankCode
      * @return PaymentDTO.VNPayResponse chứa paymentUrl để chuyển hướng người dùng
      */
     public PaymentDTO.VNPayResponse createVnPayPayment(HttpServletRequest request) {
         String orderIdStr = request.getParameter("orderId");
         
-        // EXCEPTION: PaymentException - Khi thiếu orderId
         if (orderIdStr == null || orderIdStr.isEmpty()) {
-            throw new PaymentException("Thiếu tham số orderId.", "VNPay"); // EX-007
+            throw new PaymentException("Thiếu tham số orderId.", "VNPay");
         }
         
         Long orderId = Long.parseLong(orderIdStr);
         
         String amountStr = request.getParameter("amount");
-        // EXCEPTION: PaymentException - Khi thiếu amount
         if (amountStr == null || amountStr.isEmpty()) {
-            throw new PaymentException("Thiếu tham số amount.", "VNPay"); // EX-007
+            throw new PaymentException("Thiếu tham số amount.", "VNPay");
         }
         
         long amount;
         try {
             amount = Integer.parseInt(amountStr) * 100L;
         } catch (NumberFormatException e) {
-            // EXCEPTION: IllegalArgumentException - Khi amount không phải số
-            throw new IllegalArgumentException("Tham số amount không hợp lệ: " + amountStr); // EX-018
+            throw new IllegalArgumentException("Tham số amount không hợp lệ: " + amountStr);
         }
         
         String bankCode = request.getParameter("bankCode");
 
         Map<String, String> vnpParamsMap = vnPayConfig.getVNPayConfig();
         
-        // EXCEPTION: PaymentException - Khi cấu hình VNPay không hợp lệ
         if (vnpParamsMap == null || vnpParamsMap.isEmpty()) {
-            throw new PaymentException("Cấu hình VNPay không hợp lệ. Vui lòng kiểm tra cài đặt.", "VNPay", "CONFIG_ERROR"); // EX-007
+            throw new PaymentException("Cấu hình VNPay không hợp lệ. Vui lòng kiểm tra cài đặt.", "VNPay", "CONFIG_ERROR");
         }
         
         vnpParamsMap.put("vnp_Amount", String.valueOf(amount));

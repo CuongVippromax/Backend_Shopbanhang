@@ -228,7 +228,8 @@ export default function CartPage() {
         return
       }
 
-      navigate('/don-hang')
+      const orderId = checkoutResult?.orderId
+      navigate(orderId ? `/don-hang/${orderId}` : '/don-hang')
     } catch (err) {
       const msg = err.message || 'Đặt hàng thất bại. Vui lòng thử lại.'
       setError(msg)
@@ -254,11 +255,6 @@ export default function CartPage() {
       {showAddedMessage && (
         <div className="cart-added-banner">
           <span className="cart-added-banner__text">Đã thêm sản phẩm vào giỏ hàng</span>
-        </div>
-      )}
-      {showPaymentFailedMessage && (
-        <div className="cart-added-banner" style={{ backgroundColor: '#fff3e0', color: '#e65100' }}>
-          <span className="cart-added-banner__text">Thanh toán không thành công. Sản phẩm đã được đưa lại vào giỏ hàng.</span>
         </div>
       )}
 

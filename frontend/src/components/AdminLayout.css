@@ -34,7 +34,7 @@ body.admin-page-active .app > * {
 /* Admin Layout: Grid 2 cột, sidebar 260px, cột phải cuộn nội bộ */
 .admin-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 260px minmax(0, 1fr);
   height: 100vh;
   max-height: 100vh;
   background: #f0f2f5;
@@ -153,7 +153,7 @@ body.admin-page-active .app > * {
 
 /* Sidebar thu gọn: hẹp nhưng vẫn hiển thị chữ (đã bỏ icon) */
 .admin-layout--sidebar-collapsed {
-  grid-template-columns: 108px 1fr;
+  grid-template-columns: 108px minmax(0, 1fr);
 }
 
 .admin-layout--sidebar-collapsed .admin-sidebar--new {
@@ -258,6 +258,7 @@ body.admin-page-active .app > * {
 .admin-main--new {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   margin-left: 0;
   padding: 24px;
   background: #f0f2f5;
@@ -539,6 +540,8 @@ body.admin-page-active .app > * {
 /* Table */
 .admin-table-wrapper {
   overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
   background: #fff;
   border-radius: 8px;
 }
@@ -832,7 +835,7 @@ body.admin-page-active .app > * {
 
 @media (max-width: 768px) {
   .admin-layout {
-    grid-template-columns: 108px 1fr;
+    grid-template-columns: 108px minmax(0, 1fr);
   }
   .admin-sidebar--new {
     width: 108px;
@@ -1200,6 +1203,39 @@ body.admin-page-active .app > * {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Trang đơn hàng admin: không bị grid kéo giãn toàn trang; cột Thao tác dính mé phải khi cuộn ngang */
+.admin-orders .admin-table-wrapper {
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-orders .admin-table th:last-child,
+.admin-orders .admin-table td:last-child {
+  position: sticky;
+  right: 0;
+  width: 1%;
+  min-width: 108px;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: #fff;
+  box-shadow: -8px 0 12px -6px rgba(0, 0, 0, 0.12);
+  z-index: 1;
+}
+
+.admin-orders .admin-table thead th:last-child {
+  background: #f8f9fa;
+  z-index: 2;
+}
+
+.admin-orders .admin-table td:nth-child(2) {
+  max-width: 200px;
+}
+
+.admin-orders .admin-table td:nth-child(2) > div:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-detail-grid {
