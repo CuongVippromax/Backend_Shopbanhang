@@ -30,7 +30,8 @@ public class CartItem {
     @JsonIgnoreProperties({"category"})
     private Book book;
 
-    private Integer quantity;
+    @Builder.Default
+    private Integer quantity = 1;
 
     @ManyToOne
     @JoinColumn(name = "order_detail_id")

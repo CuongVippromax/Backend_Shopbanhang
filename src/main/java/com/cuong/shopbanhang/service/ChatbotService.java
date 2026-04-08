@@ -77,7 +77,6 @@ public class ChatbotService {
         }
 
         String intent = detectIntent(userMessage);
-        log.info("Detected intent: {} for message: {}", intent, userMessage);
 
         switch (intent) {
             case "recommendation" -> {
@@ -162,7 +161,6 @@ public class ChatbotService {
             String response = callGeminiApi(SYSTEM_PROMPT, aiPrompt);
             return parseAiBookResponse(response);
         } catch (Exception e) {
-            log.error("Error calling AI for book recommendation: {}", e.getMessage());
             return getFallbackRecommendation(message);
         }
     }
@@ -324,19 +322,13 @@ public class ChatbotService {
                     .intent("general")
                     .build();
         } catch (Exception e) {
-            log.error("Error calling AI: {}", e.getMessage());
             return getFallbackResponse(message);
         }
     }
 
     private void ensureGeminiApiKeyConfigured() {
         if (apiKey == null || apiKey.isBlank()) {
-            log.error("Chưa cấu hình AI: đặt biến môi trường AI_API_KEY hoặc spring.ai.google.genai.api-key trong application.yaml");
             throw new IllegalStateException("Missing Gemini API key (AI_API_KEY)");
-        }
-        if (apiKey.toLowerCase(Locale.ROOT).contains("your-api-key") || "changeme".equalsIgnoreCase(apiKey.trim())) {
-            log.error("API key Gemini không hợp lệ (đang là placeholder). Hãy dùng key từ https://aistudio.google.com/apikey");
-            throw new IllegalStateException("Invalid Gemini API key placeholder");
         }
     }
 
@@ -359,14 +351,12 @@ public class ChatbotService {
                 return callGeminiApiOnce(model, systemPrompt, userContent);
             } catch (HttpClientErrorException e) {
                 String body = e.getResponseBodyAsString();
-                log.error("Gemini HTTP {} (model={}): {}", e.getStatusCode(), model, body);
                 if (e.getStatusCode().value() == 404 || e.getStatusCode().value() == 400) {
                     last = new RuntimeException("Gemini model/error: " + body, e);
                     continue;
                 }
                 throw new RuntimeException("Gemini API error: " + body, e);
             } catch (HttpServerErrorException e) {
-                log.error("Gemini server error {} (model={}): {}", e.getStatusCode(), model, e.getResponseBodyAsString());
                 throw new RuntimeException("Gemini server error", e);
             }
         }
@@ -379,7 +369,6 @@ public class ChatbotService {
     @SuppressWarnings("unchecked")
     private String callGeminiApiOnce(String model, String systemPrompt, String userContent) {
         String url = String.format(GEMINI_URL_TEMPLATE, model, apiKey.trim());
-        log.debug("Calling Gemini model: {}", model);
 
         Map<String, Object> requestBody = new HashMap<>();
 
@@ -419,18 +408,15 @@ public class ChatbotService {
             throw new IllegalStateException("Empty Gemini response body");
         }
         if (responseBody.containsKey("error")) {
-            log.error("Gemini response error field: {}", responseBody.get("error"));
             throw new IllegalStateException("Gemini error: " + responseBody.get("error"));
         }
         if (responseBody.containsKey("promptFeedback")) {
-            log.warn("Gemini promptFeedback: {}", responseBody.get("promptFeedback"));
         }
         if (responseBody.containsKey("candidates")) {
             List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
             if (candidates != null && !candidates.isEmpty()) {
                 Map<String, Object> candidate = candidates.get(0);
                 if (candidate.containsKey("finishReason") && "SAFETY".equals(String.valueOf(candidate.get("finishReason")))) {
-                    log.warn("Gemini blocked by safety: {}", candidate);
                 }
                 Map<String, Object> contentResponse = (Map<String, Object>) candidate.get("content");
                 if (contentResponse != null) {
@@ -445,7 +431,6 @@ public class ChatbotService {
                 }
             }
         }
-        log.error("Gemini response không có candidates hợp lệ: {}", responseBody);
         throw new IllegalStateException("Unexpected Gemini response shape");
     }
 
@@ -521,7 +506,6 @@ public class ChatbotService {
                     .intent("recommendation")
                     .build();
         } catch (Exception e) {
-            log.error("Error parsing AI response: {}", e.getMessage());
             return ChatResponse.builder()
                     .message(response)
                     .type("text")

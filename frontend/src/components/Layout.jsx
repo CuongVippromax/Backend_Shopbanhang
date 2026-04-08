@@ -641,9 +641,6 @@ function Footer() {
               <ul className="footer__list">
                 <li><Link to="/trang/chinh-sach-doi-tra-hoan-tien" onClick={scrollPageTop}><Icons.ChevronRight /> Chính sách đổi - trả - hoàn tiền</Link></li>
                 <li><Link to="/chinh-sach-bao-hanh" onClick={scrollPageTop}><Icons.ChevronRight /> Chính sách bảo hành</Link></li>
-                <li><Link to="/trang/chinh-sach-van-chuyen" onClick={scrollPageTop}><Icons.ChevronRight /> Chính sách vận chuyển</Link></li>
-                <li><Link to="/trang/mua-si" onClick={scrollPageTop}><Icons.ChevronRight /> Mua sỉ</Link></li>
-                <li><Link to="/trang/faq" onClick={scrollPageTop}><Icons.ChevronRight /> Câu hỏi thường gặp</Link></li>
               </ul>
             </div>
 
@@ -688,7 +685,6 @@ function Footer() {
                   loading="lazy"
                 />
                 <FooterLogoGhn />
-                <span className="footer__partner">ShopeePay</span>
               </div>
             </div>
           </div>

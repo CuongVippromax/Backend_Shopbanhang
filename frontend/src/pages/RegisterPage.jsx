@@ -2,6 +2,15 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiPost } from '../api/client'
 
+const EMPTY_FIELD_ERRORS = {
+  username: '',
+  email: '',
+  password: '',
+  fullName: '',
+  phone: '',
+  confirmPassword: ''
+}
+
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     username: '',
@@ -12,50 +21,75 @@ export default function RegisterPage() {
     phone: ''
   })
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({ ...EMPTY_FIELD_ERRORS })
+  const [globalError, setGlobalError] = useState('')
   const navigate = useNavigate()
 
   const handleChange = (e) => {
+    const { name } = e.target
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: e.target.value
     })
+    setFieldErrors((prev) => ({ ...prev, [name]: '' }))
+    setGlobalError('')
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setMessage('')
-    setError('')
+    setFieldErrors({ ...EMPTY_FIELD_ERRORS })
+    setGlobalError('')
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp')
+      setFieldErrors((prev) => ({
+        ...prev,
+        confirmPassword: 'Mật khẩu xác nhận không khớp'
+      }))
       return
     }
 
     if (formData.password.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự')
+      setFieldErrors((prev) => ({
+        ...prev,
+        password: 'Mật khẩu phải có ít nhất 6 ký tự'
+      }))
       return
     }
 
     setLoading(true)
 
     try {
-      await apiPost('/users/register', {}, {
-        username: formData.username,
-        email: formData.email,
+      await apiPost('/users/register', {
+        username: formData.username.trim(),
+        email: formData.email.trim(),
         password: formData.password,
-        fullName: formData.fullName,
-        phone: formData.phone
+        fullName: formData.fullName.trim(),
+        phone: formData.phone?.trim() || ''
       })
-      setMessage('Đăng ký thành công! Đang chuyển hướng...')
-      setTimeout(() => navigate('/dang-nhap'), 2000)
+      navigate('/dang-nhap?registered=1', { replace: true })
     } catch (err) {
-      setError(err.message || 'Đăng ký thất bại. Vui lòng thử lại.')
+      const fe = err.fieldErrors
+      if (fe && typeof fe === 'object') {
+        setFieldErrors({
+          username: fe.username || '',
+          email: fe.email || '',
+          password: fe.password || '',
+          fullName: fe.fullName || '',
+          phone: fe.phone || '',
+          confirmPassword: ''
+        })
+        if (fe._global) {
+          setGlobalError(fe._global)
+        }
+      } else {
+        setGlobalError(err.message || 'Đăng ký thất bại. Vui lòng thử lại.')
+      }
     } finally {
       setLoading(false)
     }
   }
+
+  const inputClass = (name) => (fieldErrors[name] ? 'auth-input--error' : undefined)
 
   return (
     <div className="auth-page">
@@ -65,21 +99,26 @@ export default function RegisterPage() {
           Đăng ký để mua sắm dễ dàng hơn và theo dõi đơn hàng của bạn.
         </p>
 
-        {message && <div className="auth-success">{message}</div>}
-        {error && <div className="auth-error">{error}</div>}
+        {globalError && <p className="auth-global-error">{globalError}</p>}
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
           <div className="form-group">
             <label htmlFor="username">Tên đăng nhập</label>
             <input
               id="username"
               name="username"
               type="text"
+              className={inputClass('username')}
               value={formData.username}
               onChange={handleChange}
               placeholder="Nhập tên đăng nhập"
-              required
+              autoComplete="username"
             />
+            {fieldErrors.username && (
+              <span className="auth-field-error" role="alert">
+                {fieldErrors.username}
+              </span>
+            )}
           </div>
 
           <div className="form-group">
@@ -88,11 +127,17 @@ export default function RegisterPage() {
               id="fullName"
               name="fullName"
               type="text"
+              className={inputClass('fullName')}
               value={formData.fullName}
               onChange={handleChange}
               placeholder="Nhập họ và tên"
-              required
+              autoComplete="name"
             />
+            {fieldErrors.fullName && (
+              <span className="auth-field-error" role="alert">
+                {fieldErrors.fullName}
+              </span>
+            )}
           </div>
 
           <div className="form-group">
@@ -101,11 +146,17 @@ export default function RegisterPage() {
               id="email"
               name="email"
               type="email"
+              className={inputClass('email')}
               value={formData.email}
               onChange={handleChange}
               placeholder="Nhập email"
-              required
+              autoComplete="email"
             />
+            {fieldErrors.email && (
+              <span className="auth-field-error" role="alert">
+                {fieldErrors.email}
+              </span>
+            )}
           </div>
 
           <div className="form-group">
@@ -114,10 +165,17 @@ export default function RegisterPage() {
               id="phone"
               name="phone"
               type="tel"
+              className={inputClass('phone')}
               value={formData.phone}
               onChange={handleChange}
               placeholder="Nhập số điện thoại"
+              autoComplete="tel"
             />
+            {fieldErrors.phone && (
+              <span className="auth-field-error" role="alert">
+                {fieldErrors.phone}
+              </span>
+            )}
           </div>
 
           <div className="form-group">
@@ -126,11 +184,17 @@ export default function RegisterPage() {
               id="password"
               name="password"
               type="password"
+              className={inputClass('password')}
               value={formData.password}
               onChange={handleChange}
               placeholder="Nhập mật khẩu"
-              required
+              autoComplete="new-password"
             />
+            {fieldErrors.password && (
+              <span className="auth-field-error" role="alert">
+                {fieldErrors.password}
+              </span>
+            )}
           </div>
 
           <div className="form-group">
@@ -139,11 +203,17 @@ export default function RegisterPage() {
               id="confirmPassword"
               name="confirmPassword"
               type="password"
+              className={inputClass('confirmPassword')}
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Nhập lại mật khẩu"
-              required
+              autoComplete="new-password"
             />
+            {fieldErrors.confirmPassword && (
+              <span className="auth-field-error" role="alert">
+                {fieldErrors.confirmPassword}
+              </span>
+            )}
           </div>
 
           <button type="submit" className="auth-button" disabled={loading}>

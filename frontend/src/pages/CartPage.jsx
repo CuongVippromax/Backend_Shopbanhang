@@ -71,6 +71,8 @@ export default function CartPage() {
     ward: '',
     note: ''
   })
+  /** Số điện thoại lấy từ hồ sơ — không cho sửa trên form giỏ hàng */
+  const [phoneFromProfile, setPhoneFromProfile] = useState(false)
 
   const loadCart = () => {
     // Không ghi đè state khi đang sync từ API server
@@ -86,13 +88,56 @@ export default function CartPage() {
   }, [syncingFromApi])
 
   useEffect(() => {
-    if (isLoggedIn()) {
-      const user = getUser()
+    if (!isLoggedIn()) return
+
+    const applyProfile = (p, cached) => {
+      const phoneRaw = (p?.phone ?? p?.phoneNumber ?? cached?.phone ?? cached?.phoneNumber ?? '')
+        .toString()
+        .trim()
+      const addrRaw = (p?.address ?? cached?.address ?? '').toString().trim()
+
       setDelivery((d) => ({
         ...d,
-        fullName: user?.fullName || user?.username || d.fullName,
-        email: user?.email || d.email
+        fullName: p?.fullName || cached?.fullName || cached?.username || d.fullName,
+        email: p?.email || cached?.email || d.email,
+        phone: phoneRaw || d.phone,
+        address: addrRaw || d.address
       }))
+      setPhoneFromProfile(!!phoneRaw)
+    }
+
+    const cached = getUser()
+    if (cached) {
+      applyProfile(null, cached)
+    }
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await apiGet('/users/me')
+        const p = res?.data
+        if (p && !cancelled) {
+          applyProfile(p, cached)
+          const merged = {
+            ...(getUser() || {}),
+            id: p.userId,
+            userId: p.userId,
+            username: p.username,
+            email: p.email,
+            fullName: p.fullName,
+            phone: p.phone ?? p.phoneNumber ?? '',
+            address: p.address ?? '',
+            role: p.role
+          }
+          localStorage.setItem('user', JSON.stringify(merged))
+        }
+      } catch {
+        if (!cancelled && cached) applyProfile(null, cached)
+      }
+    })()
+
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -462,8 +507,10 @@ export default function CartPage() {
                   placeholder="Số điện thoại *"
                   value={delivery.phone}
                   onChange={(e) => setDelivery((d) => ({ ...d, phone: e.target.value }))}
-                  className="cart-input"
+                  className={`cart-input${phoneFromProfile ? ' cart-input--readonly' : ''}`}
                   disabled={!isLoggedIn()}
+                  readOnly={isLoggedIn() && phoneFromProfile}
+                  aria-readonly={phoneFromProfile || undefined}
                 />
               </div>
               <div className="cart-form-group">

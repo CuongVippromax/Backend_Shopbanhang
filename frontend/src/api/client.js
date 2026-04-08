@@ -81,8 +81,10 @@ async function apiRequest(method, path, body = null, params = {}) {
     'Pragma': 'no-cache',
     'Expires': '0'
   }
-  // Thêm timestamp để tránh cache 304
-  url.searchParams.set('_t', Date.now().toString())
+  // Thêm timestamp để tránh cache 304 (không thêm vào payment API vì ảnh hưởng query string)
+  if (!path.startsWith('/payment')) {
+    url.searchParams.set('_t', Date.now().toString())
+  }
   const token = getToken()
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
@@ -121,11 +123,17 @@ async function apiRequest(method, path, body = null, params = {}) {
   if (!res.ok) {
     const errorText = await res.text().catch(() => res.statusText)
     let message = errorText
+    let fieldErrors
     try {
       const parsed = JSON.parse(errorText)
       if (parsed && typeof parsed.message === 'string') message = parsed.message
+      if (parsed && parsed.fieldErrors && typeof parsed.fieldErrors === 'object') {
+        fieldErrors = parsed.fieldErrors
+      }
     } catch (_) {}
-    throw new Error(message)
+    const err = new Error(message)
+    if (fieldErrors) err.fieldErrors = fieldErrors
+    throw err
   }
 
   const text = await res.text()
@@ -227,8 +235,13 @@ export async function apiPutForm(path, body) {
   }
 }
 
-export async function updateUser(userId, userData) {
-  return apiPut(`/users/update/${userId}`, userData)
+/**
+ * Cập nhật hồ sơ user đang đăng nhập (địa chỉ, SĐT...). Gọi PUT /users/me — tránh lỗi routing
+ * NoResourceFoundException với một số proxy/môi trường khi dùng /users/update/{id}.
+ * @param _userId giữ tham số để tương thích code cũ, không gửi lên server.
+ */
+export async function updateUser(_userId, userData) {
+  return apiPut('/users/me', userData)
 }
 
 export function getUser() {

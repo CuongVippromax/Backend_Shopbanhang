@@ -92,7 +92,7 @@ public class AppConfig {
                 ? appProperties.getSecurity().getAllowedOrigins()
                 : java.util.Arrays.asList("http://localhost:5173");
         configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(java.util.Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

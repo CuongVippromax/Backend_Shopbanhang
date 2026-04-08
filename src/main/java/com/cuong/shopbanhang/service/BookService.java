@@ -62,8 +62,7 @@ public class BookService {
         }
         
         bookRepository.save(book);
-        log.info("Book created: {}", book.getBookId());
-        
+
         return BookResponse.builder()
                 .bookId(book.getBookId())
                 .bookName(book.getBookName())
@@ -129,7 +128,10 @@ public class BookService {
         }
         Book existingBook = gettedBook.get();
 
-        if (book.getBookName() != null) {
+        if (book.getBookName() != null && !book.getBookName().equals(existingBook.getBookName())) {
+            if (bookRepository.existsByBookName(book.getBookName())) {
+                throw new ResourceAlreadyExistsException("Book", "bookName", book.getBookName());
+            }
             existingBook.setBookName(book.getBookName());
         }
         if (book.getPrice() != null) {
@@ -176,7 +178,6 @@ public class BookService {
         }
 
         Book updatedBook = bookRepository.save(existingBook);
-        log.info("Book updated: {}", id);
 
         return BookResponse.builder()
                 .bookId(updatedBook.getBookId())
@@ -295,12 +296,10 @@ public class BookService {
             try {
                 String fileName = book.getImage().substring(book.getImage().lastIndexOf("/") + 1);
                 minIOService.deleteFile(fileName);
-            } catch (Exception e) {
-                log.warn("Could not delete book image: {}", e.getMessage());
+            } catch (Exception ignored) {
             }
         }
 
         bookRepository.deleteByBookId(id);
-        log.info("Book deleted: {}", id);
     }
 }

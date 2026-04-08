@@ -92,7 +92,6 @@ public class CartService {
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + quantity);
             cartItemRepository.save(item);
-            log.info("Updated cart item quantity for book {} in cart {}", bookId, userId);
         } else {
             CartItem newItem = CartItem.builder()
                     .cart(cart)
@@ -135,7 +134,6 @@ public class CartService {
 
         item.setQuantity(quantity);
         cartItemRepository.save(item);
-        log.info("Updated quantity to {} for book {} in cart {}", quantity, bookId, userId);
 
         return getCartByUserId(userId);
     }
@@ -160,7 +158,6 @@ public class CartService {
 
         if (item.isPresent()) {
             cartItemRepository.delete(item.get());
-            log.info("Removed book {} from cart {}", bookId, userId);
         }
 
         return getCartByUserId(userId);
@@ -181,7 +178,6 @@ public class CartService {
             .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId)); // EX-001
         
         cartItemRepository.deleteAll(cartItemRepository.findByCart_CartId(cart.getCartId()));
-        log.info("Cleared cart for user {}", userId);
     }
 
     /**

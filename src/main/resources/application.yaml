@@ -46,7 +46,7 @@ spring:
     google:
       genai:
         api-key: ${AI_API_KEY:}
-        model: ${GEMINI_MODEL:gemini-3.0-flash}
+        model: ${GEMINI_MODEL:gemini-3.0-flash-lite}
 app:
   security:
     allowedOrigins:
@@ -83,6 +83,21 @@ minio:
   access-key: ${MINIO_ACCESS_KEY:admin}
   secret-key: ${MINIO_SECRET_KEY:12345678}
   bucket: shopbanhang
+
+logging:
+  level:
+    root: WARN
+    com.cuong.shopbanhang: INFO
+    com.cuong.shopbanhang.exception: WARN
+    com.cuong.shopbanhang.security: WARN
+    com.cuong.shopbanhang.service.ChatbotService: WARN
+    com.cuong.shopbanhang.service.EmailService: WARN
+    com.cuong.shopbanhang.service.MinIOService: WARN
+    com.cuong.shopbanhang.service.DashboardService: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
 
 payment:
   vnPay:

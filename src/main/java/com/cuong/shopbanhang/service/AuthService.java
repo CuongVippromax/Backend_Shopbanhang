@@ -48,10 +48,8 @@ public class AuthService {
      */
     public LoginResponse login(LoginRequest request) {
         try {
-            log.info("Login attempt for: {}", request.getUsernameOrEmail());
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(request.getUsernameOrEmail(), request.getPassword());
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
-            log.info("Authentication success for: {}", request.getUsernameOrEmail());
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String accessToken = tokenProvider.generateToken(authentication);
             String refreshToken = tokenProvider.generateRefreshToken(authentication);
@@ -68,14 +66,20 @@ public class AuthService {
                     .map(Role::valueOf)
                     .findFirst()
                     .orElse(Role.USER);
-            return LoginResponse.builder()
+            User entity = userRepository.findByUserId(userPrincipal.getId()).orElse(null);
+            var builder = LoginResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .userId(userPrincipal.getId())
                     .username(userPrincipal.getUsername())
                     .email(userPrincipal.getEmail())
-                    .role(role)
-                    .build();
+                    .role(role);
+            if (entity != null) {
+                builder.fullName(entity.getFullName())
+                        .phone(entity.getPhone())
+                        .address(entity.getAddress());
+            }
+            return builder.build();
         } catch (Exception e) {
             log.error("Login error for {}: {}", request.getUsernameOrEmail(), e.getMessage());
             throw new BadRequestException("Tên đăng nhập hoặc mật khẩu không đúng."); // EX-001
@@ -109,6 +113,9 @@ public class AuthService {
                 .userId(userId)
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phone(user.getPhone())
+                .address(user.getAddress())
                 .role(role)
                 .build();
     }
@@ -141,7 +148,6 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        log.info("Password changed successfully for user: {}", userId);
     }
 
     /**
@@ -181,7 +187,6 @@ public class AuthService {
 
         Long userId = tokenProvider.getUserIdFromToken(token);
         redisTemplate.delete("refreshToken:" + userId);
-        log.info("Refresh token has been removed for user {}", userId);
     }
 
     /**
@@ -218,7 +223,6 @@ public class AuthService {
                 7, TimeUnit.DAYS
         );
 
-        log.info("Refresh token renewed for user: {}", userId);
         return newRefreshToken;
     }
 }

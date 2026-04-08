@@ -12,7 +12,6 @@ const pathToBreadcrumb = {
   '/admin/statistics': [{ label: 'Thống kê', path: '/admin/statistics' }],
   '/admin/inventory': [{ label: 'Quản lý kho', path: '/admin/inventory' }],
   '/admin/comments': [{ label: 'Bình luận', path: '/admin/comments' }],
-  '/admin/faq': [{ label: 'FAQ', path: '/admin/faq' }],
 }
 
 function AdminBreadcrumb({ pathname }) {
@@ -42,7 +41,6 @@ const menuItems = [
   { path: '/admin/inventory', label: 'Quản lý kho' },
   { path: '/admin/users', label: 'Thành viên' },
   { path: '/admin/comments', label: 'Bình luận' },
-  { path: '/admin/faq', label: 'FAQ' },
 ]
 
 export default function AdminLayout() {

@@ -357,7 +357,6 @@ export default function BookDetailPage() {
               />
               <button type="button" className="book-detail__qty-btn" onClick={() => changeQty(1)} disabled={quantity >= stock}>+</button>
             </div>
-            <span className="book-detail__stock">{stock} sản phẩm có sẵn</span>
           </div>
 
           <div className="book-detail__actions">
@@ -381,24 +380,39 @@ export default function BookDetailPage() {
             </button>
           </div>
 
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            marginTop: '12px',
-            padding: '12px',
-            background: '#f8f9fa',
-            borderRadius: '8px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666' }}>
-              Miễn phí vận chuyển
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666' }}>
-              Đổi trả trong 7 ngày
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666' }}>
-              Giao hàng nhanh 24h
-            </div>
-          </div>
+          <ul className="book-detail__trust-badges" aria-label="Cam kết dịch vụ">
+            <li className="book-detail__trust-item">
+              <span className="book-detail__trust-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+                  <path d="M15 18h2" />
+                  <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+                  <circle cx="6.5" cy="18.5" r="2.5" />
+                  <circle cx="17.5" cy="18.5" r="2.5" />
+                </svg>
+              </span>
+              <span className="book-detail__trust-label">Miễn phí vận chuyển</span>
+            </li>
+            <li className="book-detail__trust-item">
+              <span className="book-detail__trust-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M8 16H3v5" />
+                </svg>
+              </span>
+              <span className="book-detail__trust-label">Đổi trả trong 7 ngày</span>
+            </li>
+            <li className="book-detail__trust-item">
+              <span className="book-detail__trust-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+              </span>
+              <span className="book-detail__trust-label">Giao hàng nhanh 24h</span>
+            </li>
+          </ul>
 
           <div className="book-detail__tabs">
             <button

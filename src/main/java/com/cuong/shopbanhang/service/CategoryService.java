@@ -46,8 +46,7 @@ public class CategoryService {
         }
         
         categoryRepository.save(category);
-        log.info("Category created: {}", category.getCategoryName());
-        
+
         return CategoryResponse.builder()
                 .categoryId(category.getCategoryId())
                 .categoryName(category.getCategoryName())
@@ -147,8 +146,7 @@ public class CategoryService {
         }
 
         Category updatedCategory = categoryRepository.save(category);
-        log.info("Category {} updated", id);
-        
+
         return CategoryResponse.builder()
                 .categoryId(updatedCategory.getCategoryId())
                 .categoryName(updatedCategory.getCategoryName())
@@ -171,7 +169,6 @@ public class CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id)); // EX-001
         
         categoryRepository.delete(category);
-        log.info("Category {} deleted", id);
     }
 
     /**
@@ -181,7 +178,6 @@ public class CategoryService {
     @Transactional
     public void deleteAllCategories() {
         categoryRepository.deleteAll();
-        log.warn("All categories deleted");
     }
 
     /**

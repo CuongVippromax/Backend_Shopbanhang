@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.cuong.shopbanhang.common.Role;
+import com.cuong.shopbanhang.dto.request.UserUpdateRequest;
 import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.dto.response.UserResponse;
 import com.cuong.shopbanhang.exception.BadRequestException;
@@ -50,9 +51,13 @@ public class UserService {
      */
     @Transactional
     public UserResponse createUser(User user) {
-        // EXCEPTION: ResourceAlreadyExistsException - Khi email đã tồn tại
+        // EXCEPTION: ResourceAlreadyExistsException - Khi email hoặc SĐT đã tồn tại
         if (userRepository.findByEmail(user.getEmail().toString()).isPresent()) {
-            throw new ResourceAlreadyExistsException("Email", "email", user.getEmail()); // EX-002
+            throw new ResourceAlreadyExistsException("User", "email", user.getEmail()); // EX-002
+        }
+        if (StringUtils.hasText(user.getPhone())
+                && userRepository.existsByPhone(user.getPhone().trim())) {
+            throw new ResourceAlreadyExistsException("User", "phone", user.getPhone());
         }
         
         String encodedPassword = passwordEncoder.encode(user.getPassword());
@@ -60,7 +65,6 @@ public class UserService {
         user.setRole(Role.USER);
 
         User savedUser = userRepository.save(user);
-        log.info("User created successfully: {}", savedUser.getUserId());
         
         return UserResponse.builder()
                 .userId(savedUser.getUserId())
@@ -155,7 +159,7 @@ public class UserService {
      * @return UserResponse thông tin người dùng đã cập nhật
      */
     @Transactional
-    public UserResponse updateUser(Long userId, User user) {
+    public UserResponse updateUser(Long userId, UserUpdateRequest user) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId)); // EX-001
@@ -176,7 +180,6 @@ public class UserService {
             existingUser.setAddress(user.getAddress());
         }
         User updatedUser = userRepository.save(existingUser);
-        log.info("User updated: {}", userId);
         
         return UserResponse.builder()
                 .userId(updatedUser.getUserId())
@@ -235,7 +238,6 @@ public class UserService {
 
         user.setRole(newRole);
         User updated = userRepository.save(user);
-        log.info("Updated user {} role to {}", userId, newRole);
 
         return UserResponse.builder()
                 .userId(updated.getUserId())
@@ -280,7 +282,6 @@ public class UserService {
 
         // Gửi email - có thể ném BadRequestException nếu email không gửi được
         emailService.sendPasswordResetEmail(email, token);
-        log.info("Password reset token sent to email: {}", email);
     }
 
     /**
@@ -310,7 +311,5 @@ public class UserService {
         userRepository.save(user);
 
         passwordResetTokenRepository.delete(resetToken);
-
-        log.info("Password reset successfully for user: {}", user.getEmail());
     }
 }

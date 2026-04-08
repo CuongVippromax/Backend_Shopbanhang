@@ -35,7 +35,8 @@ public class Book {
 
     @NotNull(message = "Quantity is required")
     @Min(value = 0, message = "Quantity must be greater than or equal to 0")
-    private Integer quantity;
+    @Builder.Default
+    private Integer quantity = 0;
 
     private String image;
 

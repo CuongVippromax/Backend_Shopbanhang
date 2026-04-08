@@ -197,6 +197,5 @@ public class FaqDataSeeder implements CommandLineRunner {
         );
 
         faqRepository.saveAll(faqs);
-        log.info("Da seed {} FAQ entries", faqs.size());
     }
 }

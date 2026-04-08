@@ -65,9 +65,7 @@ public class EmailService {
 
             helper.setText(htmlContent, true);
             javaMailSender.send(message);
-            log.info("Order confirmation email sent to: {}", toEmail);
         } catch (MessagingException e) {
-            log.error("Error sending order confirmation email to {}: {}", toEmail, e.getMessage());
             // EXCEPTION: BadRequestException - Khi gửi email thất bại
             throw new BadRequestException("Không thể gửi email xác nhận đơn hàng. Vui lòng thử lại sau."); // EX-003
         }
@@ -104,10 +102,7 @@ public class EmailService {
 
             helper.setText(htmlContent, true);
             javaMailSender.send(message);
-            log.info("Password reset email sent to: {}", toEmail);
         } catch (MessagingException e) {
-            log.error("Error sending password reset email to {}: {}", toEmail, e.getMessage());
-            // EXCEPTION: BadRequestException - Khi gửi email thất bại
             throw new BadRequestException("Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau."); // EX-003
         }
     }

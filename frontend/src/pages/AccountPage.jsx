@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getUser, isLoggedIn, logout, updateUser } from '../api/client'
+import { getUser, isLoggedIn, logout, updateUser, apiGet } from '../api/client'
 
 export default function AccountPage() {
   const navigate = useNavigate()
@@ -17,8 +17,37 @@ export default function AccountPage() {
       navigate('/dang-nhap')
       return
     }
-    setUser(getUser())
-    setLoading(false)
+    let cancelled = false
+    ;(async () => {
+      const cached = getUser()
+      if (cached) setUser(cached)
+      try {
+        const res = await apiGet('/users/me')
+        const p = res?.data
+        if (p && !cancelled) {
+          const merged = {
+            ...(cached || {}),
+            id: p.userId,
+            userId: p.userId,
+            username: p.username,
+            email: p.email,
+            fullName: p.fullName,
+            phone: p.phone ?? p.phoneNumber ?? '',
+            address: p.address ?? '',
+            role: p.role
+          }
+          localStorage.setItem('user', JSON.stringify(merged))
+          setUser(merged)
+        }
+      } catch {
+        if (!cancelled && cached) setUser(cached)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [navigate])
 
   const handleLogout = () => {
@@ -70,7 +99,7 @@ export default function AccountPage() {
 
   const fullName = user?.fullName || user?.username || ''
   const email = user?.email || ''
-  const phone = user?.phone || ''
+  const phone = user?.phone || user?.phoneNumber || ''
   const username = user?.username || ''
   const address = user?.address || ''
 

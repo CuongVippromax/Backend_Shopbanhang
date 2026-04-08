@@ -50,6 +50,7 @@ export default function AdminLoginPage() {
 
       const userData = {
         id: response.userId,
+        userId: response.userId,
         username: response.username,
         email: response.email,
         fullName: response.fullName,

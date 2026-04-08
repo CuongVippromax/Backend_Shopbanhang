@@ -1,11 +1,5 @@
 import { apiGet, apiPost, apiPostForm, apiPut, apiPutForm, apiDelete } from './client'
 
-// FAQ - Admin
-export const getAllFaqsAdmin = () => apiGet('/admin/faqs')
-export const createFaq = (data) => apiPost('/admin/faqs', data)
-export const updateFaq = (id, data) => apiPut(`/admin/faqs/${id}`, data)
-export const deleteFaq = (id) => apiDelete(`/admin/faqs/${id}`)
-
 // Dashboard
 export const getDashboardStats = () => apiGet('/admin/dashboard')
 

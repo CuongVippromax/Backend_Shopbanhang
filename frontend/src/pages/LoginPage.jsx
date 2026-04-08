@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { apiPost, isLoggedIn, getUser } from '../api/client'
 import { initCartForUser } from '../utils/cart'
 
 export default function LoginPage() {
+  const [searchParams] = useSearchParams()
   const [formData, setFormData] = useState({
     usernameOrEmail: '',
     password: ''
@@ -54,6 +55,8 @@ export default function LoginPage() {
         username: response.username,
         email: response.email,
         fullName: response.fullName,
+        phone: response.phone ?? '',
+        address: response.address ?? '',
         role: response.role
       }
       localStorage.setItem('user', JSON.stringify(userData))
@@ -81,6 +84,9 @@ export default function LoginPage() {
         <p className="auth-desc">Nhập thông tin để đăng nhập vào tài khoản của bạn.</p>
 
         {error && <div className="auth-error">{error}</div>}
+        {searchParams.get('registered') === '1' && (
+          <p className="auth-inline-success">Đăng ký thành công. Vui lòng đăng nhập.</p>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">

@@ -63,7 +63,6 @@ public class MinIOService {
                                 .build());
             }
 
-            log.info("Uploaded file: {}", objectName);
             return buildPublicUrl(objectName);
 
         } catch (Exception e) {
@@ -88,11 +87,8 @@ public class MinIOService {
                             .bucket(bucket)
                             .object(objectName)
                             .build());
-            log.info("Deleted file: {}", objectName);
         } catch (Exception e) {
-            log.error("Error deleting file from MinIO: {}", e.getMessage(), e);
-            // EXCEPTION: FileStorageException - Khi xóa file thất bại
-            throw new FileStorageException("Không thể xóa file: " + e.getMessage(), e); // EX-010
+            throw new FileStorageException("Không thể xóa file: " + e.getMessage(), e);
         }
     }
 
@@ -116,9 +112,7 @@ public class MinIOService {
                             .expiry(expirySeconds)
                             .build());
         } catch (Exception e) {
-            log.error("Error generating presigned URL: {}", e.getMessage(), e);
-            // EXCEPTION: FileStorageException - Khi tạo presigned URL thất bại
-            throw new FileStorageException("Không thể tạo presigned URL: " + e.getMessage(), e); // EX-010
+            throw new FileStorageException("Không thể tạo presigned URL: " + e.getMessage(), e);
         }
     }
 
@@ -158,7 +152,6 @@ public class MinIOService {
                     BucketExistsArgs.builder().bucket(bucket).build());
             if (!exists) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
-                log.info("Created bucket: {}", bucket);
             }
             setBucketPolicyToPublic();
         } catch (Exception e) {
@@ -192,9 +185,7 @@ public class MinIOService {
                             .bucket(bucket)
                             .config(policyJson)
                             .build());
-            log.info("Set bucket policy to public for: {}", bucket);
-        } catch (Exception e) {
-            log.warn("Could not set bucket policy (may already be set): {}", e.getMessage());
+        } catch (Exception ignored) {
         }
     }
 }

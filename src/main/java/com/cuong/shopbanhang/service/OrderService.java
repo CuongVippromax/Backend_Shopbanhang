@@ -89,24 +89,29 @@ public class OrderService {
             throw new OrderException("Giỏ hàng trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt hàng."); // EX-009
         }
 
-        // Kiểm tra số lượng tồn kho
         for (CartItem item : cart.getCartItems()) {
             Book book = item.getBook();
-            if (book.getQuantity() < item.getQuantity()) {
-                // EXCEPTION: OrderException - Khi không đủ hàng trong kho
-                throw new OrderException("Sách '" + book.getBookName() + "' không đủ hàng trong kho. Còn lại: " + book.getQuantity() + " quyển"); // EX-009
+            Integer currentQty = book.getQuantity() != null ? book.getQuantity() : 0;
+            Integer orderQty = item.getQuantity() != null ? item.getQuantity() : 0;
+            if (currentQty < orderQty) {
+                throw new OrderException("Sách '" + book.getBookName() + "' không đủ hàng trong kho. Còn lại: " + currentQty + " quyển");
             }
         }
 
         // Trừ số lượng tồn kho
         for (CartItem item : cart.getCartItems()) {
             Book book = item.getBook();
-            book.setQuantity(book.getQuantity() - item.getQuantity());
+            Integer orderQty = item.getQuantity() != null ? item.getQuantity() : 0;
+            book.setQuantity(book.getQuantity() - orderQty);
             bookRepository.save(book);
         }
 
         Double totalPrice = cart.getCartItems().stream()
-        .map(item -> item.getBook().getPrice().doubleValue() * item.getQuantity())
+        .map(item -> {
+            Double price = item.getBook().getPrice();
+            Integer qty = item.getQuantity();
+            return (price != null ? price : 0.0) * (qty != null ? qty : 0);
+        })
         .reduce(0.0, Double::sum);
         
         OrderDetail orderDetail = OrderDetail.builder()
@@ -140,7 +145,6 @@ public class OrderService {
         cart.getCartItems().clear();
         cartRepository.save(cart);
 
-        log.info("Order created successfully: {}", savedOrder.getOrderId());
         return savedOrder;
     }
 
@@ -162,7 +166,6 @@ public class OrderService {
 
         // EXCEPTION: OrderException - Khi đơn hàng đã thanh toán thành công
         if (order.getPaymentStatus() == PaymentStatus.PAID) {
-            log.warn("Cannot delete order {} - already paid", orderId);
             throw new OrderException("Không thể xóa đơn hàng đã thanh toán thành công."); // EX-009
         }
 
@@ -180,7 +183,6 @@ public class OrderService {
 
             cartItemRepository.saveAll(itemsToRestore);
             entityManager.flush();
-            log.info("Updated {} CartItems to remove orderDetail reference", itemsToRestore.size());
         }
 
         // Khôi phục số lượng tồn kho
@@ -191,7 +193,6 @@ public class OrderService {
                 bookRepository.save(book);
             }
             entityManager.flush();
-            log.info("Restored inventory for {} items", itemsToRestore.size());
         }
 
         Cart userCart = userId != null ? cartRepository.findByUser_UserId(userId).orElse(null) : null;
@@ -211,7 +212,6 @@ public class OrderService {
                 }
             }
             entityManager.flush();
-            log.info("Restored {} items to cart", itemsToRestore.size());
         }
 
         order.setOrderDetails(null);
@@ -219,7 +219,6 @@ public class OrderService {
         orderRepository.delete(order);
 
         entityManager.clear();
-        log.info("Order {} cancelled and deleted", orderId);
     }
 
     /**
@@ -247,7 +246,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
 
-        boolean isOwner = order.getUser().getUserId().equals(userId);
+        boolean isOwner = order.getUser() != null && order.getUser().getUserId().equals(userId);
         
         // EXCEPTION: ForbiddenException - Khi người dùng không có quyền hủy
         if (!isOwner && !isAdmin) {
@@ -263,13 +262,13 @@ public class OrderService {
         if (order.getOrderStatus() != OrderStatus.CANCELLED && order.getOrderDetails() != null) {
             for (CartItem item : order.getOrderDetails().getItems()) {
                 Book book = item.getBook();
-                book.setQuantity(book.getQuantity() + item.getQuantity());
+                Integer qty = item.getQuantity() != null ? item.getQuantity() : 0;
+                book.setQuantity((book.getQuantity() != null ? book.getQuantity() : 0) + qty);
                 bookRepository.save(book);
             }
         }
 
         order.setOrderStatus(OrderStatus.CANCELLED);
-        log.info("Order {} cancelled by user {}", orderId, userId);
         return orderRepository.save(order);
     }
 
@@ -371,7 +370,6 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
         
         order.setOrderStatus(status);
-        log.info("Order {} status updated to {}", orderId, status);
         return orderRepository.save(order);
     }
 
@@ -392,7 +390,6 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
         
         order.setPaymentStatus(status);
-        log.info("Order {} payment status updated to {}", orderId, status);
         return orderRepository.save(order);
     }
 
@@ -457,9 +454,8 @@ public class OrderService {
         Long userId = SecurityUtils.getCurrentUserId().orElse(null);
         boolean isAdmin = SecurityUtils.hasRole("ADMIN");
         
-        // EXCEPTION: ForbiddenException - Khi người dùng không có quyền xem đơn hàng
-        if (userId != null && !order.getUser().getUserId().equals(userId) && !isAdmin) {
-            throw new ForbiddenException("Bạn không có quyền xem đơn hàng này."); // EX-005
+        if (userId != null && (order.getUser() == null || (!order.getUser().getUserId().equals(userId) && !isAdmin))) {
+            throw new ForbiddenException("Bạn không có quyền xem đơn hàng này.");
         }
         
         return toOrderResponse(order);

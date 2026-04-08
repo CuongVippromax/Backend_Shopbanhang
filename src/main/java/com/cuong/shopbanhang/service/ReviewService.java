@@ -76,7 +76,6 @@ public class ReviewService {
                 .comment(request.getComment())
                 .build();
         review = reviewRepository.save(review);
-        log.info("Review added for book {} by user {}", request.getBookId(), userId);
 
         return toReviewResponse(review);
     }
@@ -112,7 +111,6 @@ public class ReviewService {
         review.setRating(request.getRating());
         review.setComment(request.getComment());
         review = reviewRepository.save(review);
-        log.info("Review {} updated by user {}", reviewId, userId);
 
         return toReviewResponse(review);
     }
@@ -146,7 +144,6 @@ public class ReviewService {
         }
 
         reviewRepository.delete(review);
-        log.info("Review {} deleted by user {}", reviewId, userId);
     }
 
     /**

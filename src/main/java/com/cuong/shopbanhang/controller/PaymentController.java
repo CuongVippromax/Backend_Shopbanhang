@@ -3,6 +3,7 @@ package com.cuong.shopbanhang.controller;
 import com.cuong.shopbanhang.common.PaymentStatus;
 import com.cuong.shopbanhang.dto.response.PaymentDTO;
 import com.cuong.shopbanhang.dto.response.ResponseObject;
+import com.cuong.shopbanhang.model.Order;
 import com.cuong.shopbanhang.service.OrderService;
 import com.cuong.shopbanhang.service.PaymentService;
 import com.cuong.shopbanhang.service.EmailService;
@@ -41,11 +42,15 @@ public class PaymentController {
         }
         Long orderId = Long.parseLong(vnp_TxnRef);
         if ("00".equals(vnp_ResponseCode)) {
-            orderService.updatePaymentStatus(orderId, PaymentStatus.PAID);
-            try {
-                var orderOpt = orderService.getOrderByIdForEmail(orderId);
-                if (orderOpt.isPresent()) {
-                    var order = orderOpt.get();
+            var orderOpt = orderService.getOrderByIdForEmail(orderId);
+            if (orderOpt.isEmpty()) {
+                return new ResponseObject<>(HttpStatus.NOT_FOUND, "Order not found", null);
+            }
+            Order order = orderOpt.get();
+            // Chỉ xử lý nếu chưa thanh toán (tránh gọi 2 lần: server VNPay + frontend)
+            if (order.getPaymentStatus() != PaymentStatus.PAID) {
+                orderService.updatePaymentStatus(orderId, PaymentStatus.PAID);
+                try {
                     String orderDetailsHtml = orderService.buildOrderDetailsHtml(order);
                     emailService.sendOrderConfirmation(
                         order.getUser().getEmail(),
@@ -53,9 +58,9 @@ public class PaymentController {
                         order.getTotalAmount(),
                         orderDetailsHtml
                     );
+                } catch (Exception e) {
+                    log.error("Failed to send payment confirmation email for order {}", orderId, e);
                 }
-            } catch (Exception e) {
-                log.error("Failed to send payment confirmation email for order {}", orderId, e);
             }
             return new ResponseObject<>(HttpStatus.OK, "Payment successful",
                 PaymentDTO.VNPayResponse.builder()

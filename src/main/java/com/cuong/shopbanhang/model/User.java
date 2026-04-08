@@ -45,9 +45,11 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(name = "phone")
     @Size(max = 20, message = "Phone must not exceed 20 characters")
     private String phone;
-
+    
+    @Column(name = "address")
     @Size(max = 255, message = "Address must not exceed 255 characters")
     private String address;
 

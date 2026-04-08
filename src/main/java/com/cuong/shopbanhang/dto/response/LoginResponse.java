@@ -21,5 +21,8 @@ public class LoginResponse {
     private String username;
     private String email;
     private String fullName;
+    /** SĐT & địa chỉ lưu trên server — dùng hiển thị hồ sơ sau đăng nhập */
+    private String phone;
+    private String address;
     private Role role;
 }

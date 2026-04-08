@@ -58,8 +58,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
-        log.warn("[EX-001] Resource not found: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("NOT_FOUND")
                 .message(ex.getMessage())
@@ -78,7 +76,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleResourceAlreadyExistsException(
             ResourceAlreadyExistsException ex, WebRequest request) {
-        log.warn("[EX-002] Resource already exists: {} | Path: {}", ex.getMessage(), request.getDescription(false));
+        Map<String, String> fieldErrors = null;
+        if (ex.getFieldName() != null && !ex.getFieldName().isBlank()) {
+            fieldErrors = new HashMap<>();
+            fieldErrors.put(ex.getFieldName(), ex.getMessage());
+        }
 
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("CONFLICT")
@@ -86,6 +88,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT.value())
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
+                .fieldErrors(fieldErrors)
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
@@ -98,8 +101,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequestException(
             BadRequestException ex, WebRequest request) {
-        log.warn("[EX-003] Bad request: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("BAD_REQUEST")
                 .message(ex.getMessage())
@@ -118,8 +119,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(
             UnauthorizedException ex, WebRequest request) {
-        log.warn("[EX-004] Unauthorized access: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("UNAUTHORIZED")
                 .message(ex.getMessage())
@@ -138,8 +137,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ErrorResponse> handleForbiddenException(
             ForbiddenException ex, WebRequest request) {
-        log.warn("[EX-005] Access forbidden: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("FORBIDDEN")
                 .message(ex.getMessage())
@@ -158,8 +155,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(TokenException.class)
     public ResponseEntity<ErrorResponse> handleTokenException(
             TokenException ex, WebRequest request) {
-        log.warn("[EX-006] Token error: {} | Type: {} | Path: {}", ex.getMessage(), ex.getTokenType(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("TOKEN_ERROR")
                 .message(ex.getMessage())
@@ -199,8 +194,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CartException.class)
     public ResponseEntity<ErrorResponse> handleCartException(
             CartException ex, WebRequest request) {
-        log.warn("[EX-008] Cart error: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("CART_ERROR")
                 .message(ex.getMessage())
@@ -219,8 +212,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OrderException.class)
     public ResponseEntity<ErrorResponse> handleOrderException(
             OrderException ex, WebRequest request) {
-        log.warn("[EX-009] Order error: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("ORDER_ERROR")
                 .message(ex.getMessage())
@@ -268,8 +259,6 @@ public class GlobalExceptionHandler {
             }
         });
 
-        log.warn("[EX-011] Validation failed: {} | Path: {}", errors, request.getDescription(false));
-
         String userMessage = errors.values().stream()
                 .filter(msg -> msg != null && !msg.isBlank())
                 .distinct()
@@ -284,6 +273,7 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST.value())
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
+                .fieldErrors(errors)
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -296,8 +286,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
             AuthenticationException ex, WebRequest request) {
-        log.warn("[EX-012] Authentication failed: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("UNAUTHORIZED")
                 .message("Xác thực thất bại. Vui lòng đăng nhập lại.")
@@ -316,8 +304,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(
             BadCredentialsException ex, WebRequest request) {
-        log.warn("[EX-013] Bad credentials: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("UNAUTHORIZED")
                 .message("Tên đăng nhập hoặc mật khẩu không đúng.")
@@ -336,8 +322,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(
             AccessDeniedException ex, WebRequest request) {
-        log.warn("[EX-014] Access denied: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("FORBIDDEN")
                 .message("Bạn không có quyền truy cập tài nguyên này.")
@@ -356,8 +340,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceededException(
             MaxUploadSizeExceededException ex, WebRequest request) {
-        log.warn("[EX-015] File size exceeded: {} | Path: {}", ex.getMessage(), request.getDescription(false));
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("FILE_TOO_LARGE")
                 .message("Kích thước file vượt quá giới hạn cho phép. Vui lòng chọn file nhỏ hơn.")
