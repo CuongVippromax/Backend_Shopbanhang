@@ -36,7 +36,7 @@ public class JwtTokenProvider {
     // Generate token from authentication
     public String generateToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        String role = authentication.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElseThrow(null);
+        String role = authentication.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse(null);
         Date now = new Date();
         Date expriryDate = new Date(now.getTime() + jwtProperties.getAccessToken().getExpiration());
         return Jwts.builder()

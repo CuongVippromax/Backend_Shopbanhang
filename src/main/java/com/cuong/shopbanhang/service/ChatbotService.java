@@ -11,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -77,26 +75,13 @@ public class ChatbotService {
         }
 
         String intent = detectIntent(userMessage);
-        log.info(">>> [CHATBOT] message=\"{}\" → intent={}", userMessage, intent);
 
-        switch (intent) {
-            case "recommendation" -> {
-                log.info(">>> [CHATBOT] → handleBookRecommendation (gọi Gemini)");
-                return handleBookRecommendation(userMessage.toLowerCase(Locale.ROOT));
-            }
-            case "faq" -> {
-                log.info(">>> [CHATBOT] → handleFaqMatch (DB FAQ, không gọi Gemini)");
-                return handleFaqMatch(userMessage);
-            }
-            case "search" -> {
-                log.info(">>> [CHATBOT] → handleBookSearch (DB sách, không gọi Gemini)");
-                return handleBookSearch(userMessage.toLowerCase(Locale.ROOT));
-            }
-            default -> {
-                log.info(">>> [CHATBOT] → handleGeneralQuestion (gọi Gemini + FAQ context)");
-                return handleGeneralQuestion(userMessage);
-            }
-        }
+        return switch (intent) {
+            case "recommendation" -> handleBookRecommendation(userMessage.toLowerCase(Locale.ROOT));
+            case "faq" -> handleFaqMatch(userMessage);
+            case "search" -> handleBookSearch(userMessage.toLowerCase(Locale.ROOT));
+            default -> handleGeneralQuestion(userMessage);
+        };
     }
 
     /**
@@ -161,7 +146,6 @@ public class ChatbotService {
     }
 
     private ChatResponse handleBookRecommendation(String message) {
-        log.info(">>> [handleBookRecommendation] đang gọi Gemini với message=\"{}\"", message);
         List<Book> allBooks = bookRepository.findAll();
         if (allBooks.isEmpty()) {
             return ChatResponse.builder()
@@ -195,18 +179,15 @@ public class ChatbotService {
             """, bookContext, message);
 
         try {
-            log.info(">>> [handleBookRecommendation] 🤖 ĐANG GỌI GEMINI...");
             String response = callGeminiApi(SYSTEM_PROMPT, aiPrompt);
-            log.info(">>> [handleBookRecommendation] ✅ GEMINI TRẢ LỜI: {} ký tự", response.length());
             return parseAiBookResponse(response);
         } catch (Exception e) {
-            log.error(">>> [handleBookRecommendation] ❌ GEMINI THẤT BẠI → fallback. Lỗi: {}", e.getMessage());
+            log.error(">>> [handleBookRecommendation] ❌ GEMINI FAILED → fallback", e);
             return getFallbackRecommendation(message);
         }
     }
 
     private ChatResponse handleBookSearch(String message) {
-        log.info(">>> [handleBookSearch] tìm sách trong DB, message=\"{}\"", message);
         String searchQuery = extractSearchQuery(message);
         List<Book> books = bookRepository.findAll();
 
@@ -234,13 +215,6 @@ public class ChatbotService {
                 .build();
     }
 
-    private boolean matchesSearch(Book book, String query) {
-        return matchesSearch(book, query, true);
-    }
-
-    /**
-     * @param includeDescription false khi gợi ý theo chủ đề (tránh khớp nhầm vì từ ngắn trong mô tả dài).
-     */
     private boolean matchesSearch(Book book, String query, boolean includeDescription) {
         if (query == null || query.isBlank()) {
             return false;
@@ -278,18 +252,14 @@ public class ChatbotService {
     }
 
     private ChatResponse handleFaqMatch(String message) {
-        log.info(">>> [handleFaqMatch] tìm FAQ trong DB, message=\"{}\"", message);
         FaqResponse faqMatch = findBestFaqMatch(message);
         if (faqMatch != null) {
-            log.info(">>> [handleFaqMatch] ✅ KHỚP FAQ id={} question=\"{}\"", faqMatch.getId(), faqMatch.getQuestion());
             return ChatResponse.builder()
                     .message(faqMatch.getAnswer())
                     .type("faq")
                     .intent("faq")
                     .build();
         }
-
-        log.info(">>> [handleFaqMatch] ❌ Không khớp FAQ nào → chuyển sang handleGeneralQuestion");
         return handleGeneralQuestion(message);
     }
 
@@ -344,8 +314,16 @@ public class ChatbotService {
         return score;
     }
 
+    private String callGeminiApi(String systemPrompt, String userContent) {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException("Missing Gemini API key");
+        }
+        return callGeminiApiOnce(geminiModel != null && !geminiModel.isBlank()
+                ? geminiModel.trim()
+                : "gemini-3.1-flash-lite-preview", systemPrompt, userContent);
+    }
+
     private ChatResponse handleGeneralQuestion(String message) {
-        log.info(">>> [handleGeneralQuestion] đang gọi Gemini + FAQ context, message=\"{}\"", message);
         String bookContext = buildBookContext(bookRepository.findAll());
         String faqContext = buildFaqContext();
         String userContext = String.format("""
@@ -359,41 +337,16 @@ public class ChatbotService {
             """, message, bookContext, faqContext);
 
         try {
-            log.info(">>> [handleGeneralQuestion] 🤖 ĐANG GỌI GEMINI...");
             String response = callGeminiApi(SYSTEM_PROMPT, userContext);
-            log.info(">>> [handleGeneralQuestion] ✅ GEMINI TRẢ LỜI: {} ký tự", response.length());
-
             return ChatResponse.builder()
                     .message(response)
                     .type("text")
                     .intent("general")
                     .build();
         } catch (Exception e) {
-            log.error(">>> [handleGeneralQuestion] ❌ GEMINI THẤT BẠI → fallback. Lỗi: {}", e.getMessage());
+            log.error(">>> [handleGeneralQuestion] ❌ GEMINI FAILED → fallback", e);
             return getFallbackResponse(message);
         }
-    }
-
-    private void ensureGeminiApiKeyConfigured() {
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException("Missing Gemini API key (AI_API_KEY)");
-        }
-    }
-
-    private List<String> geminiModelFallbackChain() {
-        List<String> models = new ArrayList<>();
-        if (geminiModel != null && !geminiModel.isBlank()) {
-            models.add(geminiModel.trim());
-        }
-        return models;
-    }
-
-    private String callGeminiApi(String systemPrompt, String userContent) {
-        ensureGeminiApiKeyConfigured();
-        String model = geminiModel != null && !geminiModel.isBlank()
-                ? geminiModel.trim()
-                : "gemini-3.1-flash-lite-preview";
-        return callGeminiApiOnce(model, systemPrompt, userContent);
     }
 
     @SuppressWarnings("unchecked")
@@ -401,37 +354,22 @@ public class ChatbotService {
         String url = String.format(GEMINI_URL_TEMPLATE, model, apiKey.trim());
 
         Map<String, Object> requestBody = new HashMap<>();
-
         Map<String, Object> systemInstruction = new HashMap<>();
-        List<Map<String, Object>> sysParts = new ArrayList<>();
-        Map<String, Object> sysPart = new HashMap<>();
-        sysPart.put("text", systemPrompt);
-        sysParts.add(sysPart);
-        systemInstruction.put("parts", sysParts);
+        systemInstruction.put("parts", List.of(Map.of("text", systemPrompt)));
         requestBody.put("systemInstruction", systemInstruction);
 
-        List<Map<String, Object>> contents = new ArrayList<>();
-        Map<String, Object> content = new HashMap<>();
-        content.put("role", "user");
-        List<Map<String, Object>> parts = new ArrayList<>();
-        Map<String, Object> part = new HashMap<>();
-        part.put("text", userContent);
-        parts.add(part);
-        content.put("parts", parts);
-        contents.add(content);
+        List<Map<String, Object>> contents = List.of(
+                Map.of("role", "user", "parts", List.of(Map.of("text", userContent)))
+        );
         requestBody.put("contents", contents);
-
-        Map<String, Object> generationConfig = new HashMap<>();
-        generationConfig.put("temperature", 0.7);
-        generationConfig.put("maxOutputTokens", 2048);
-        requestBody.put("generationConfig", generationConfig);
+        requestBody.put("generationConfig", Map.of("temperature", 0.7, "maxOutputTokens", 2048));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+        @SuppressWarnings("rawtypes")
+        ResponseEntity<Map> response = restTemplate.exchange(
+                url, HttpMethod.POST, new HttpEntity<>(requestBody, headers), Map.class);
 
         Map<String, Object> responseBody = response.getBody();
         if (responseBody == null) {
@@ -440,28 +378,27 @@ public class ChatbotService {
         if (responseBody.containsKey("error")) {
             throw new IllegalStateException("Gemini error: " + responseBody.get("error"));
         }
-        if (responseBody.containsKey("promptFeedback")) {
+
+        List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
+        if (candidates == null || candidates.isEmpty()) {
+            throw new IllegalStateException("No candidates in Gemini response");
         }
-        if (responseBody.containsKey("candidates")) {
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
-            if (candidates != null && !candidates.isEmpty()) {
-                Map<String, Object> candidate = candidates.get(0);
-                if (candidate.containsKey("finishReason") && "SAFETY".equals(String.valueOf(candidate.get("finishReason")))) {
-                }
-                Map<String, Object> contentResponse = (Map<String, Object>) candidate.get("content");
-                if (contentResponse != null) {
-                    List<Map<String, Object>> responseParts =
-                            (List<Map<String, Object>>) contentResponse.get("parts");
-                    if (responseParts != null && !responseParts.isEmpty()) {
-                        Object text = responseParts.get(0).get("text");
-                        if (text != null) {
-                            return text.toString();
-                        }
-                    }
-                }
-            }
+
+        Map<String, Object> contentResponse = (Map<String, Object>) candidates.get(0).get("content");
+        if (contentResponse == null) {
+            throw new IllegalStateException("No content in Gemini candidate");
         }
-        throw new IllegalStateException("Unexpected Gemini response shape");
+
+        List<Map<String, Object>> responseParts = (List<Map<String, Object>>) contentResponse.get("parts");
+        if (responseParts == null || responseParts.isEmpty()) {
+            throw new IllegalStateException("No parts in Gemini content");
+        }
+
+        Object text = responseParts.get(0).get("text");
+        if (text == null) {
+            throw new IllegalStateException("No text in Gemini parts");
+        }
+        return text.toString();
     }
 
     private String buildBookContext(List<Book> books) {

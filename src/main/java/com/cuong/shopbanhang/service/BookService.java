@@ -1,7 +1,6 @@
 package com.cuong.shopbanhang.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -13,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.cuong.shopbanhang.exception.BadRequestException;
 import com.cuong.shopbanhang.exception.FileStorageException;
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
 import com.cuong.shopbanhang.dto.response.PageResponse;
@@ -122,11 +120,8 @@ public class BookService {
      */
     @Transactional
     public BookResponse updateBook(long id, Book book, MultipartFile image) {
-        Optional<Book> gettedBook = bookRepository.findByBookId(id);
-        if (gettedBook.isEmpty()) {
-            return createBook(book, image);
-        }
-        Book existingBook = gettedBook.get();
+        Book existingBook = bookRepository.findByBookId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book", id));
 
         if (book.getBookName() != null && !book.getBookName().equals(existingBook.getBookName())) {
             if (bookRepository.existsByBookName(book.getBookName())) {
@@ -134,27 +129,13 @@ public class BookService {
             }
             existingBook.setBookName(book.getBookName());
         }
-        if (book.getPrice() != null) {
-            existingBook.setPrice(book.getPrice());
-        }
-        if (book.getQuantity() != null) {
-            existingBook.setQuantity(book.getQuantity());
-        }
-        if (book.getDescription() != null) {
-            existingBook.setDescription(book.getDescription());
-        }
-        if (book.getAuthor() != null) {
-            existingBook.setAuthor(book.getAuthor());
-        }
-        if (book.getPublisher() != null) {
-            existingBook.setPublisher(book.getPublisher());
-        }
-        if (book.getPublicationYear() != null) {
-            existingBook.setPublicationYear(book.getPublicationYear());
-        }
-        if (book.getCategory() != null) {
-            existingBook.setCategory(book.getCategory());
-        }
+        existingBook.setPrice(book.getPrice() != null ? book.getPrice() : existingBook.getPrice());
+        existingBook.setQuantity(book.getQuantity() != null ? book.getQuantity() : existingBook.getQuantity());
+        existingBook.setDescription(book.getDescription() != null ? book.getDescription() : existingBook.getDescription());
+        existingBook.setAuthor(book.getAuthor() != null ? book.getAuthor() : existingBook.getAuthor());
+        existingBook.setPublisher(book.getPublisher() != null ? book.getPublisher() : existingBook.getPublisher());
+        existingBook.setPublicationYear(book.getPublicationYear() != null ? book.getPublicationYear() : existingBook.getPublicationYear());
+        existingBook.setCategory(book.getCategory() != null ? book.getCategory() : existingBook.getCategory());
 
         // Xử lý hình ảnh
         if (image != null && !image.isEmpty()) {
@@ -297,6 +278,7 @@ public class BookService {
                 String fileName = book.getImage().substring(book.getImage().lastIndexOf("/") + 1);
                 minIOService.deleteFile(fileName);
             } catch (Exception ignored) {
+                // File deletion failed — non-critical
             }
         }
 

@@ -53,7 +53,6 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
-    private final EmailService emailService;
 
     @PersistenceContext
     private EntityManager entityManager;

@@ -186,6 +186,7 @@ public class MinIOService {
                             .config(policyJson)
                             .build());
         } catch (Exception ignored) {
+            // Bucket policy set failed — bucket may already be public
         }
     }
 }
