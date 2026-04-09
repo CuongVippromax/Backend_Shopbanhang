@@ -46,7 +46,7 @@ spring:
     google:
       genai:
         api-key: ${AI_API_KEY:}
-        model: ${GEMINI_MODEL:gemini-3.0-flash-lite}
+        model: ${GEMINI_MODEL:gemini-3.1-flash-lite-preview}
 app:
   security:
     allowedOrigins:
@@ -90,7 +90,7 @@ logging:
     com.cuong.shopbanhang: INFO
     com.cuong.shopbanhang.exception: WARN
     com.cuong.shopbanhang.security: WARN
-    com.cuong.shopbanhang.service.ChatbotService: WARN
+    com.cuong.shopbanhang.service.ChatbotService: INFO
     com.cuong.shopbanhang.service.EmailService: WARN
     com.cuong.shopbanhang.service.MinIOService: WARN
     com.cuong.shopbanhang.service.DashboardService: WARN

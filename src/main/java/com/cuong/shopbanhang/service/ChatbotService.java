@@ -40,7 +40,7 @@ public class ChatbotService {
     @Value("${spring.ai.google.genai.api-key:}")
     private String apiKey;
 
-    @Value("${spring.ai.google.genai.model:gemini-2.0-flash}")
+    @Value("${spring.ai.google.genai.model:gemini-3.0-flash-lite}")
     private String geminiModel;
 
     private static final String SYSTEM_PROMPT = """
@@ -61,10 +61,10 @@ public class ChatbotService {
         
         Thông tin cửa hàng:
         - Tên: Nhà sách Hoàng Kim
-        - Hotline: 0123-456-789
-        - Giờ làm việc: 8:00 - 22:00
+        - Hotline: 0354-780-757
+        - Giờ làm việc: 8:00 - 21:00
         - Thanh toán: COD, VNPay, PayPal
-        - Miễn phí vận chuyển cho đơn từ 200.000đ
+        - Miễn phí vận chuyển cho mọi đơn 
         """;
 
     public ChatResponse chat(ChatRequest request) {
@@ -77,18 +77,23 @@ public class ChatbotService {
         }
 
         String intent = detectIntent(userMessage);
+        log.info(">>> [CHATBOT] message=\"{}\" → intent={}", userMessage, intent);
 
         switch (intent) {
             case "recommendation" -> {
+                log.info(">>> [CHATBOT] → handleBookRecommendation (gọi Gemini)");
                 return handleBookRecommendation(userMessage.toLowerCase(Locale.ROOT));
             }
             case "faq" -> {
+                log.info(">>> [CHATBOT] → handleFaqMatch (DB FAQ, không gọi Gemini)");
                 return handleFaqMatch(userMessage);
             }
             case "search" -> {
+                log.info(">>> [CHATBOT] → handleBookSearch (DB sách, không gọi Gemini)");
                 return handleBookSearch(userMessage.toLowerCase(Locale.ROOT));
             }
             default -> {
+                log.info(">>> [CHATBOT] → handleGeneralQuestion (gọi Gemini + FAQ context)");
                 return handleGeneralQuestion(userMessage);
             }
         }
@@ -99,12 +104,25 @@ public class ChatbotService {
      */
     private String detectIntent(String rawMessage) {
         String norm = normalizeVietnamese(rawMessage.toLowerCase(Locale.ROOT));
+        /* Không dùng từ đơn "giá"/"gia" — "giải thích" chứa "gia" → nhầm sang search */
+        String[] generalFirst = {"giai thich", "phan tich", "viet cho", "viet mot", "la gi",
+                "tai sao", "dinh nghia", "so sanh", "may hoc", "machine learning", "giai thuat"};
+        for (String phrase : generalFirst) {
+            if (norm.contains(phrase)) {
+                return "general";
+            }
+        }
         String[] recommendationKeywords = {"gợi ý", "recommend", "đề xuất", "nên đọc", "muốn đọc",
                 "muốn tìm", "mua sách", "tìm sách", "tìm cuốn", "tìm quyển", "cho tôi xem", "hiển thị", "book"};
         String[] faqKeywords = {"cách", "làm sao", "như thế nào", "hướng dẫn", "chính sách",
                 "đổi trả", "bảo hành", "thanh toán", "vận chuyển", "giao hàng", "liên hệ", "hotline"};
-        /* Ngắn hơn recommendation — xếp sau cụm "tìm sách" */
-        String[] searchKeywords = {"tìm kiếm", "search", "có bán", "còn hàng", "price", "giá", "mua", "tìm"};
+        /*
+         * Search: cụm rõ ràng — tránh "gia" đơn (trùng tiền tố "giải").
+         * "tìm" đứng sau "tìm sách" ở recommendation; "tim" ngắn có thể lệch → ưu tiên "tim sach", "tim kiem".
+         */
+        String[] searchKeywords = {"tìm kiếm", "search", "có bán", "còn hàng", "price",
+                "giá sách", "giá bao nhiêu", "gia sach", "gia bao nhieu", "bao nhiêu tiền", "bao nhieu tien",
+                "mua không", "mua khong", "còn không", "con khong"};
 
         for (String keyword : recommendationKeywords) {
             if (norm.contains(normalizeVietnamese(keyword.toLowerCase(Locale.ROOT)))) {
@@ -116,6 +134,10 @@ public class ChatbotService {
                 return "search";
             }
         }
+        /* "tìm" / "tim" chỉ khi là từ tìm sách, không khớp trong "thích/thích nghi" */
+        if (matchesWholeWord(norm, "tim") || matchesWholeWord(norm, "mua")) {
+            return "search";
+        }
         for (String keyword : faqKeywords) {
             if (norm.contains(normalizeVietnamese(keyword.toLowerCase(Locale.ROOT)))) {
                 return "faq";
@@ -124,7 +146,22 @@ public class ChatbotService {
         return "general";
     }
 
+    /** Khớp từ đầy đủ (token), tránh "tim" trong "thich". */
+    private boolean matchesWholeWord(String normalizedSpaceSeparated, String word) {
+        if (word == null || word.isBlank()) {
+            return false;
+        }
+        String w = word.trim().toLowerCase();
+        for (String token : normalizedSpaceSeparated.split("\\s+")) {
+            if (token.equals(w)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private ChatResponse handleBookRecommendation(String message) {
+        log.info(">>> [handleBookRecommendation] đang gọi Gemini với message=\"{}\"", message);
         List<Book> allBooks = bookRepository.findAll();
         if (allBooks.isEmpty()) {
             return ChatResponse.builder()
@@ -158,14 +195,18 @@ public class ChatbotService {
             """, bookContext, message);
 
         try {
+            log.info(">>> [handleBookRecommendation] 🤖 ĐANG GỌI GEMINI...");
             String response = callGeminiApi(SYSTEM_PROMPT, aiPrompt);
+            log.info(">>> [handleBookRecommendation] ✅ GEMINI TRẢ LỜI: {} ký tự", response.length());
             return parseAiBookResponse(response);
         } catch (Exception e) {
+            log.error(">>> [handleBookRecommendation] ❌ GEMINI THẤT BẠI → fallback. Lỗi: {}", e.getMessage());
             return getFallbackRecommendation(message);
         }
     }
 
     private ChatResponse handleBookSearch(String message) {
+        log.info(">>> [handleBookSearch] tìm sách trong DB, message=\"{}\"", message);
         String searchQuery = extractSearchQuery(message);
         List<Book> books = bookRepository.findAll();
 
@@ -224,7 +265,7 @@ public class ChatbotService {
     private String extractSearchQuery(String message) {
         String norm = normalizeVietnamese(message.toLowerCase(Locale.ROOT));
         String[] prefixes = {"tim kiem", "search", "muon tim sach", "muon mua sach", "tim sach", "tim cuon",
-                "tim quyen", "tim", "co ban", "con hang", "gia", "price", "mua"};
+                "tim quyen", "tim ", "co ban", "con hang", "gia sach", "gia ban", "gia bao nhieu", "price", "mua sach"};
         String queryNorm = norm;
         for (String prefix : prefixes) {
             int idx = norm.indexOf(prefix);
@@ -237,8 +278,10 @@ public class ChatbotService {
     }
 
     private ChatResponse handleFaqMatch(String message) {
+        log.info(">>> [handleFaqMatch] tìm FAQ trong DB, message=\"{}\"", message);
         FaqResponse faqMatch = findBestFaqMatch(message);
         if (faqMatch != null) {
+            log.info(">>> [handleFaqMatch] ✅ KHỚP FAQ id={} question=\"{}\"", faqMatch.getId(), faqMatch.getQuestion());
             return ChatResponse.builder()
                     .message(faqMatch.getAnswer())
                     .type("faq")
@@ -246,6 +289,7 @@ public class ChatbotService {
                     .build();
         }
 
+        log.info(">>> [handleFaqMatch] ❌ Không khớp FAQ nào → chuyển sang handleGeneralQuestion");
         return handleGeneralQuestion(message);
     }
 
@@ -301,6 +345,7 @@ public class ChatbotService {
     }
 
     private ChatResponse handleGeneralQuestion(String message) {
+        log.info(">>> [handleGeneralQuestion] đang gọi Gemini + FAQ context, message=\"{}\"", message);
         String bookContext = buildBookContext(bookRepository.findAll());
         String faqContext = buildFaqContext();
         String userContext = String.format("""
@@ -314,7 +359,9 @@ public class ChatbotService {
             """, message, bookContext, faqContext);
 
         try {
+            log.info(">>> [handleGeneralQuestion] 🤖 ĐANG GỌI GEMINI...");
             String response = callGeminiApi(SYSTEM_PROMPT, userContext);
+            log.info(">>> [handleGeneralQuestion] ✅ GEMINI TRẢ LỜI: {} ký tự", response.length());
 
             return ChatResponse.builder()
                     .message(response)
@@ -322,6 +369,7 @@ public class ChatbotService {
                     .intent("general")
                     .build();
         } catch (Exception e) {
+            log.error(">>> [handleGeneralQuestion] ❌ GEMINI THẤT BẠI → fallback. Lỗi: {}", e.getMessage());
             return getFallbackResponse(message);
         }
     }
@@ -333,37 +381,19 @@ public class ChatbotService {
     }
 
     private List<String> geminiModelFallbackChain() {
-        LinkedHashSet<String> models = new LinkedHashSet<>();
+        List<String> models = new ArrayList<>();
         if (geminiModel != null && !geminiModel.isBlank()) {
             models.add(geminiModel.trim());
         }
-        models.add("gemini-2.0-flash");
-        models.add("gemini-1.5-flash");
-        models.add("gemini-1.5-flash-8b");
-        return new ArrayList<>(models);
+        return models;
     }
 
     private String callGeminiApi(String systemPrompt, String userContent) {
         ensureGeminiApiKeyConfigured();
-        RuntimeException last = null;
-        for (String model : geminiModelFallbackChain()) {
-            try {
-                return callGeminiApiOnce(model, systemPrompt, userContent);
-            } catch (HttpClientErrorException e) {
-                String body = e.getResponseBodyAsString();
-                if (e.getStatusCode().value() == 404 || e.getStatusCode().value() == 400) {
-                    last = new RuntimeException("Gemini model/error: " + body, e);
-                    continue;
-                }
-                throw new RuntimeException("Gemini API error: " + body, e);
-            } catch (HttpServerErrorException e) {
-                throw new RuntimeException("Gemini server error", e);
-            }
-        }
-        if (last != null) {
-            throw last;
-        }
-        throw new IllegalStateException("No Gemini model to try");
+        String model = geminiModel != null && !geminiModel.isBlank()
+                ? geminiModel.trim()
+                : "gemini-3.1-flash-lite-preview";
+        return callGeminiApiOnce(model, systemPrompt, userContent);
     }
 
     @SuppressWarnings("unchecked")
