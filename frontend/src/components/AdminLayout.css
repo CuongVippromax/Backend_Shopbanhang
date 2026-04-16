@@ -366,7 +366,7 @@ body.admin-page-active .app > * {
   padding: 12px 20px;
   color: rgba(255,255,255,0.8);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .admin-sidebar:not(.admin-sidebar--new) .admin-sidebar__link:hover {
@@ -764,7 +764,7 @@ body.admin-page-active .app > * {
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 .admin-btn--primary {
@@ -1165,7 +1165,7 @@ body.admin-page-active .app > * {
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   border-radius: 6px 6px 0 0;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-bottom-color 0.2s;
 }
 
 .admin-tab:hover {

@@ -100,7 +100,7 @@ function formatPrice(price) {
 
 function Toast({ message, type = 'success', onClose }) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 3000)
+    const timer = setTimeout(onClose, 8000)
     return () => clearTimeout(timer)
   }, [onClose])
 
@@ -236,6 +236,8 @@ export default function ProductCard({ book }) {
                   alt={book.bookName ?? ''}
                   onError={() => setImgError(true)}
                   loading="lazy"
+                  width="200"
+                  height="280"
                 />
               ) : (
                 <div className="product-card__image-placeholder">
@@ -246,20 +248,20 @@ export default function ProductCard({ book }) {
 
               {/* Badges */}
               {hasDiscount && (
-                <span className="product-card__badge product-card__badge--sale">
+                <span className="product-card__badge product-card__badge--sale" aria-label={`Giảm giá ${discount}%`}>
                   <Icons.Zap /> -{discount}%
                 </span>
               )}
 
               {isLowStock && !isOutOfStock && (
-                <span className="product-card__badge product-card__badge--low-stock">
+                <span className="product-card__badge product-card__badge--low-stock" aria-label={`Sắp hết, chỉ còn ${stock} sản phẩm`}>
                   Sắp hết
                 </span>
               )}
 
               {/* Out of Stock Overlay */}
               {isOutOfStock && (
-                <div className="product-card__overlay">
+                <div className="product-card__overlay" aria-label="Hết hàng">
                   <span className="product-card__overlay-text">Hết hàng</span>
                 </div>
               )}
@@ -272,16 +274,32 @@ export default function ProductCard({ book }) {
               type="button"
               className="product-card__action-btn"
               onClick={handleQuickView}
-              title="Xem nhanh"
+              aria-label="Xem nhanh sản phẩm"
+              title="Xem chi tiết"
             >
               <Icons.Eye />
             </button>
             <button
               type="button"
+              className="product-card__action-btn product-card__action-btn--wishlist"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setToastMessage('Đã thêm vào yêu thích!')
+                setShowToast(true)
+              }}
+              aria-label="Thêm vào yêu thích"
+              title="Yêu thích"
+            >
+              <Icons.Heart />
+            </button>
+            <button
+              type="button"
               className="product-card__action-btn"
               onClick={handleAddToCart}
-              title="Thêm vào giỏ"
+              aria-label="Thêm vào giỏ hàng"
               disabled={isOutOfStock}
+              title="Thêm vào giỏ"
             >
               <Icons.ShoppingBag />
             </button>

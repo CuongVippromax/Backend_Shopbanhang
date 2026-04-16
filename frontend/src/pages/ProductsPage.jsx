@@ -148,7 +148,7 @@ function EmptyState({ hasFilters, onClear }) {
 
 function LoadingSkeleton({ count = 8 }) {
   return (
-    <div className="product-grid">
+    <div className="product-grid" aria-busy="true">
       {Array.from({ length: count }, (_, i) => (
         <ProductCardSkeleton key={i} />
       ))}
@@ -172,6 +172,7 @@ function SidebarCategories({ categories, categoryId, categoryName, onSelectCateg
           <button
             className={`sidebar-category-item ${!categoryName && categoryId == null ? 'active' : ''}`}
             onClick={() => onSelectCategory(null, null)}
+            aria-label="Xem tất cả sách"
           >
             <span className="sidebar-category-item__name">Tất cả sách</span>
             <span className="sidebar-category-item__arrow">
@@ -191,6 +192,7 @@ function SidebarCategories({ categories, categoryId, categoryName, onSelectCateg
               <button
                 className={`sidebar-category-item ${isActive ? 'active' : ''}`}
                 onClick={() => onSelectCategory(cid, name)}
+                aria-label={`Xem sách danh mục ${name}`}
               >
                 <span className="sidebar-category-item__name">{name}</span>
                 <span className="sidebar-category-item__arrow">

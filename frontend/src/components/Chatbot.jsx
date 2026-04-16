@@ -180,7 +180,7 @@ export default function Chatbot({ onClose }) {
             </span>
           </div>
         </div>
-        <button className="chatbot-close-btn" onClick={onClose}>
+        <button className="chatbot-close-btn" onClick={onClose} aria-label="Đóng chatbot">
           <Icons.Close />
         </button>
       </div>
@@ -210,7 +210,7 @@ export default function Chatbot({ onClose }) {
                     >
                       {book.image && (
                         <div className="book-image">
-                          <img src={book.image} alt={book.bookName} />
+                          <img src={book.image} alt={book.bookName} width="60" height="84" />
                         </div>
                       )}
                       <div className="book-info">
@@ -229,7 +229,7 @@ export default function Chatbot({ onClose }) {
                 </div>
               )}
 
-              <div className="message-time">
+              <div className="message-time" aria-live="polite">
                 {msg.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
@@ -248,9 +248,9 @@ export default function Chatbot({ onClose }) {
               <Icons.SupportStaff />
             </div>
             <div className="message-content">
-              <div className="message-loading">
+              <div className="message-loading" aria-live="polite">
                 <Icons.Loader />
-                <span>Đang soạn tin cho bạn...</span>
+                <span>Đang soạn tin cho bạn…</span>
               </div>
             </div>
           </div>
@@ -283,16 +283,18 @@ export default function Chatbot({ onClose }) {
           ref={inputRef}
           type="text"
           className="chatbot-input"
-          placeholder="Nhập câu hỏi của bạn..."
+          placeholder="Nhập câu hỏi của bạn…"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
           disabled={isLoading}
+          autoComplete="off"
         />
         <button
           className="chatbot-send-btn"
           onClick={() => handleSend()}
           disabled={!inputValue.trim() || isLoading}
+          aria-label="Gửi tin nhắn"
         >
           <Icons.Send />
         </button>

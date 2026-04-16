@@ -256,7 +256,18 @@ function Header() {
   const [cartCount, setCartCount] = useState(0)
   const [searchValue, setSearchValue] = useState('')
   const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const dropdownRef = useRef(null)
+
+  // Scroll detection for sticky header
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -325,7 +336,7 @@ function Header() {
   }
 
   return (
-    <header className="header">
+    <header className={`header ${isScrolled ? 'header--sticky' : ''}`}>
       <Link to="/" className="header__logo">
         <div className="logo-circle" aria-hidden>
           <LogoBookMark size={26} />
@@ -346,7 +357,7 @@ function Header() {
           onFocus={() => setIsSearchFocused(true)}
           onBlur={() => setIsSearchFocused(false)}
         />
-        <button type="submit" className="search__button">
+        <button type="submit" className="search__button" aria-label="Tìm kiếm">
           <Icons.Search />
           <span className="hide-mobile">Tìm kiếm</span>
         </button>
@@ -367,28 +378,33 @@ function Header() {
             className={`user-dropdown ${showDropdown ? 'show' : ''}`}
             onClick={() => setShowDropdown(!showDropdown)}
           >
-            <div className="header-action header-action--user">
+            <button
+              className="header-action header-action--user"
+              aria-haspopup="true"
+              aria-expanded={showDropdown}
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
               <span className="header-action__avatar">{getUserInitial()}</span>
               <span className="header-action__label">{user.fullName || user.username || 'Tài khoản'}</span>
               <span className="header-action__chevron"><Icons.ChevronDown /></span>
-            </div>
-            <div className="dropdown-menu animate-slide-down">
-              <Link to="/tai-khoan" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+            </button>
+            <div className="dropdown-menu animate-slide-down" role="menu">
+              <Link to="/tai-khoan" className="dropdown-item" role="menuitem" onClick={() => setShowDropdown(false)}>
                 <Icons.User /> Thông tin tài khoản
               </Link>
-              <Link to="/don-hang" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+              <Link to="/don-hang" className="dropdown-item" role="menuitem" onClick={() => setShowDropdown(false)}>
                 <Icons.ShoppingBag /> Lịch sử đơn hàng
               </Link>
-              <Link to="/san-pham?favorites=true" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+              <Link to="/san-pham?favorites=true" className="dropdown-item" role="menuitem" onClick={() => setShowDropdown(false)}>
                 <Icons.Heart /> Sách yêu thích
               </Link>
               {user.role === 'ADMIN' && (
-                <Link to="/admin" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                <Link to="/admin" className="dropdown-item" role="menuitem" onClick={() => setShowDropdown(false)}>
                   <Icons.LayoutDashboard /> Dashboard
                 </Link>
               )}
               <div className="dropdown-divider" />
-              <button onClick={handleLogout} className="dropdown-item dropdown-item--danger">
+              <button onClick={handleLogout} className="dropdown-item dropdown-item--danger" role="menuitem">
                 <Icons.LogOut /> Đăng xuất
               </button>
             </div>
@@ -515,38 +531,45 @@ function NavBar() {
           </div>
         </div>
 
-        <button className="nav__mobile-toggle hide-desktop" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+        <button
+          className="nav__mobile-toggle hide-desktop"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label={isMobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+          aria-expanded={isMobileMenuOpen}
+        >
           <Icons.Menu />
         </button>
       </div>
 
       <div className={`nav__links ${isMobileMenuOpen ? 'nav__links--open' : ''}`}>
         <Link to="/" className={`nav__link ${isActive('/') && location.pathname === '/' ? 'active' : ''}`}>
-          <Icons.Home /> <span>Trang chủ</span>
+          Trang chủ
         </Link>
         <Link to="/san-pham" className={`nav__link ${isActive('/san-pham') ? 'active' : ''}`}>
-          <Icons.Package /> <span>Sản phẩm</span>
+          Sản phẩm
         </Link>
         <Link to="/sach-moi" className={`nav__link ${isActive('/sach-moi') ? 'active' : ''}`}>
-          <Icons.Book /> <span>Sách mới</span>
+          Sách mới
         </Link>
         <Link to="/sach-hay" className={`nav__link ${isActive('/sach-hay') ? 'active' : ''}`}>
-          <Icons.Star /> <span>Sách hay</span>
+          Sách hay
         </Link>
         <Link to="/truyen-tranh-thieu-nhi" className={`nav__link ${isActive('/truyen-tranh-thieu-nhi') ? 'active' : ''}`}>
-          <Icons.Children /> <span>Thiếu nhi</span>
+          Thiếu nhi
         </Link>
         <Link to="/chinh-sach" className={`nav__link ${isActive('/chinh-sach') ? 'active' : ''}`}>
-          <Icons.FileText /> <span>Chính sách</span>
+          Chính sách
         </Link>
         <Link to="/lien-he" className={`nav__link ${isActive('/lien-he') ? 'active' : ''}`}>
-          <Icons.Phone /> <span>Liên hệ</span>
+          Liên hệ
         </Link>
       </div>
 
-      <div className="nav__hotline hide-mobile">
-        <Icons.Phone />
-        <span>Hotline: <strong>024 3856 7890</strong></span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="nav__hotline hide-mobile" aria-label="Hotline: 024 3856 7890" role="img">
+          <Icons.Phone />
+          <span>Hotline: <strong>024 3856 7890</strong></span>
+        </div>
       </div>
     </nav>
   )
@@ -558,7 +581,7 @@ function NavBar() {
 
 function Toast({ message, type = 'success', onClose }) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 4000)
+    const timer = setTimeout(onClose, 8000)
     return () => clearTimeout(timer)
   }, [onClose])
 
@@ -572,13 +595,13 @@ function Toast({ message, type = 'success', onClose }) {
   const { bg, icon, title } = config[type] || config.success
 
   return (
-    <div className="toast-modern" style={{ '--toast-bg': bg }}>
+    <div className="toast-modern" style={{ '--toast-bg': bg }} aria-live="polite">
       <div className="toast-modern__icon">{icon}</div>
       <div className="toast-modern__content">
         <div className="toast-modern__title">{title}</div>
         <div className="toast-modern__message">{message}</div>
       </div>
-      <button className="toast-modern__close" onClick={onClose}>
+      <button className="toast-modern__close" onClick={onClose} aria-label="Đóng thông báo">
         <Icons.X />
       </button>
       <div className="toast-modern__progress" />
@@ -736,7 +759,7 @@ export default function Layout() {
       <ScrollToTop />
       <Header />
       <NavBar />
-      <main className="main">
+      <main id="main-content" className="main">
         <Outlet />
       </main>
       <Footer />

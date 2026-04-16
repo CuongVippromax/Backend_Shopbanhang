@@ -52,7 +52,7 @@ public class UserService {
     @Transactional
     public UserResponse createUser(User user) {
         // EXCEPTION: ResourceAlreadyExistsException - Khi email hoặc SĐT đã tồn tại
-        if (userRepository.findByEmail(user.getEmail().toString()).isPresent()) {
+        if (userRepository.findByEmailAndDeletedFalse(user.getEmail().toString()).isPresent()) {
             throw new ResourceAlreadyExistsException("User", "email", user.getEmail()); // EX-002
         }
         if (StringUtils.hasText(user.getPhone())
@@ -89,7 +89,7 @@ public class UserService {
      */
     public UserResponse getUserById(Long userId) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserIdAndDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId)); // EX-001
         
         return UserResponse.builder()
@@ -161,7 +161,7 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(Long userId, UserUpdateRequest user) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user
-        User existingUser = userRepository.findByUserId(userId)
+        User existingUser = userRepository.findByUserIdAndDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId)); // EX-001
         
         if (user.getUsername() != null) {
@@ -194,7 +194,8 @@ public class UserService {
     }
 
     /**
-     * Xóa người dùng.
+     * Xóa người dùng (soft delete - đánh dấu là đã xóa).
+     * Người dùng sẽ không còn hiển thị trong hệ thống nhưng dữ liệu vẫn được giữ lại.
      * 
      * EXCEPTIONS CÓ THỂ NÉM RA:
      * - ResourceNotFoundException (1): Khi không tìm thấy người dùng với ID tương ứng
@@ -204,11 +205,12 @@ public class UserService {
     @Transactional
     public void deleteUser(Long userId) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user
-        User existingUser = userRepository.findByUserId(userId)
+        User existingUser = userRepository.findByUserIdAndDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId)); // EX-001
         
-        userRepository.delete(existingUser);
-        log.info("User deleted: {}", userId);
+        existingUser.setDeleted(true);
+        userRepository.save(existingUser);
+        log.info("User soft deleted: {}", userId);
     }
 
     /**
@@ -225,7 +227,7 @@ public class UserService {
     @Transactional
     public UserResponse updateUserRole(Long userId, String role) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user
-        User user = userRepository.findByUserId(userId)
+        User user = userRepository.findByUserIdAndDeletedFalse(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId)); // EX-001
 
         Role newRole;
@@ -264,7 +266,7 @@ public class UserService {
     @Transactional
     public void forgotPassword(String email) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user với email
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndDeletedFalse(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với email: " + email)); // EX-001
 
         passwordResetTokenRepository.deleteByUser(user);

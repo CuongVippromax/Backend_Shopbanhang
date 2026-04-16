@@ -19,7 +19,7 @@ export default function NewBooksHeroBanner() {
         </div>
 
         <div className="new-books-hero__copy">
-          <p className="new-books-hero__eyebrow">NHÀ SÁCH HOÀNG KIM</p>
+          <img src="/images/hoang-kim-icon.png" alt="Nhà sách Hoàng Kim" className="new-books-hero__logo" />
           <h2 id="new-books-hero-title" className="new-books-hero__title">
             Sách mới
           </h2>

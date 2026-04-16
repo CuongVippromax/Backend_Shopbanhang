@@ -68,6 +68,8 @@ export default function ComicKidsHeroBanner({ books = [] }) {
                       alt={book.bookName ?? book.title ?? ''}
                       className="comic-kids-hero__cover-img"
                       loading="lazy"
+                      width="140"
+                      height="200"
                     />
                   ) : (
                     <div className="comic-kids-hero__cover-placeholder" />

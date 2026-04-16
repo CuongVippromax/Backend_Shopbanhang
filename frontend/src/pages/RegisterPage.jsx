@@ -99,7 +99,7 @@ export default function RegisterPage() {
           Đăng ký để mua sắm dễ dàng hơn và theo dõi đơn hàng của bạn.
         </p>
 
-        {globalError && <p className="auth-global-error">{globalError}</p>}
+        {globalError && <p className="auth-global-error" role="alert">{globalError}</p>}
 
         <form onSubmit={handleSubmit} className="auth-form" noValidate>
           <div className="form-group">

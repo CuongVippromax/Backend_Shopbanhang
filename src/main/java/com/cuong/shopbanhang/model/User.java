@@ -61,4 +61,8 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnoreProperties({"user", "cartItems"})
     private Cart cart;
+
+    @Column(name = "deleted")
+    @Builder.Default
+    private Boolean deleted = false;
 }

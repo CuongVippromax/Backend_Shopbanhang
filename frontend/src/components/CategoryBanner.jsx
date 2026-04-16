@@ -53,7 +53,7 @@ export function CategoryBanner({ categoryName, tagline, books = [], showBookCove
                 className="category-banner__cover"
                 style={{ '--stack-offset': index }}
               >
-                <img src={book.image} alt={book.bookName || ''} />
+                <img src={book.image} alt={book.bookName || ''} width="120" height="180" />
               </Link>
             ))}
           </div>

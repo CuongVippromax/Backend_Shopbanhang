@@ -364,14 +364,14 @@ export default function CartPage() {
                               <Link to={`/san-pham/${item.id}`} className="cart-table-product">
                                 <div className="cart-table-product__image">
                                   {imageSrc ? (
-                                    <img src={imageSrc} alt={item.bookName} />
+                                    <img src={imageSrc} alt={item.bookName} width="80" height="110" />
                                   ) : (
                                     <div className="cart-table-product__placeholder" />
                                   )}
                                 </div>
                                 <div className="cart-table-product__body">
                                   <span className="cart-table-product__name">{item.bookName}</span>
-                                  <div className="cart-table-product__stars" aria-hidden>
+                                  <div className="cart-table-product__stars" aria-label={`Đánh giá: ${item.avgRating || 0}/5 sao`} aria-hidden="false">
                                     {[1, 2, 3, 4, 5].map((i) => (
                                       <span key={i} className="cart-table-product__star">★</span>
                                     ))}
@@ -388,7 +388,7 @@ export default function CartPage() {
                                   type="button"
                                   className="cart-table-qty__btn"
                                   onClick={() => handleQuantity(item.id, -1)}
-                                  aria-label="Giảm"
+                                  aria-label="Giảm số lượng"
                                 >
                                   −
                                 </button>
@@ -398,13 +398,15 @@ export default function CartPage() {
                                   value={qty}
                                   onChange={(e) => handleQuantityInput(item.id, e.target.value)}
                                   className="cart-table-qty__input"
-                                  aria-label="Số lượng"
+                                  aria-label="Số lượng sản phẩm"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
                                 />
                                 <button
                                   type="button"
                                   className="cart-table-qty__btn"
                                   onClick={() => handleQuantity(item.id, 1)}
-                                  aria-label="Tăng"
+                                  aria-label="Tăng số lượng"
                                 >
                                   +
                                 </button>
@@ -492,17 +494,28 @@ export default function CartPage() {
             <div className="cart-delivery-form">
               <h2 className="cart-delivery-title">Địa chỉ giao hàng</h2>
               <div className="cart-form-group">
+                <label htmlFor="delivery-fullName">Họ và tên người nhận *</label>
                 <input
+                  id="delivery-fullName"
                   type="text"
                   placeholder="Họ và tên người nhận *"
                   value={delivery.fullName}
                   onChange={(e) => setDelivery((d) => ({ ...d, fullName: e.target.value }))}
                   className="cart-input"
                   disabled={!isLoggedIn()}
+                  autoComplete="name"
+                  aria-required="true"
+                  aria-invalid={error && !delivery.fullName ? 'true' : 'false'}
+                  aria-describedby="delivery-fullName-error"
                 />
+                <div id="delivery-fullName-error" className="cart-form-error" role="alert">
+                  {error && !delivery.fullName ? 'Vui lòng nhập họ tên' : ''}
+                </div>
               </div>
               <div className="cart-form-group">
+                <label htmlFor="delivery-phone">Số điện thoại *</label>
                 <input
+                  id="delivery-phone"
                   type="tel"
                   placeholder="Số điện thoại *"
                   value={delivery.phone}
@@ -511,30 +524,52 @@ export default function CartPage() {
                   disabled={!isLoggedIn()}
                   readOnly={isLoggedIn() && phoneFromProfile}
                   aria-readonly={phoneFromProfile || undefined}
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  aria-required="true"
+                  aria-invalid={error && (!delivery.phone || !/^(\+84|0)[3-9]\d{8}$/.test(delivery.phone.trim().replace(/\s/g, ''))) ? 'true' : 'false'}
+                  aria-describedby="delivery-phone-error"
                 />
+                <div id="delivery-phone-error" className="cart-form-error" role="alert">
+                  {error && (!delivery.phone || !/^(\+84|0)[3-9]\d{8}$/.test(delivery.phone.trim().replace(/\s/g, ''))) ? 'Số điện thoại không hợp lệ' : ''}
+                </div>
               </div>
               <div className="cart-form-group">
+                <label htmlFor="delivery-email">Email (nhận hóa đơn)</label>
                 <input
+                  id="delivery-email"
                   type="email"
                   placeholder="Email (nhận hóa đơn)"
                   value={delivery.email}
                   onChange={(e) => setDelivery((d) => ({ ...d, email: e.target.value }))}
                   className="cart-input"
                   disabled={!isLoggedIn()}
+                  autoComplete="email"
                 />
               </div>
               <div className="cart-form-group">
+                <label htmlFor="delivery-address">Địa chỉ giao hàng * (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)</label>
                 <input
+                  id="delivery-address"
                   type="text"
                   placeholder="Địa chỉ giao hàng * (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)"
                   value={delivery.address}
                   onChange={(e) => setDelivery((d) => ({ ...d, address: e.target.value }))}
                   className="cart-input"
                   disabled={!isLoggedIn()}
+                  autoComplete="street-address"
+                  aria-required="true"
+                  aria-invalid={error && !delivery.address ? 'true' : 'false'}
+                  aria-describedby="delivery-address-error"
                 />
+                <div id="delivery-address-error" className="cart-form-error" role="alert">
+                  {error && !delivery.address ? 'Vui lòng nhập địa chỉ giao hàng' : ''}
+                </div>
               </div>
               <div className="cart-form-group">
+                <label htmlFor="delivery-note">Ghi chú đơn hàng (tùy chọn)</label>
                 <input
+                  id="delivery-note"
                   type="text"
                   placeholder="Ghi chú đơn hàng (tùy chọn)"
                   value={delivery.note}
@@ -594,9 +629,9 @@ export default function CartPage() {
               {items.length > 0 && (
                 <div className="cart-delivery-actions">
                   {error && (
-                    <div style={{ 
-                      padding: '12px 16px', 
-                      background: '#ffebee', 
+                    <div role="alert" style={{
+                      padding: '12px 16px',
+                      background: '#ffebee',
                       border: '1px solid #ffcdd2',
                       borderRadius: '8px',
                       color: '#c62828',

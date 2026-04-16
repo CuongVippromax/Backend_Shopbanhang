@@ -29,8 +29,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // find user by username
     Optional<User> findByUsername(String username);
 
-    // search users by multiple fields
+    // search users by multiple fields (exclude deleted users)
     @Query("SELECT u FROM User u WHERE " +
+            "u.deleted = false AND " +
             "(:search IS NULL OR :search = '' OR " +
             "LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
@@ -38,4 +39,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "LOWER(u.phone) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(u.address) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<User> findUsersWithSearch(String search, Pageable pageable);
+
+    // find active user by ID (not deleted)
+    Optional<User> findByUserIdAndDeletedFalse(Long id);
+
+    // find active user by email (not deleted)
+    Optional<User> findByEmailAndDeletedFalse(String email);
+
+    // find active user by username (not deleted)
+    Optional<User> findByUsernameAndDeletedFalse(String username);
 }

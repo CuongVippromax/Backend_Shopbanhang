@@ -83,9 +83,9 @@ export default function LoginPage() {
         <h1>Đăng nhập</h1>
         <p className="auth-desc">Nhập thông tin để đăng nhập vào tài khoản của bạn.</p>
 
-        {error && <div className="auth-error">{error}</div>}
+        {error && <div className="auth-error" role="alert">{error}</div>}
         {searchParams.get('registered') === '1' && (
-          <p className="auth-inline-success">Đăng ký thành công. Vui lòng đăng nhập.</p>
+          <p className="auth-inline-success" role="status">Đăng ký thành công. Vui lòng đăng nhập.</p>
         )}
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -99,6 +99,7 @@ export default function LoginPage() {
               onChange={handleChange}
               placeholder="Nhập tên đăng nhập hoặc email"
               required
+              autoComplete="username"
             />
           </div>
 
@@ -112,6 +113,7 @@ export default function LoginPage() {
               onChange={handleChange}
               placeholder="Nhập mật khẩu"
               required
+              autoComplete="current-password"
             />
           </div>
 

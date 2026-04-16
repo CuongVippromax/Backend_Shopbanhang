@@ -42,3 +42,6 @@ local.env
 
 ### Rule ###
 /rule/**
+
+### agent ###
+.agent/**

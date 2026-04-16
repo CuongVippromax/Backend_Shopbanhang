@@ -213,7 +213,15 @@ function HeroBanner() {
           >
             {slide.image ? (
               <Link to={slide.link} className="hero-banner__image-wrap">
-                <img src={slide.image} alt={slide.title} className="hero-banner__image" />
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  className="hero-banner__image"
+                  width="1920"
+                  height="600"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  fetchPriority={index === 0 ? 'high' : 'auto'}
+                />
                 <div className="hero-banner__overlay" />
               </Link>
             ) : null}
@@ -252,7 +260,7 @@ function HeroBanner() {
       <div className="hero-banner__content">
         <div className="hero-banner__text">
           <span className="hero-banner__label">NHÀ SÁCH HOÀNG KIM</span>
-          <h1 className="hero-banner__title">{currentSlide.title}</h1>
+          <h1 className="hero-banner__title" style={{ scrollMarginTop: '80px' }}>{currentSlide.title}</h1>
           <p className="hero-banner__desc">
             Kho sách chọn lọc giúp bạn phát triển tư duy, kiến tạo tương lai bền vững.
           </p>
@@ -293,11 +301,11 @@ function FeaturesSection() {
     {
       id: 'kids',
       to: '/truyen-tranh-thieu-nhi',
-      title: 'Thiếu nhi',
-      desc: 'Truyện tranh & sách giáo dục',
+      title: 'Truyện tranh',
+      desc: 'Sách thiếu nhi',
       icon: <Icons.Child />,
       variant: 'kids',
-      ariaLabel: 'Truyện tranh và thiếu nhi — sách giáo dục cho trẻ',
+      ariaLabel: 'Truyện tranh và sách thiếu nhi — sách giáo dục cho trẻ',
     },
   ]
 
@@ -338,17 +346,14 @@ function FeaturesSection() {
 export default function HomePage() {
   const [bestSellerBooks, setBestSellerBooks] = useState([])
   const [newBooks, setNewBooks] = useState([])
-  const [featuredBooks, setFeaturedBooks] = useState([])
   const [comicBooks, setComicBooks] = useState([])
   const [loadingBest, setLoadingBest] = useState(true)
   const [loadingNew, setLoadingNew] = useState(true)
-  const [loadingFeatured, setLoadingFeatured] = useState(true)
   const [loadingComic, setLoadingComic] = useState(true)
 
   useEffect(() => {
     setLoadingBest(true)
     setLoadingNew(true)
-    setLoadingFeatured(true)
     setLoadingComic(true)
 
     // Sách bán chạy: lấy nhiều sách, shuffle rồi lấy 20 cuốn ngẫu nhiên
@@ -366,16 +371,6 @@ export default function HomePage() {
       .then((res) => setNewBooks(Array.isArray(res?.data) ? res.data : []))
       .catch(() => setNewBooks([]))
       .finally(() => setLoadingNew(false))
-
-    // Sách hay: lấy nhiều sách rồi random 20 cuốn
-    getBooks({ pageNo: 1, pageSize: 30 })
-      .then((res) => {
-        const allBooks = Array.isArray(res?.data) ? res.data : []
-        const shuffled = [...allBooks].sort(() => Math.random() - 0.5)
-        setFeaturedBooks(shuffled.slice(0, 20))
-      })
-      .catch(() => setFeaturedBooks([]))
-      .finally(() => setLoadingFeatured(false))
 
     // Truyện tranh & Thiếu nhi: lọc theo 2 category
     Promise.all([
@@ -398,36 +393,6 @@ export default function HomePage() {
       <FeaturesSection />
       <div className="main__content">
         <div className="main__sections" style={{ width: '100%' }}>
-          <CategoryBanner
-            categoryName="Sách bán chạy"
-            tagline="Khám phá những cuốn sách được yêu thích nhất"
-            books={bestSellerBooks}
-            showBookCovers={!loadingBest && bestSellerBooks.length > 0}
-            linkTo="/san-pham?sortBy=price:desc"
-          />
-          <ProductSection
-            title="Sản phẩm bán chạy"
-            highlight="Bán chạy"
-            products={loadingBest ? [] : bestSellerBooks}
-            initialVisibleCount={6}
-            linkTo="/san-pham?sortBy=price:desc"
-          />
-
-          <CategoryBanner
-            categoryName="Sách hay"
-            tagline="Gợi ý cho bạn những cuốn sách đặc biệt"
-            books={featuredBooks}
-            showBookCovers={!loadingFeatured && featuredBooks.length > 0}
-            linkTo="/sach-hay"
-          />
-          <ProductSection
-            title="Sách hay"
-            highlight="Hay"
-            products={loadingFeatured ? [] : featuredBooks}
-            initialVisibleCount={6}
-            linkTo="/sach-hay"
-          />
-
           <CategoryBanner
             categoryName="Sách mới"
             tagline="Những đầu sách mới nhất từ tủ sách Hoàng Kim"

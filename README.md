@@ -2,7 +2,7 @@
 
 Dự án **Hoàng Kim Book** là website thương mại điện tử bán sách trực tuyến, được xây dựng với:
 
-- **Backend:** Spring Boot 3 (Java 21) + PostgreSQL + Redis + MinIO
+- **Backend:** Spring Boot 3 (Java 21) + PostgreSQL + Redis + MinIO + **Flyway**
 - **Frontend:** React 19 + Vite + React Router v6
 - **Chatbot:** FAQ rule-based chatbot (tích hợp trên mọi trang người dùng)
 
@@ -14,7 +14,8 @@ Dự án **Hoàng Kim Book** là website thương mại điện tử bán sách 
 - [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
 - [Cài đặt nhanh với Docker](#cài-đặt-nhanh-với-docker)
 - [Cài đặt thủ công (không dùng Docker)](#cài-đặt-thủ-công-không-dùng-docker)
-- [Cấu trúc dự án](#cấu-trúc-dự án)
+- [Database Migration (Flyway)](#database-migration-flyway)
+- [Cấu trúc dự án](#cấu-trúc-dự-án)
 - [Tài khoản mặc định](#tài-khoản-mặc-định)
 - [API Documentation](#api-documentation)
 - [Công nghệ sử dụng](#công-nghệ-sử-dụng)
@@ -85,7 +86,7 @@ docker-compose logs -f backend
 
 ### Bước 3 — Đợi services khởi động
 
-Backend cần khoảng **60-90 giây** để khởi động lần đầu (Spring Boot + Hibernate auto-create schema).
+Backend cần khoảng **60-90 giây** để khởi động lần đầu (Flyway chạy migration trước khi ứng dụng start).
 
 ```bash
 # Kiểm tra backend đã sẵn sàng chưa
@@ -98,7 +99,7 @@ docker-compose ps
 ### Bước 4 — Truy cập ứng dụng
 
 | Dịch vụ | URL | Tài khoản mặc định |
-|---------|-----|-------------------|
+|---------|-----|---------------------|
 | Frontend (người dùng) | http://localhost:5173 | — |
 | Backend API | http://localhost:8080 | — |
 | Swagger API Docs | http://localhost:8080/swagger-ui.html | — |
@@ -135,16 +136,19 @@ docker-compose up -d --build backend
 CREATE DATABASE shopbanhang;
 ```
 
+> **Lưu ý:** Không cần tạo tables thủ công. Flyway sẽ tự động tạo schema khi ứng dụng khởi động lần đầu.
+
 ### 2. Chạy Backend
 
 ```bash
 cd D:\BESpringBoot\shopbanhang
 
 # Build
-mvn clean package -DskipTests
+./gradlew build -x test
 
 # Chạy (hoặc import vào IntelliJ IDEA và chạy)
-java -jar target/*.jar
+./gradlew bootRun
+# Hoặc: java -jar build/libs/shopbanhang-0.0.1-SNAPSHOT.jar
 
 # Backend chạy tại: http://localhost:8080
 ```
@@ -173,6 +177,50 @@ Kiểm tra `frontend/vite.config.js` để đảm bảo proxy đúng.
 
 ---
 
+## Database Migration (Flyway)
+
+Dự án sử dụng **Flyway** để quản lý schema database thay vì Hibernate auto-create.
+
+### Cấu trúc migration files
+
+```
+src/main/resources/
+└── db/
+    └── migration/
+        ├── V1__add_deleted_column_to_users.sql   # Thêm cột deleted cho soft delete
+        ├── V2__fix_orders_payment_status_check.sql  # Sửa check constraint cho payment_status
+        └── ... (các migration tiếp theo)
+```
+
+### Cách hoạt động
+
+1. Flyway tự động chạy tất cả migration files khi ứng dụng khởi động
+2. Các migration được apply theo thứ tự version (`V1__`, `V2__`, ...)
+3. Flyway theo dõi lịch sử migration trong bảng `flyway_schema_history`
+4. **Hibernate `ddl-auto: validate`** — chỉ kiểm tra schema không tự tạo table
+
+### Thêm migration mới
+
+1. Tạo file migration mới trong `src/main/resources/db/migration/` với format:
+   ```
+   V{version}__{description}.sql
+   ```
+   Ví dụ: `V3__add_new_table.sql`
+
+2. Khởi động lại ứng dụng, Flyway sẽ tự động apply migration mới
+
+### Reset Database (xóa toàn bộ schema)
+
+```bash
+# Xóa database và tạo lại
+DROP DATABASE shopbanhang;
+CREATE DATABASE shopbanhang;
+
+# Khởi động lại ứng dụng — Flyway sẽ tạo lại schema từ đầu
+```
+
+---
+
 ## Cấu trúc dự án
 
 ```
@@ -194,7 +242,11 @@ shopbanhang/
 │       │   ├── security/         # JWT filter, token provider
 │       │   └── common/           # Role enum, constants
 │       └── resources/
-│           └── application.yaml  # Cấu hình Spring
+│           ├── application.yaml  # Cấu hình Spring
+│           └── db/
+│               └── migration/    # Flyway migration files
+│                   ├── V1__add_deleted_column_to_users.sql
+│                   └── V2__fix_orders_payment_status_check.sql
 └── frontend/
     ├── Dockerfile.frontend      # Dockerfile cho React
     ├── vite.config.js
@@ -217,7 +269,7 @@ shopbanhang/
 
 | Loại | Email | Mật khẩu | Ghi chú |
 |------|-------|----------|---------|
-| **Admin** | test@gmail.vncom | 123 | Full quyền quản trị |
+| **Admin** | test@gmail.com | 123 | Full quyền quản trị |
 | **User** | cuongdayne1811@gmail.com | 123 | Người dùng thông thường |
 
 ---
@@ -274,6 +326,7 @@ shopbanhang/
 | Spring Security | — | Xác thực, phân quyền |
 | JWT | — | Xác thực không trạng thái |
 | Spring Data JPA | — | Truy vấn database |
+| **Flyway** | — | Quản lý database migration |
 | PostgreSQL | 16 | Cơ sở dữ liệu chính |
 | Redis | 7 | Cache + token blacklist |
 | MinIO | — | Lưu trữ hình ảnh sách |
@@ -308,3 +361,4 @@ Nếu gặp lỗi trong quá trình cài đặt:
 2. Kiểm tra log: `docker-compose logs -f backend`
 3. Kiểm tra port đã bị chiếm: `netstat -an | findstr "5173 8080 5432 6379 9000"`
 4. Reset hoàn toàn: `docker-compose down -v && docker-compose up -d --build`
+5. Nếu lỗi Flyway migration: `docker-compose down -v` rồi tạo lại database và restart
