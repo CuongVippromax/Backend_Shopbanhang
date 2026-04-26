@@ -1,0 +1,81 @@
+/* Layout */
+.contact-layout {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* Left Banners */
+.contact-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.contact-banner {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Right Form */
+.contact-right {
+  flex: 2;
+}
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.form-group label {
+  font-size: 14px;
+  color: var(--text-main);
+  font-weight: bold;
+}
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  background-color: #fff;
+  color: #333;
+}
+.form-input:focus {
+  border-color: var(--dark-blue);
+  box-shadow: 0 0 0 2px rgba(51, 72, 98, 0.1);
+}
+.form-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  background-color: #fff;
+  color: #333;
+}
+.form-textarea:focus {
+  border-color: var(--dark-blue);
+  box-shadow: 0 0 0 2px rgba(51, 72, 98, 0.1);
+}
+.btn-submit-contact {
+  background: #334862;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.btn-submit-contact:hover {
+  background: #253549;
+}

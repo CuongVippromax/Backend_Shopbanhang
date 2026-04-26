@@ -39,4 +39,20 @@ public class ChatbotController {
                 "message", "Tư vấn nhà sách — dịch vụ đang chạy"
         ));
     }
+
+    @GetMapping("/test-gemini")
+    public ResponseEntity<?> testGemini() {
+        try {
+            String testResponse = chatbotService.testGeminiConnection();
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "response", testResponse
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "status", "error",
+                    "message", e.getMessage()
+            ));
+        }
+    }
 }

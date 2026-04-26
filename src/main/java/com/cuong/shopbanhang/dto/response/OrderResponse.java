@@ -28,5 +28,12 @@ public class OrderResponse {
     private OrderStatus orderStatus;
     private String shippingAddress;
     private String paymentMethod;
+    private String note;
     private List<OrderItemResponse> items;
+
+    private String recipientName;
+
+    private Double subTotal;
+    private Double shippingFee;
+    private Double discount;
 }

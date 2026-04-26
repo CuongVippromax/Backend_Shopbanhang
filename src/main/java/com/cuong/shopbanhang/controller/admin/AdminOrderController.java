@@ -28,7 +28,7 @@ public class AdminOrderController {
     // Get all orders with pagination
     @GetMapping
     public ResponseEntity<PageResponse<List<OrderResponse>>> getAllOrders(
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String search,

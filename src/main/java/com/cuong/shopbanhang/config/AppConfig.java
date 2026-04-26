@@ -98,6 +98,6 @@ public class AppConfig {
         configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        return new UrlBasedCorsConfigurationSource();
+        return source;
     }
 }

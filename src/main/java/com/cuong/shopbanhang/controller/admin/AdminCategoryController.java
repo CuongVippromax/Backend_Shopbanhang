@@ -40,7 +40,8 @@ public class AdminCategoryController {
         CategoryResponse updatedCategory = categoryService.updateCategory(
                 id,
                 category.getCategoryName(),
-                category.getDescription()
+                category.getDescription(),
+                category.getActive()
         );
         return ResponseEntity.ok(updatedCategory);
     }

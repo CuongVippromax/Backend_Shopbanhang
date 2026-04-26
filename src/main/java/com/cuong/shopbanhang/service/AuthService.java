@@ -87,6 +87,17 @@ public class AuthService {
     }
 
     /**
+     * Đăng nhập admin.
+     */
+    public LoginResponse adminLogin(LoginRequest request) {
+        LoginResponse response = login(request);
+        if (response.getRole() != Role.ADMIN) {
+            throw new UnauthorizedException("Bạn không có quyền truy cập trang quản trị.");
+        }
+        return response;
+    }
+
+    /**
      * Tạo access token mới từ refresh token.
      * 
      * EXCEPTIONS CÓ THỂ NÉM RA:

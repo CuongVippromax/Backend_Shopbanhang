@@ -129,6 +129,7 @@ public class OrderService {
         .recipientPhone(request.getPhone())
         .shippingAddress(request.getShippingAddress())
         .paymentMethod(request.getPaymentMethod())
+        .note(request.getNote())
         .orderDetails(orderDetail)
         .orderStatus(OrderStatus.PENDING)
         .build();
@@ -319,9 +320,7 @@ public class OrderService {
      * @return PageResponse chứa danh sách OrderResponse
      */
     public PageResponse<List<OrderResponse>> getAllOrders(int page, int size, String sort, String search, String startDate, String endDate) {
-       if(page > 0) {
-        page = page - 1;
-       }
+       // Frontend sends 0-indexed page (0, 1, 2...), no adjustment needed
 
        String sortField = "orderDate";
        Sort.Direction direction = Sort.Direction.ASC;
@@ -415,14 +414,30 @@ public class OrderService {
                 .collect(Collectors.toList());
         }
 
+        log.info("toOrderResponse: orderId={}, recipientName='{}', user.fullName='{}', userId={}",
+            order.getOrderId(), order.getRecipientName(),
+            order.getUser() != null ? order.getUser().getFullName() : "NULL",
+            order.getUser() != null ? order.getUser().getUserId() : "NULL");
+
         String displayName = order.getRecipientName() != null && !order.getRecipientName().isBlank()
                 ? order.getRecipientName()
                 : (order.getUser() != null ? order.getUser().getFullName() : null);
+        log.info("toOrderResponse: displayName='{}'", displayName);
+
+        Double subTotal = 0.0;
+        if (order.getOrderDetails() != null && order.getOrderDetails().getItems() != null) {
+            subTotal = order.getOrderDetails().getItems().stream()
+                .filter(item -> item.getBook() != null && item.getBook().getPrice() != null)
+                .mapToDouble(item -> item.getBook().getPrice().doubleValue() * (item.getQuantity() != null ? item.getQuantity() : 0))
+                .sum();
+        }
+
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .userId(order.getUser() != null ? order.getUser().getUserId() : null)
                 .username(order.getUser() != null ? order.getUser().getUsername() : null)
                 .fullName(displayName)
+                .recipientName(order.getRecipientName())
                 .recipientPhone(order.getRecipientPhone())
                 .orderDate(order.getOrderDate())
                 .totalAmount(order.getTotalAmount())
@@ -430,7 +445,11 @@ public class OrderService {
                 .orderStatus(order.getOrderStatus())
                 .shippingAddress(order.getShippingAddress())
                 .paymentMethod(order.getPaymentMethod())
+                .note(order.getNote())
                 .items(items)
+                .subTotal(subTotal)
+                .shippingFee(0.0)
+                .discount(0.0)
                 .build();
     }
 
@@ -447,7 +466,7 @@ public class OrderService {
      */
     public OrderResponse getOrderById(Long orderId) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy đơn hàng
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findWithDetailsByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
         
         Long userId = SecurityUtils.getCurrentUserId().orElse(null);
@@ -506,7 +525,15 @@ public class OrderService {
         sb.append("</table>");
 
         sb.append("<div style='margin-top: 20px; padding: 15px; background-color: #fff3e0; border-radius: 5px;'>");
-        sb.append("<p style='margin: 0;'><strong>Địa chỉ giao hàng:</strong> ").append(order.getShippingAddress()).append("</p>");
+        if (order.getRecipientName() != null && !order.getRecipientName().isBlank()) {
+            sb.append("<p style='margin: 0;'><strong>Người nhận:</strong> ").append(order.getRecipientName()).append("</p>");
+        }
+        if (order.getRecipientPhone() != null && !order.getRecipientPhone().isBlank()) {
+            sb.append("<p style='margin: 5px 0 0 0;'><strong>Điện thoại:</strong> ").append(order.getRecipientPhone()).append("</p>");
+        }
+        if (order.getShippingAddress() != null && !order.getShippingAddress().isBlank()) {
+            sb.append("<p style='margin: 5px 0 0 0;'><strong>Địa chỉ giao hàng:</strong> ").append(order.getShippingAddress()).append("</p>");
+        }
         sb.append("<p style='margin: 5px 0 0 0;'><strong>Phương thức thanh toán:</strong> ").append(order.getPaymentMethod()).append("</p>");
         sb.append("</div>");
 

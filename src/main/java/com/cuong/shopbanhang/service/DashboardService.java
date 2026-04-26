@@ -228,6 +228,7 @@ public class DashboardService {
                 .userId(order.getUser() != null ? order.getUser().getUserId() : null)
                 .username(order.getUser() != null ? order.getUser().getUsername() : null)
                 .fullName(displayName)
+                .recipientName(order.getRecipientName())
                 .recipientPhone(order.getRecipientPhone())
                 .orderDate(order.getOrderDate())
                 .totalAmount(order.getTotalAmount())

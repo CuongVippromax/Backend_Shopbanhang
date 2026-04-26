@@ -28,7 +28,7 @@ public class OrderDetail {
     private Order order;
 
     @OneToMany(mappedBy = "orderDetail", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties({"orderDetail", "cart", "book"})
+    @JsonIgnoreProperties({"orderDetail", "cart", "category"})
     private List<CartItem> items;
 
     private Double totalPrice;

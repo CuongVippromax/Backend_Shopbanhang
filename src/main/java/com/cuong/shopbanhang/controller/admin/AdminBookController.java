@@ -28,9 +28,10 @@ public class AdminBookController {
     @GetMapping("/all")
     public ResponseEntity<PageResponse<?>> getAllBooks(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int size,
-            @RequestParam(required = false) String search) {
-        return ResponseEntity.ok(bookService.getAllBook(page - 1, size, null, search, null));
+            @RequestParam(defaultValue = "1000") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long categoryId) {
+        return ResponseEntity.ok(bookService.getAllBook(page, size, null, search, null, categoryId));
     }
 
     // Create new book

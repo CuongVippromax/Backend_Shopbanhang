@@ -19,6 +19,7 @@ import com.cuong.shopbanhang.dto.response.BookResponse;
 import com.cuong.shopbanhang.exception.ResourceAlreadyExistsException;
 import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.repository.BookRepository;
+import com.cuong.shopbanhang.repository.ReviewRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,31 @@ import lombok.extern.slf4j.Slf4j;
 public class BookService {
     private final BookRepository bookRepository;
     private final MinIOService minIOService;
+    private final ReviewRepository reviewRepository;
+    
+    /**
+     * Helper method để tạo BookResponse với rating stats từ ReviewRepository.
+     */
+    private BookResponse toBookResponseWithRating(Book book) {
+        Double averageRating = reviewRepository.getAverageRating(book.getBookId());
+        Integer reviewCount = reviewRepository.getReviewCount(book.getBookId());
+        
+        return BookResponse.builder()
+                .bookId(book.getBookId())
+                .bookName(book.getBookName())
+                .price(book.getPrice())
+                .quantity(book.getQuantity())
+                .image(book.getImage())
+                .description(book.getDescription())
+                .category(book.getCategory() != null ? book.getCategory().getCategoryName() : null)
+                .categoryId(book.getCategory() != null ? book.getCategory().getCategoryId() : null)
+                .author(book.getAuthor())
+                .publisher(book.getPublisher())
+                .publicationYear(book.getPublicationYear())
+                .averageRating(averageRating != null ? averageRating : 0.0)
+                .reviewCount(reviewCount != null ? reviewCount : 0)
+                .build();
+    }
 
     /**
      * Tạo sách mới với hình ảnh.
@@ -61,18 +87,7 @@ public class BookService {
         
         bookRepository.save(book);
 
-        return BookResponse.builder()
-                .bookId(book.getBookId())
-                .bookName(book.getBookName())
-                .price(book.getPrice())
-                .quantity(book.getQuantity())
-                .image(book.getImage())
-                .category(book.getCategory() != null ? book.getCategory().getCategoryName() : null)
-                .description(book.getDescription())
-                .author(book.getAuthor())
-                .publisher(book.getPublisher())
-                .publicationYear(book.getPublicationYear())
-                .build();
+        return toBookResponseWithRating(book);
     }
 
     /**
@@ -89,20 +104,7 @@ public class BookService {
         Book book = bookRepository.findByBookId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", id)); // EX-001
         
-        return BookResponse.builder()
-                .bookId(book.getBookId())
-                .bookName(book.getBookName())
-                .price(book.getPrice())
-                .quantity(book.getQuantity())
-                .image(book.getImage())
-                .description(book.getDescription())
-                .category(book.getCategory() != null ? book.getCategory().getCategoryName() : null)
-                .author(book.getAuthor())
-                .publisher(book.getPublisher())
-                .publicationYear(book.getPublicationYear())
-                .averageRating(book.getAverageRating())
-                .reviewCount(book.getReviewCount())
-                .build();
+        return toBookResponseWithRating(book);
     }
 
     /**
@@ -160,20 +162,7 @@ public class BookService {
 
         Book updatedBook = bookRepository.save(existingBook);
 
-        return BookResponse.builder()
-                .bookId(updatedBook.getBookId())
-                .bookName(updatedBook.getBookName())
-                .price(updatedBook.getPrice())
-                .quantity(updatedBook.getQuantity())
-                .image(updatedBook.getImage())
-                .description(updatedBook.getDescription())
-                .category(updatedBook.getCategory() != null ? updatedBook.getCategory().getCategoryName() : null)
-                .author(updatedBook.getAuthor())
-                .publisher(updatedBook.getPublisher())
-                .publicationYear(updatedBook.getPublicationYear())
-                .averageRating(updatedBook.getAverageRating())
-                .reviewCount(updatedBook.getReviewCount())
-                .build();
+        return toBookResponseWithRating(updatedBook);
     }
 
     /**
@@ -231,21 +220,7 @@ public class BookService {
         }
 
         List<BookResponse> bookResponses = books.stream()
-                .map(book -> BookResponse.builder()
-                        .bookId(book.getBookId())
-                        .bookName(book.getBookName())
-                        .price(book.getPrice())
-                        .quantity(book.getQuantity())
-                        .image(book.getImage())
-                        .description(book.getDescription())
-                        .category(book.getCategory() != null ? book.getCategory().getCategoryName() : null)
-                        .categoryId(book.getCategory() != null ? book.getCategory().getCategoryId() : null)
-                        .author(book.getAuthor())
-                        .publisher(book.getPublisher())
-                        .publicationYear(book.getPublicationYear())
-                        .averageRating(book.getAverageRating())
-                        .reviewCount(book.getReviewCount())
-                        .build())
+                .map(this::toBookResponseWithRating)
                 .collect(Collectors.toList());
 
         return PageResponse.builder()
@@ -257,15 +232,7 @@ public class BookService {
                 .build();
     }
 
-    /**
-     * Xóa sách và hình ảnh liên quan.
-     * 
-     * EXCEPTIONS CÓ THỂ NÉM RA:
-     * - ResourceNotFoundException (1): Khi không tìm thấy sách với ID tương ứng
-     * - FileStorageException (2): Khi xóa hình ảnh thất bại
-     * 
-     * @param id ID của sách cần xóa
-     */
+    
     @Transactional
     public void deleteBook(long id) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy sách

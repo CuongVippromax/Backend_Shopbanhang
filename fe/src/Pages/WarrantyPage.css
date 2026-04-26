@@ -1,0 +1,152 @@
+.warranty-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 50px;
+}
+
+.warranty-page .page-header {
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+}
+
+.warranty-content {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.warranty-section {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.warranty-section h2 {
+  color: #1565c0;
+  font-size: 22px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #1565c0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.warranty-section h2 .icon {
+  font-size: 28px;
+}
+
+.warranty-section h3 {
+  color: #333;
+  font-size: 18px;
+  margin: 20px 0 12px;
+  font-weight: 600;
+}
+
+.warranty-section p {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+.warranty-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+}
+
+.warranty-section ul li {
+  padding: 10px 0 10px 30px;
+  position: relative;
+  color: #555;
+  line-height: 1.6;
+}
+
+.warranty-section ul li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #1565c0;
+  font-weight: bold;
+}
+
+.warranty-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+.warranty-table th,
+.warranty-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.warranty-table th {
+  background: #1565c0;
+  color: white;
+  font-weight: 600;
+}
+
+.warranty-table tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.warranty-table tr:hover {
+  background: #e3f2fd;
+}
+
+.shield-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.shield-list li {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.shield-list li .icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.shield-list li strong {
+  display: block;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.shield-list li span {
+  color: #666;
+  font-size: 14px;
+}
+
+.warranty-contact {
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+  color: white;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 30px;
+}
+
+.warranty-contact h3 {
+  color: white;
+  margin-bottom: 15px;
+}
+
+.warranty-contact p {
+  color: white;
+  margin-bottom: 10px;
+}

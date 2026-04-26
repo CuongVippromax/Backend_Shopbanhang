@@ -48,4 +48,12 @@ public class BookController {
         PageResponse<?> books = bookService.getAllBook(pageNo, pageSize, sortBy, search, category, categoryId);
         return ResponseEntity.ok(books);
     }
+
+    // Flash sale books - trả danh sách sách giảm giá (dùng cho homepage)
+    @GetMapping("/flash-sale")
+    public ResponseEntity<PageResponse<?>> getFlashSaleBooks(
+            @RequestParam(name = "limit", defaultValue = "5") int limit) {
+        PageResponse<?> books = bookService.getAllBook(0, limit, "bookId:desc", null, null, null);
+        return ResponseEntity.ok(books);
+    }
 }

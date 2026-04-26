@@ -419,6 +419,26 @@ public class GlobalExceptionHandler {
     }
 
     // ============================================================
+    // 18b. HANDLER: IllegalStateException (400 BAD_REQUEST)
+    // Exception này ném ra khi thao tác không hợp lệ với trạng thái hiện tại
+    // ============================================================
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(
+            IllegalStateException ex, WebRequest request) {
+        log.warn("[EX-018b] Invalid state: {} | Path: {}", ex.getMessage(), request.getDescription(false));
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .error("INVALID_STATE")
+                .message(ex.getMessage())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // ============================================================
     // 19. HANDLER: RuntimeException (400 BAD_REQUEST)
     // Exception này ném ra cho các RuntimeException chung
     // ============================================================

@@ -27,4 +27,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     // find books by category name
     @Query("SELECT b FROM Book b WHERE LOWER(b.category.categoryName) = LOWER(:categoryName)")
     List<Book> findBooksByCategoryName(String categoryName);
+
+    // Count books in a category
+    @Query("SELECT COUNT(b) FROM Book b WHERE b.category.categoryId = :categoryId")
+    Long countBooksByCategoryId(@Param("categoryId") Long categoryId);
 }

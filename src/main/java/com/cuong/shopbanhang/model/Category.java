@@ -31,6 +31,9 @@ public class Category {
     @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
 
+    @Column(nullable = false)
+    private Boolean active = true;
+
     @OneToMany(mappedBy = "category")
     @JsonIgnoreProperties({"category"})
     private List<Book> books;

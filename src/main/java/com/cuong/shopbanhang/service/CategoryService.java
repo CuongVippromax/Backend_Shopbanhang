@@ -51,6 +51,8 @@ public class CategoryService {
                 .categoryId(category.getCategoryId())
                 .categoryName(category.getCategoryName())
                 .description(category.getDescription())
+                .bookCount(0L)
+                .active(category.getActive())
                 .build();
     }
 
@@ -84,11 +86,16 @@ public class CategoryService {
         Page<Category> categories = categoryRepository.findCategoriesWithSearch(search, pageable);
 
         List<CategoryResponse> categoryResponses = categories.stream()
-                .map(category -> CategoryResponse.builder()
-                        .categoryId(category.getCategoryId())
-                        .categoryName(category.getCategoryName())
-                        .description(category.getDescription())
-                        .build())
+                .map(category -> {
+                    Long bookCount = categoryRepository.countBooksByCategoryId(category.getCategoryId());
+                    return CategoryResponse.builder()
+                            .categoryId(category.getCategoryId())
+                            .categoryName(category.getCategoryName())
+                            .description(category.getDescription())
+                            .bookCount(bookCount)
+                            .active(category.getActive())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return PageResponse.builder()
@@ -114,10 +121,14 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id)); // EX-001
         
+        Long bookCount = categoryRepository.countBooksByCategoryId(id);
+        
         return CategoryResponse.builder()
                 .categoryId(category.getCategoryId())
                 .categoryName(category.getCategoryName())
                 .description(category.getDescription())
+                .bookCount(bookCount)
+                .active(category.getActive())
                 .build();
     }
 
@@ -130,10 +141,11 @@ public class CategoryService {
      * @param id ID của danh mục cần cập nhật
      * @param categoryName Tên mới
      * @param description Mô tả mới
+     * @param active Trạng thái hoạt động
      * @return CategoryResponse thông tin danh mục đã cập nhật
      */
     @Transactional
-    public CategoryResponse updateCategory(Long id, String categoryName, String description) {
+    public CategoryResponse updateCategory(Long id, String categoryName, String description, Boolean active) {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy danh mục
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id)); // EX-001
@@ -144,22 +156,29 @@ public class CategoryService {
         if (description != null) {
             category.setDescription(description);
         }
+        if (active != null) {
+            category.setActive(active);
+        }
 
         Category updatedCategory = categoryRepository.save(category);
+        Long bookCount = categoryRepository.countBooksByCategoryId(id);
 
         return CategoryResponse.builder()
                 .categoryId(updatedCategory.getCategoryId())
                 .categoryName(updatedCategory.getCategoryName())
                 .description(updatedCategory.getDescription())
+                .bookCount(bookCount)
+                .active(updatedCategory.getActive())
                 .build();
     }
 
     /**
      * Xóa danh mục.
-     * 
+     *
      * EXCEPTIONS CÓ THỂ NÉM RA:
      * - ResourceNotFoundException (1): Khi không tìm thấy danh mục
-     * 
+     * - IllegalStateException (2): Khi danh mục đang chứa sách
+     *
      * @param id ID của danh mục cần xóa
      */
     @Transactional
@@ -167,7 +186,13 @@ public class CategoryService {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy danh mục
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id)); // EX-001
-        
+
+        // Kiểm tra nếu danh mục có sách
+        Long bookCount = categoryRepository.countBooksByCategoryId(id);
+        if (bookCount > 0) {
+            throw new IllegalStateException("Không thể xóa danh mục đang chứa sách. Vui lòng chuyển sách sang danh mục khác trước.");
+        }
+
         categoryRepository.delete(category);
     }
 
@@ -198,11 +223,16 @@ public class CategoryService {
     public List<CategoryResponse> getAllCategoriesList() {
         List<Category> categories = categoryRepository.findAll();
         return categories.stream()
-                .map(category -> CategoryResponse.builder()
-                        .categoryId(category.getCategoryId())
-                        .categoryName(category.getCategoryName())
-                        .description(category.getDescription())
-                        .build())
+                .map(category -> {
+                    Long bookCount = categoryRepository.countBooksByCategoryId(category.getCategoryId());
+                    return CategoryResponse.builder()
+                            .categoryId(category.getCategoryId())
+                            .categoryName(category.getCategoryName())
+                            .description(category.getDescription())
+                            .bookCount(bookCount)
+                            .active(category.getActive())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 

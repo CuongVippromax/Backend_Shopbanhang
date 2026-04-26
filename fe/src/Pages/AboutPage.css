@@ -1,0 +1,22 @@
+.about-title {
+  font-size: 24px;
+  color: var(--text-main);
+  margin-bottom: 20px;
+}
+
+.about-text {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.about-text p {
+  margin-bottom: 20px;
+}
+
+.highlight-text {
+  text-align: center;
+  font-size: 16px;
+  margin: 30px 0;
+  color: #000;
+}

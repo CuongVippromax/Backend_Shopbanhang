@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cuong.shopbanhang.dto.response.CartItemResponse;
 import com.cuong.shopbanhang.dto.response.CartResponse;
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
-import com.cuong.shopbanhang.exception.BadRequestException;
 import com.cuong.shopbanhang.exception.CartException;
 import com.cuong.shopbanhang.model.Cart;
 import com.cuong.shopbanhang.model.CartItem;
@@ -180,19 +179,10 @@ public class CartService {
         cartItemRepository.deleteAll(cartItemRepository.findByCart_CartId(cart.getCartId()));
     }
 
-    /**
-     * Lấy hoặc tạo giỏ hàng cho người dùng.
-     * 
-     * EXCEPTIONS CÓ THỂ NÉM RA:
-     * - ResourceNotFoundException (1): Khi không tìm thấy user
-     * 
-     * @param userId ID của người dùng
-     * @return Cart giỏ hàng của người dùng
-     */
+    
     private Cart getOrCreateCart(Long userId) {
         return cartRepository.findByUser_UserId(userId)
                 .orElseGet(() -> {
-                    // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy user
                     User user = userRepository.findByUserId(userId)
                             .orElseThrow(() -> new ResourceNotFoundException("User", userId)); // EX-001
                     Cart newCart = Cart.builder()

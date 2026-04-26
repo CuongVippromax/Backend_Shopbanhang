@@ -38,7 +38,7 @@ public class ChatbotService {
     @Value("${spring.ai.google.genai.api-key:}")
     private String apiKey;
 
-    @Value("${spring.ai.google.genai.model:gemini-3.0-flash-lite}")
+    @Value("${spring.ai.google.genai.model:gemini-3.1-flash-lite-preview}")
     private String geminiModel;
 
     private static final String SYSTEM_PROMPT = """
@@ -80,15 +80,24 @@ public class ChatbotService {
             case "recommendation" -> handleBookRecommendation(userMessage.toLowerCase(Locale.ROOT));
             case "faq" -> handleFaqMatch(userMessage);
             case "search" -> handleBookSearch(userMessage.toLowerCase(Locale.ROOT));
+            case "self_intro" -> handleSelfIntroduction();
             default -> handleGeneralQuestion(userMessage);
         };
     }
 
-    /**
-     * So khớp trên chuỗi đã bỏ dấu — câu gõ không dấu vẫn vào đúng intent (vd: "tim sach kinh te").
-     */
     private String detectIntent(String rawMessage) {
         String norm = normalizeVietnamese(rawMessage.toLowerCase(Locale.ROOT));
+
+        // Self-introduction keywords
+        String[] selfIntroKeywords = {"ban la ai", "ban la gi", "ban ten gi", "ban ten gi day",
+                "ban ho ten", "ban lam gi", "toi ten la", "gioi thieu", "ban la may",
+                "who are you", "what are you", "may la gi", "ban la bot", "ban la chatbot"};
+        for (String phrase : selfIntroKeywords) {
+            if (norm.contains(phrase)) {
+                return "self_intro";
+            }
+        }
+
         /* Không dùng từ đơn "giá"/"gia" — "giải thích" chứa "gia" → nhầm sang search */
         String[] generalFirst = {"giai thich", "phan tich", "viet cho", "viet mot", "la gi",
                 "tai sao", "dinh nghia", "so sanh", "may hoc", "machine learning", "giai thuat"};
@@ -143,6 +152,20 @@ public class ChatbotService {
             }
         }
         return false;
+    }
+
+    private ChatResponse handleSelfIntroduction() {
+        return ChatResponse.builder()
+                .message("Mình là nhân viên tư vấn trực tuyến của Nhà sách Hoàng Kim! 😊\n\n" +
+                        "Mình có thể giúp bạn:\n" +
+                        "📚 Tìm kiếm và gợi ý sách hay\n" +
+                        "💳 Thông tin về thanh toán, vận chuyển\n" +
+                        "📦 Theo dõi đơn hàng\n" +
+                        "🔄 Chính sách đổi trả, bảo hành\n\n" +
+                        "Bạn cần mình hỗ trợ gì hôm nay?")
+                .type("text")
+                .intent("self_intro")
+                .build();
     }
 
     private ChatResponse handleBookRecommendation(String message) {
@@ -399,6 +422,11 @@ public class ChatbotService {
             throw new IllegalStateException("No text in Gemini parts");
         }
         return text.toString();
+    }
+
+    public String testGeminiConnection() {
+        String testPrompt = "Chỉ trả lời đúng một câu: 'Gemini API hoạt động tốt!'";
+        return callGeminiApi(SYSTEM_PROMPT, testPrompt);
     }
 
     private String buildBookContext(List<Book> books) {
