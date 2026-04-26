@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import ImgAsset from '../public';
 import './AboutPage.css';
 import UserMenu from '../Components/UserMenu';
 import { useCart } from '../context/CartContext';

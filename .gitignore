@@ -74,11 +74,12 @@ Thumbs.db
 .agent/
 
 # ==========================================
-# Frontend (fe/) - nếu build local
+# Frontend Dependencies
 # ==========================================
 fe/node_modules/
 fe/dist/
 fe/.env
+fe/package-lock.json
 
 # ==========================================
 # Uploads / Media (nếu có)

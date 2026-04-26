@@ -100,39 +100,6 @@ public class AdminBookController {
         return ResponseEntity.ok(updatedBook);
     }
 
-    // Update existing book (POST — matches frontend apiPostForm which sends POST)
-    @PostMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<BookResponse> updateBookPost(
-            @PathVariable Long id,
-            @RequestParam(value = "bookName", required = false) String bookName,
-            @RequestParam(value = "price", required = false) Double price,
-            @RequestParam(value = "quantity", required = false) Integer quantity,
-            @RequestParam(value = "description", required = false) String description,
-            @RequestParam(value = "author", required = false) String author,
-            @RequestParam(value = "publisher", required = false) String publisher,
-            @RequestParam(value = "publicationYear", required = false) Integer publicationYear,
-            @RequestParam(value = "categoryId", required = false) Long categoryId,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
-
-        Book bookUpdate = new Book();
-        bookUpdate.setBookName(bookName);
-        bookUpdate.setPrice(price);
-        bookUpdate.setQuantity(quantity);
-        bookUpdate.setDescription(description);
-        bookUpdate.setAuthor(author);
-        bookUpdate.setPublisher(publisher);
-        bookUpdate.setPublicationYear(publicationYear);
-
-        if (categoryId != null) {
-            Category category = new Category();
-            category.setCategoryId(categoryId);
-            bookUpdate.setCategory(category);
-        }
-
-        BookResponse updatedBook = bookService.updateBook(id, bookUpdate, image);
-        return ResponseEntity.ok(updatedBook);
-    }
-
     // Delete book
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {

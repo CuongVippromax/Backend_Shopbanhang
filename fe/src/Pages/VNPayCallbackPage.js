@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import './VNPayCallbackPage.css';
-import ImgAsset from '../public';
 import UserMenu from '../Components/UserMenu';
 import { useCart } from '../context/CartContext';
 

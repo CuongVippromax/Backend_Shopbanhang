@@ -36,19 +36,6 @@ public class BookController {
         return ResponseEntity.ok(book);
     }
 
-    // Search books
-    @GetMapping("/search")
-    public ResponseEntity<PageResponse<?>> searchBooks(
-            @RequestParam(name = "search", required = false) String search,
-            @RequestParam(name = "pageNo", defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
-            @RequestParam(name = "sortBy", required = false) String sortBy,
-            @RequestParam(name = "category", required = false) String category,
-            @RequestParam(name = "categoryId", required = false) Long categoryId) {
-        PageResponse<?> books = bookService.getAllBook(pageNo, pageSize, sortBy, search, category, categoryId);
-        return ResponseEntity.ok(books);
-    }
-
     // Flash sale books - trả danh sách sách giảm giá (dùng cho homepage)
     @GetMapping("/flash-sale")
     public ResponseEntity<PageResponse<?>> getFlashSaleBooks(

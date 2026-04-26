@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import ImgAsset from '../public';
 import './ArticleDetailPage.css';
 import UserMenu from '../Components/UserMenu';
 import { useCart } from '../context/CartContext';
