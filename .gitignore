@@ -80,6 +80,9 @@ fe/node_modules/
 fe/dist/
 fe/.env
 fe/package-lock.json
+.cache/
+dist/
+build/
 
 # ==========================================
 # Uploads / Media (nếu có)
