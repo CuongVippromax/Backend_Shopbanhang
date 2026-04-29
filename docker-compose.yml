@@ -1,0 +1,159 @@
+services:
+  # =====================
+  # PostgreSQL Database
+  # =====================
+  postgres:
+    image: postgres:16-alpine
+    container_name: shopbanhang-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shopbanhang
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d shopbanhang"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shopbanhang-network
+
+  # =====================
+  # Redis Cache
+  # =====================
+  redis:
+    image: redis:7-alpine
+    container_name: shopbanhang-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - shopbanhang-network
+
+  # =====================
+  # MinIO Object Storage
+  # =====================
+  minio:
+    image: minio/minio:latest
+    container_name: shopbanhang-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"   # API port
+      - "9001:9001"   # Console port
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-12345678}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:9000/minio/health/live || exit 1"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - shopbanhang-network
+
+  # =====================
+  # Backend (Spring Boot)
+  # =====================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shopbanhang-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: shopbanhang
+      DB_USERNAME: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shopbanhang
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE}
+      VNPAY_SECRET_KEY: ${VNPAY_SECRET_KEY}
+      AI_API_KEY: ${AI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-admin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-12345678}
+      APP_SECURITY_ALLOWEDORIGINS: http://localhost:3000,http://localhost:80,http://frontend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/api/v1/categories/list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - shopbanhang-network
+
+  # =====================
+  # Frontend (React + Nginx)
+  # =====================
+  frontend:
+    build:
+      context: .
+      dockerfile: fe/Dockerfile
+    container_name: shopbanhang-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"       # HTTP
+      - "443:443"     # HTTPS (for future SSL)
+    environment:
+      REACT_APP_API_URL: http://localhost:8080/api/v1
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - shopbanhang-network
+
+# =====================
+# Volumes
+# =====================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+# =====================
+# Networks
+# =====================
+networks:
+  shopbanhang-network:
+    driver: bridge

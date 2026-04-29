@@ -1,28 +1,18 @@
-# Hoàng Kim Book — Shop Bán Sách Online
+# Nhà Sách Hoàng Kim - Website Bán Sách Online
 
-Dự án **Hoàng Kim Book** là website thương mại điện tử bán sách trực tuyến, được xây dựng với:
+Dự án website thương mại điện tử bán sách trực tuyến **Nhà Sách Hoàng Kim**.
 
-- **Backend:** Spring Boot 3 (Java 21) + PostgreSQL + Redis + MinIO + **Flyway**
-- **Frontend:** React 19 + Vite + React Router v6
+---
+
+## Tổng quan
+
+- **Backend:** Spring Boot 3 + PostgreSQL + Redis + MinIO + Flyway
+- **Frontend:** React 18 + React Router v6 + Recharts
 - **Chatbot:** FAQ rule-based chatbot (tích hợp trên mọi trang người dùng)
 
 ---
 
-## Mục lục
-
-- [Tổng quan tính năng](#tổng-quan-tính-năng)
-- [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
-- [Cài đặt nhanh với Docker](#cài-đặt-nhanh-với-docker)
-- [Cài đặt thủ công (không dùng Docker)](#cài-đặt-thủ-công-không-dùng-docker)
-- [Database Migration (Flyway)](#database-migration-flyway)
-- [Cấu trúc dự án](#cấu-trúc-dự-án)
-- [Tài khoản mặc định](#tài-khoản-mặc-định)
-- [API Documentation](#api-documentation)
-- [Công nghệ sử dụng](#công-nghệ-sử-dụng)
-
----
-
-## Tổng quan tính năng
+## Tính năng chính
 
 ### Người dùng
 - Đăng ký / Đăng nhập (JWT + Refresh Token)
@@ -32,7 +22,8 @@ Dự án **Hoàng Kim Book** là website thương mại điện tử bán sách 
 - Đặt hàng, theo dõi trạng thái đơn hàng
 - Thanh toán VNPay (COD / ATM / Visa)
 - Đổi mật khẩu, quên mật khẩu (gửi email)
-- **Chatbot FAQ** — hỗ trợ trả lời tự động các câu hỏi thường gặp
+- Tin tức / Bài viết
+- Chatbot FAQ hỗ trợ tự động
 
 ### Quản trị (Admin)
 - Dashboard thống kê (doanh thu, đơn hàng, sách bán chạy)
@@ -42,144 +33,70 @@ Dự án **Hoàng Kim Book** là website thương mại điện tử bán sách 
 - Quản lý tài khoản người dùng
 - Quản lý kho hàng
 - Quản lý bình luận / đánh giá
-- **Quản lý FAQ chatbot** (thêm/sửa/xóa câu hỏi — câu trả lời)
+- Quản lý FAQ chatbot
+- Quản lý tin tức / bài viết
 
 ---
 
 ## Yêu cầu hệ thống
 
-| Phần mềm | Phiên bản | Ghi chú |
-|----------|-----------|---------|
-| Docker Desktop | >= 4.x | Windows/macOS |
-| Docker Compose | >= 2.x | Tích hợp sẵn trong Docker Desktop |
-| Git | >= 2.x | (tùy chọn) |
-
-**Hoặc cài đặt thủ công:**
-- Java 21
-- Node.js 20
-- PostgreSQL 16
-- Redis 7
-- MinIO (hoặc dùng MinIO playground)
+| Phần mềm | Phiên bản |
+|----------|-----------|
+| Java | 21 |
+| Node.js | 18+ |
+| PostgreSQL | 16 |
+| Redis | 7 |
+| MinIO | (hoặc dùng MinIO playground) |
 
 ---
 
-## Cài đặt nhanh với Docker
+## Cài đặt
 
-### Bước 1 — Clone vào thư mục gốc
-
-```bash
-cd D:\BESpringBoot
-# Nếu chưa clone, clone repository
-git clone <repo-url> shopbanhang
-cd shopbanhang
-```
-
-### Bước 2 — Chạy Docker Compose
+### 1. Backend
 
 ```bash
-# Build image và chạy tất cả services (chạy nền)
-docker-compose up -d --build
+# Di chuyển vào thư mục gốc dự án
+cd D:\Backend_Shopbanhang
 
-# Xem log để biết trạng thái khởi động
-docker-compose logs -f backend
-```
-
-### Bước 3 — Đợi services khởi động
-
-Backend cần khoảng **60-90 giây** để khởi động lần đầu (Flyway chạy migration trước khi ứng dụng start).
-
-```bash
-# Kiểm tra backend đã sẵn sàng chưa
-docker-compose logs backend | grep "Started ShopbanhangApplication"
-
-# Kiểm tra tất cả containers đang chạy
-docker-compose ps
-```
-
-### Bước 4 — Truy cập ứng dụng
-
-| Dịch vụ | URL | Tài khoản mặc định |
-|---------|-----|---------------------|
-| Frontend (người dùng) | http://localhost:5173 | — |
-| Backend API | http://localhost:8080 | — |
-| Swagger API Docs | http://localhost:8080/swagger-ui.html | — |
-| MinIO Console | http://localhost:9001 | `admin` / `minio123` |
-
-### Các lệnh Docker hữu ích
-
-```bash
-# Dừng tất cả
-docker-compose down
-
-# Dừng + xóa dữ liệu (reset database)
-docker-compose down -v
-
-# Xem log một service cụ thể
-docker-compose logs -f backend
-docker-compose logs -f postgres
-
-# Restart một service
-docker-compose restart backend
-
-# Rebuild không xóa data
-docker-compose up -d --build backend
-```
-
----
-
-## Cài đặt thủ công (không dùng Docker)
-
-### 1. Chuẩn bị Database
-
-```sql
--- Tạo database PostgreSQL
-CREATE DATABASE shopbanhang;
-```
-
-> **Lưu ý:** Không cần tạo tables thủ công. Flyway sẽ tự động tạo schema khi ứng dụng khởi động lần đầu.
-
-### 2. Chạy Backend
-
-```bash
-cd D:\BESpringBoot\shopbanhang
-
-# Build
+# Build project
 ./gradlew build -x test
 
-# Chạy (hoặc import vào IntelliJ IDEA và chạy)
+# Chạy ứng dụng
 ./gradlew bootRun
 # Hoặc: java -jar build/libs/shopbanhang-0.0.1-SNAPSHOT.jar
 
 # Backend chạy tại: http://localhost:8080
 ```
 
-> **Lưu ý:** Cần có PostgreSQL, Redis, MinIO đang chạy trên localhost.
-> Kiểm tra `src/main/resources/application.yaml` để xem cấu hình kết nối.
-
-### 3. Chạy Frontend
+### 2. Frontend
 
 ```bash
-cd D:\BESpringBoot\shopbanhang\frontend
+# Di chuyển vào thư mục frontend
+cd fe
 
 # Cài đặt dependencies
 npm install
 
 # Chạy dev server
-npm run dev
+npm start
 
-# Frontend chạy tại: http://localhost:5173
+# Frontend chạy tại: http://localhost:3000
 ```
 
-### 4. Cấu hình API URL (nếu cần)
+### 3. Cấu hình
 
-Frontend mặc định gọi API qua proxy Vite tại `/api/v1`.
-Kiểm tra `frontend/vite.config.js` để đảm bảo proxy đúng.
+Kiểm tra file `src/main/resources/application.yaml` để cấu hình:
+- Kết nối PostgreSQL
+- Kết nối Redis
+- Kết nối MinIO
+- Cấu hình email (SMTP)
+- Cấu hình VNPay
 
 ---
 
 ## Database Migration (Flyway)
 
-Dự án sử dụng **Flyway** để quản lý schema database thay vì Hibernate auto-create.
+Dự án sử dụng **Flyway** để quản lý schema database.
 
 ### Cấu trúc migration files
 
@@ -187,111 +104,86 @@ Dự án sử dụng **Flyway** để quản lý schema database thay vì Hibern
 src/main/resources/
 └── db/
     └── migration/
-        ├── V1__add_deleted_column_to_users.sql   # Thêm cột deleted cho soft delete
-        ├── V2__fix_orders_payment_status_check.sql  # Sửa check constraint cho payment_status
-        └── ... (các migration tiếp theo)
+        ├── V1__*.sql
+        ├── V2__*.sql
+        └── ...
 ```
-
-### Cách hoạt động
-
-1. Flyway tự động chạy tất cả migration files khi ứng dụng khởi động
-2. Các migration được apply theo thứ tự version (`V1__`, `V2__`, ...)
-3. Flyway theo dõi lịch sử migration trong bảng `flyway_schema_history`
-4. **Hibernate `ddl-auto: validate`** — chỉ kiểm tra schema không tự tạo table
 
 ### Thêm migration mới
 
-1. Tạo file migration mới trong `src/main/resources/db/migration/` với format:
-   ```
-   V{version}__{description}.sql
-   ```
-   Ví dụ: `V3__add_new_table.sql`
-
-2. Khởi động lại ứng dụng, Flyway sẽ tự động apply migration mới
-
-### Reset Database (xóa toàn bộ schema)
-
-```bash
-# Xóa database và tạo lại
-DROP DATABASE shopbanhang;
-CREATE DATABASE shopbanhang;
-
-# Khởi động lại ứng dụng — Flyway sẽ tạo lại schema từ đầu
+Tạo file mới trong `src/main/resources/db/migration/` với format:
 ```
+V{version}__{description}.sql
+```
+
+Ví dụ: `V9__add_new_column.sql`
 
 ---
 
 ## Cấu trúc dự án
 
 ```
-shopbanhang/
-├── docker-compose.yml          # Docker Compose (toàn bộ stack)
-├── Dockerfile.backend           # Dockerfile cho Spring Boot
-├── src/
-│   └── main/
-│       ├── java/com/cuong/shopbanhang/
-│       │   ├── ShopbanhangApplication.java
-│       │   ├── config/          # AppConfig, Security, CORS, JWT...
-│       │   ├── controller/       # REST Controllers
-│       │   │   ├── user/         # API người dùng (Book, Cart, Order...)
-│       │   │   └── admin/        # API quản trị
-│       │   ├── service/          # Business logic
-│       │   ├── repository/       # JPA Repositories
-│       │   ├── model/            # Entity classes
-│       │   ├── dto/              # Request/Response DTOs
-│       │   ├── security/         # JWT filter, token provider
-│       │   └── common/           # Role enum, constants
-│       └── resources/
-│           ├── application.yaml  # Cấu hình Spring
-│           └── db/
-│               └── migration/    # Flyway migration files
-│                   ├── V1__add_deleted_column_to_users.sql
-│                   └── V2__fix_orders_payment_status_check.sql
-└── frontend/
-    ├── Dockerfile.frontend      # Dockerfile cho React
-    ├── vite.config.js
-    ├── src/
-    │   ├── api/                 # API clients (client.js, books.js, faq.js...)
-    │   ├── components/          # Shared components (Layout, Chatbot, ProductCard...)
-    │   ├── pages/               # Page components
-    │   │   └── admin/           # Admin pages (Dashboard, Products, Orders, FAQ...)
-    │   ├── utils/               # Cart utilities
-    │   ├── App.jsx              # Router chính
-    │   └── index.css            # Global styles
-    └── package.json
+Backend_Shopbanhang/
+├── src/main/java/com/cuong/shopbanhang/
+│   ├── ShopbanhangApplication.java
+│   ├── config/          # AppConfig, Security, CORS, JWT...
+│   ├── controller/       # REST Controllers
+│   │   ├── user/         # API người dùng
+│   │   ├── admin/        # API quản trị
+│   │   └── PaymentController.java
+│   ├── service/          # Business logic
+│   ├── repository/       # JPA Repositories
+│   ├── model/            # Entity classes
+│   ├── dto/              # Request/Response DTOs
+│   ├── security/         # JWT filter, token provider
+│   ├── common/           # Enums, constants
+│   ├── exception/        # Custom exceptions
+│   └── util/             # Utilities (VNPay...)
+├── src/main/resources/
+│   ├── application.yaml  # Cấu hình Spring
+│   └── db/
+│       └── migration/    # Flyway migration files
+├── fe/                   # Frontend React
+│   ├── src/
+│   │   ├── api/         # API clients
+│   │   ├── components/  # Shared components
+│   │   ├── pages/       # Page components
+│   │   │   └── Admin/   # Admin pages
+│   │   ├── context/     # React contexts
+│   │   └── Router/      # Routing
+│   └── package.json
+└── README.md
 ```
 
 ---
 
 ## Tài khoản mặc định
 
-> **Lưu ý:** Các tài khoản này chỉ tồn tại khi database được seed. Chạy lần đầu backend sẽ tự động tạo.
-
-| Loại | Email | Mật khẩu | Ghi chú |
-|------|-------|----------|---------|
-| **Admin** | test@gmail.com | 123 | Full quyền quản trị |
-| **User** | cuongdayne1811@gmail.com | 123 | Người dùng thông thường |
+| Loại | Email | Mật khẩu |
+|------|-------|----------|
+| **Admin** | test@gmail.com | 123 |
+| **User** | cuongdayne1811@gmail.com | 123 |
 
 ---
 
-## API Documentation
+## API Endpoints
 
 ### Public APIs
 
 | Method | Endpoint | Mô tả |
-|--------|----------|-------|
+|--------|----------|--------|
 | GET | `/api/v1/books/all` | Danh sách sách (phân trang) |
 | GET | `/api/v1/books/{id}` | Chi tiết sách |
 | GET | `/api/v1/categories/list` | Danh sách danh mục |
-| GET | `/api/v1/faqs` | Danh sách FAQ (cho chatbot) |
-| GET | `/api/v1/faqs/categories` | Danh sách phân loại FAQ |
+| GET | `/api/v1/faqs` | Danh sách FAQ |
 | POST | `/api/v1/auth/login` | Đăng nhập |
 | POST | `/api/v1/auth/register` | Đăng ký |
+| GET | `/api/v1/articles` | Danh sách bài viết |
 
-### Protected APIs (cần JWT token)
+### Protected APIs (cần JWT)
 
 | Method | Endpoint | Mô tả |
-|--------|----------|-------|
+|--------|----------|--------|
 | GET | `/api/v1/cart/{userId}` | Lấy giỏ hàng |
 | POST | `/api/v1/cart/{userId}/add` | Thêm vào giỏ |
 | PUT | `/api/v1/cart/{userId}/update` | Cập nhật số lượng |
@@ -304,61 +196,61 @@ shopbanhang/
 ### Admin APIs (cần JWT + role ADMIN)
 
 | Method | Endpoint | Mô tả |
-|--------|----------|-------|
-| GET | `/api/v1/admin/faqs` | Danh sách FAQ (kể cả ẩn) |
+|--------|----------|--------|
+| GET | `/api/v1/admin/orders` | Danh sách đơn hàng |
+| PUT | `/api/v1/admin/orders/{id}/status` | Cập nhật trạng thái đơn |
+| GET | `/api/v1/admin/books/all` | Danh sách sách (admin) |
+| POST | `/api/v1/admin/books` | Thêm sách mới |
+| PUT | `/api/v1/admin/books/{id}` | Cập nhật sách |
+| DELETE | `/api/v1/admin/books/{id}` | Xóa sách |
+| GET | `/api/v1/admin/dashboard` | Thống kê dashboard |
+| GET | `/api/v1/admin/users` | Danh sách người dùng |
+| GET | `/api/v1/admin/faqs` | Danh sách FAQ |
 | POST | `/api/v1/admin/faqs` | Tạo FAQ mới |
 | PUT | `/api/v1/admin/faqs/{id}` | Cập nhật FAQ |
 | DELETE | `/api/v1/admin/faqs/{id}` | Xóa FAQ |
-| GET | `/api/v1/admin/orders` | Danh sách đơn hàng |
-| PUT | `/api/v1/admin/books/{id}` | Cập nhật sách |
-| GET | `/api/v1/admin/dashboard` | Thống kê dashboard |
 
 ---
 
 ## Công nghệ sử dụng
 
 ### Backend
-
-| Công nghệ | Phiên bản | Mục đích |
-|-----------|-----------|---------|
-| Spring Boot | 3.x | Framework chính |
-| Java | 21 | Ngôn ngữ lập trình |
-| Spring Security | — | Xác thực, phân quyền |
-| JWT | — | Xác thực không trạng thái |
-| Spring Data JPA | — | Truy vấn database |
-| **Flyway** | — | Quản lý database migration |
-| PostgreSQL | 16 | Cơ sở dữ liệu chính |
-| Redis | 7 | Cache + token blacklist |
-| MinIO | — | Lưu trữ hình ảnh sách |
-| Lombok | — | Giảm boilerplate code |
-| Spring Mail | — | Gửi email (quên mật khẩu) |
+| Công nghệ | Mục đích |
+|-----------|-----------|
+| Spring Boot 3 | Framework chính |
+| Java 21 | Ngôn ngữ lập trình |
+| Spring Security + JWT | Xác thực, phân quyền |
+| Spring Data JPA | Truy vấn database |
+| Flyway | Quản lý database migration |
+| PostgreSQL 16 | Cơ sở dữ liệu |
+| Redis 7 | Cache + token blacklist |
+| MinIO | Lưu trữ hình ảnh |
+| Spring Mail | Gửi email |
+| Lombok | Giảm boilerplate |
 
 ### Frontend
-
-| Công nghệ | Phiên bản | Mục đích |
-|-----------|-----------|---------|
-| React | 19 | UI framework |
-| Vite | 7 | Build tool, dev server |
-| React Router | 7 | Client-side routing |
-| Recharts | 3 | Biểu đồ thống kê admin |
-| Pure CSS | — | Styling (CSS custom properties) |
-
-### Infrastructure
-
 | Công nghệ | Mục đích |
-|-----------|---------|
-| Docker | Container hóa |
-| Docker Compose | Điều phối multi-container |
-| Alpine Linux | Base image nhẹ |
+|-----------|-----------|
+| React 18 | UI framework |
+| React Router v6 | Client-side routing |
+| React Scripts | Build tool |
+| Recharts | Biểu đồ thống kê |
+| Axios | HTTP client |
+| Styled Components | CSS-in-JS |
 
 ---
 
 ## Hỗ trợ
 
-Nếu gặp lỗi trong quá trình cài đặt:
+Nếu gặp lỗi:
 
-1. Đảm bảo **Docker Desktop** đang chạy
-2. Kiểm tra log: `docker-compose logs -f backend`
-3. Kiểm tra port đã bị chiếm: `netstat -an | findstr "5173 8080 5432 6379 9000"`
-4. Reset hoàn toàn: `docker-compose down -v && docker-compose up -d --build`
-5. Nếu lỗi Flyway migration: `docker-compose down -v` rồi tạo lại database và restart
+1. Đảm bảo PostgreSQL, Redis đang chạy
+2. Kiểm tra cấu hình trong `application.yaml`
+3. Kiểm tra log backend
+4. Kiểm tra port: `netstat -an | findstr "3000 8080 5432 6379"`
+
+---
+
+## License
+
+Dự án phát triển bởi Cuong Nguyen
