@@ -3,19 +3,17 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import ImgAsset from '../public';
 import './OrderDetailPage.css';
 import UserMenu from '../Components/UserMenu';
-import { useCart } from '../context/CartContext';
 import { getOrderById } from '../api';
 
 export default function OrderDetailPage() {
   const { orderId } = useParams();
-  const { cartCount } = useCart();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadOrderDetail();
-  }, [orderId]);
+  }, [orderId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadOrderDetail = async () => {
     setLoading(true);

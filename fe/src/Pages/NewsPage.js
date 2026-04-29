@@ -16,7 +16,7 @@ export default function NewsPage() {
 
   useEffect(() => {
     loadData();
-  }, [page]);
+  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scroll to top when page changes
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import ImgAsset from '../public';
 import './ShopPage.css';
@@ -178,15 +178,6 @@ export default function ShopPage() {
   const handleSearch = (e) => {
     e.preventDefault();
     setPage(0);
-  };
-
-  const handleCategoryChange = (categoryId) => {
-    setSelectedCategory(categoryId);
-    setPage(0);
-  };
-
-  const handleFooterCategoryClick = (categoryId) => {
-    navigate(`/cua-hang?categoryId=${categoryId}`);
   };
   return (
     <div className="shop-page">

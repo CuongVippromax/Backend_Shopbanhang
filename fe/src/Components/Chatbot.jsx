@@ -69,7 +69,7 @@ export default function Chatbot({ onClose }) {
   const [messages, setMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible] = useState(true)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 

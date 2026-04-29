@@ -36,7 +36,7 @@ export default function AdminProductForm() {
     if (isEditMode) {
       loadProduct();
     }
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadCategories = async () => {
     try {

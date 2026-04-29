@@ -18,7 +18,6 @@ export default function ProductPage() {
   const [cartMessage, setCartMessage] = useState('');
   
   // Review form state
-  const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);

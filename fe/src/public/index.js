@@ -1,16 +1,14 @@
+const tryRequire = (path) => {
+  try {
+    const image = require(`${path}`);
+    return image;
+  } catch (err) {
+    return false;
+  }
+};
 
-        const tryRequire = (path) => {
-        	try {
-        	const image = require(`${path}`);
-        	return image
-        	} catch (err) {
-        	return false
-        	}
-        };
-
-        export default {
-        
-	questionMark: require('./questionMark.png'),
+const ImgAsset = {
+  questionMark: require('./questionMark.png'),
 	TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Vector: tryRequire('./TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Vector.png') || require('./questionMark.png'),
 	TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge: tryRequire('./TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge.png') || require('./questionMark.png'),
 	TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_1: tryRequire('./TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_1.png') || require('./questionMark.png'),
@@ -243,4 +241,6 @@
 	TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Vector_134: tryRequire('./TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Vector_134.png') || require('./questionMark.png'),
 	TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Vector_135: tryRequire('./TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Vector_135.png') || require('./questionMark.png'),
 	TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Vector_136: tryRequire('./TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Vector_136.png') || require('./questionMark.png'),
-}
+};
+
+export default ImgAsset;

@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import './VNPayCallbackPage.css';
 import UserMenu from '../Components/UserMenu';
-import { useCart } from '../context/CartContext';
 
 export default function VNPayCallbackPage() {
-  const { cartCount } = useCart();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [paymentResult, setPaymentResult] = useState(null);
 
@@ -46,12 +43,7 @@ export default function VNPayCallbackPage() {
     };
 
     verifyPayment();
-  }, [searchParams]);
-
-  const formatPrice = (price) => {
-    if (!price) return '0 ₫';
-    return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
-  };
+  }, [searchParams, vnp_ResponseCode, vnp_TxnRef, vnp_Amount, vnp_BankTranNo]);
 
   if (loading) {
     return (

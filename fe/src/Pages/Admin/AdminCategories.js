@@ -13,7 +13,7 @@ export default function AdminCategories() {
 
   useEffect(() => {
     loadCategories();
-  }, [searchTerm]);
+  }, [searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadCategories = async () => {
     setLoading(true);

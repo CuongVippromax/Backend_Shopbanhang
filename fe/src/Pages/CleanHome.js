@@ -5,9 +5,8 @@ import ImgAsset from '../public';
 import UserMenu from '../Components/UserMenu';
 import CategoryDropdown from '../Components/CategoryDropdown';
 import BannerSlider from '../Components/BannerSlider';
-import Header from '../Components/Header';
 import { useCart } from '../context/CartContext';
-import { getBooks, getBooksByCategory, getCategories, getFeaturedArticles } from '../api';
+import { getBooks, getCategories, getFeaturedArticles } from '../api';
 
 // Component hiển thị icon danh mục
 const CategoryIcon = ({ categoryName }) => {
@@ -287,7 +286,6 @@ const BookSection = ({ title, books, viewAllLink, onAddToCart }) => {
 
 export default function CleanHome() {
   const { cartCount } = useCart();
-  const [email, setEmail] = useState('');
   const [toast, setToast] = useState(null);
   const [featuredBooks, setFeaturedBooks] = useState([]);
   const [newBooks, setNewBooks] = useState([]);
@@ -296,9 +294,6 @@ export default function CleanHome() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [categoryBooks, setCategoryBooks] = useState([]);
-  const [categoryLoading, setCategoryLoading] = useState(false);
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const categoryRef = useRef(null);
 
@@ -360,7 +355,6 @@ export default function CleanHome() {
     const emailValue = emailInput?.value?.trim();
     
     if (emailValue) {
-      setEmail(emailValue);
       setToast({ message: 'Đăng ký nhận thông tin thành công!', type: 'success' });
       emailInput.value = '';
     }
@@ -412,11 +406,6 @@ export default function CleanHome() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatPrice = (price) => {
-    if (!price) return '';
-    return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
   };
 
   const handleCategoryClick = (category) => {

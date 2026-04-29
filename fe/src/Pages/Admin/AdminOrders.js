@@ -32,7 +32,7 @@ export default function AdminOrders() {
 
   useEffect(() => {
     loadOrders();
-  }, [page, searchTerm, statusFilter, paymentFilter]);
+  }, [page, searchTerm, statusFilter, paymentFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadOrders = async () => {
     setLoading(true);

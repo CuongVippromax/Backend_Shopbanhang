@@ -22,7 +22,7 @@ export default function AdminCategoryForm() {
     if (isEditMode) {
       loadCategory();
     }
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadCategory = async () => {
     setLoadingData(true);

@@ -17,7 +17,7 @@ export default function AdminProducts() {
   useEffect(() => {
     loadCategories();
     loadProducts();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadCategories = async () => {
     try {
@@ -96,11 +96,6 @@ export default function AdminProducts() {
       style: 'currency',
       currency: 'VND'
     }).format(price);
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('vi-VN');
   };
 
   const getImageUrl = (product) => {

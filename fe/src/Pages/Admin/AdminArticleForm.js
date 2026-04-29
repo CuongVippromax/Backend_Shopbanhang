@@ -27,7 +27,7 @@ export default function AdminArticleForm() {
     if (isEditMode) {
       loadArticle();
     }
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadArticle = async () => {
     try {

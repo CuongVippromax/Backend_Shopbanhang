@@ -16,7 +16,7 @@ export default function AdminArticles() {
 
   useEffect(() => {
     loadArticles();
-  }, [page, searchTerm]);
+  }, [page, searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadArticles = async () => {
     setLoading(true);

@@ -23,7 +23,7 @@ export default function CartPage() {
         setCategories(data);
       }
     }).catch(err => console.error('Error fetching categories:', err));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadCart = async () => {
     setLoading(true);

@@ -17,7 +17,7 @@ export default function AdminReviews() {
 
   useEffect(() => {
     loadReviews();
-  }, [page, searchTerm, ratingFilter]);
+  }, [page, searchTerm, ratingFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadReviews = async () => {
     setLoading(true);
