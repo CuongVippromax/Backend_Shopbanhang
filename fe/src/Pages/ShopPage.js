@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import ImgAsset from '../public';
 import './ShopPage.css';
 import './CleanHome.css';
@@ -78,7 +78,6 @@ const ITEMS_PER_PAGE = 15;
 
 export default function ShopPage() {
   const { cartCount } = useCart();
-  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [allBooks, setAllBooks] = useState([]);
   const [categories, setCategories] = useState([]);

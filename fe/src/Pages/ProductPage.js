@@ -15,7 +15,7 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
-  const [cartMessage, setCartMessage] = useState('');
+  const [, setCartMessage] = useState('');
   
   // Review form state
   const [reviewRating, setReviewRating] = useState(5);
