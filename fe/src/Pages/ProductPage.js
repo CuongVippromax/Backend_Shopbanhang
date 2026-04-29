@@ -290,7 +290,7 @@ export default function ProductPage() {
             <p><strong>Nhà xuất bản:</strong> {book.publisher || 'N/A'}</p>
             <p><strong>Năm xuất bản:</strong> {book.publicationYear || 'N/A'}</p>
             <p><strong>Số lượng:</strong> {book.quantity || 0} cuốn</p>
-            {book.averageRating && book.averageRating > 0 && (
+            {book.averageRating > 0 && (
               <p className="product-rating-inline">
                 <strong>Đánh giá:</strong>
                 <span className="inline-stars">
@@ -298,7 +298,7 @@ export default function ProductPage() {
                     <span key={i} className={i < Math.round(book.averageRating) ? 'star filled' : 'star'}>★</span>
                   ))}
                 </span>
-                <span className="rating-count">({book.reviewCount || 0})</span>
+                <span className="rating-count">({book.reviewCount || 0} đánh giá)</span>
               </p>
             )}
           </div>
@@ -442,7 +442,7 @@ export default function ProductPage() {
             <div className="reviews-wrapper">
               <h3>ĐÁNH GIÁ SẢN PHẨM</h3>
               
-              {book.averageRating && book.averageRating > 0 && (
+              {book.averageRating > 0 && (
                 <div className="rating-overview">
                   <div className="rating-score">
                     <span className="score-number">{book.averageRating.toFixed(1)}</span>
@@ -450,16 +450,40 @@ export default function ProductPage() {
                     <span className="score-total">trên 5</span>
                   </div>
                   <div className="rating-info">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i} className={i < Math.round(book.averageRating) ? 'star filled' : 'star'}>★</span>
-                    ))}
+                    <div className="rating-stars-row">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span key={i} className={i < Math.round(book.averageRating) ? 'star filled' : 'star'}>★</span>
+                      ))}
+                    </div>
                     <p>{book.reviewCount || 0} đánh giá</p>
+                  </div>
+                  <div className="rating-bars">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const count = reviews.filter(r => r.rating === star).length;
+                      const percent = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                      return (
+                        <div key={star} className="rating-bar-row">
+                          <span className="rating-bar-label">
+                            <span className="bar-star">★</span>
+                            {star}
+                          </span>
+                          <div className="rating-bar">
+                            <div className="rating-bar-fill" style={{ width: `${percent}%` }}></div>
+                          </div>
+                          <span className="rating-bar-count">{count}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               {reviews.length === 0 ? (
-                <p className="no-reviews">Chưa có đánh giá nào cho sản phẩm này.</p>
+                <div className="no-reviews">
+                  <div className="no-reviews-icon">📝</div>
+                  <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                  <p style={{fontSize: '13px', marginTop: '8px'}}>Hãy là người đầu tiên đánh giá sản phẩm này!</p>
+                </div>
               ) : (
                 <div className="reviews-list-new">
                   {reviews.map((review) => (
@@ -469,7 +493,9 @@ export default function ProductPage() {
                           {review.username?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div className="reviewer-info">
-                          <span className="reviewer-name">{review.username || 'Khách hàng'}</span>
+                          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                            <span className="reviewer-name">{review.username || 'Khách hàng'}</span>
+                          </div>
                           <div className="review-stars">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <span key={i} className={i < (review.rating || 0) ? 'star filled' : 'star'}>★</span>
@@ -477,7 +503,11 @@ export default function ProductPage() {
                           </div>
                         </div>
                         <span className="review-time">
-                          {review.createdAt ? new Date(review.createdAt).toLocaleDateString('vi-VN') : ''}
+                          {review.createdAt ? new Date(review.createdAt).toLocaleDateString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          }) : ''}
                         </span>
                       </div>
                       <div className="review-card-body">
@@ -497,7 +527,7 @@ export default function ProductPage() {
         <div className="container footer-grid">
           <div className="footer-col">
             <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
-            <p>📧 nhasachhaian@gmail.com</p>
+            <p>📧 nhasachhoangkim@gmail.com</p>
           </div>
           <div className="footer-col">
             <h4>Hỗ Trợ</h4>

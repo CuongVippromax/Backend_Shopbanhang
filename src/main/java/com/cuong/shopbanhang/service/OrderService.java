@@ -292,7 +292,7 @@ public class OrderService {
         Long userId = SecurityUtils.getCurrentUserId()
                 .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập.")); // EX-004
         
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "orderDate"));
         Page<Order> orders = orderRepository.findByUser_UserId(userId, pageable);
 
         List<OrderResponse> orderResponses = orders.getContent().stream()

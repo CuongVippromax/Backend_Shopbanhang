@@ -123,7 +123,7 @@ export default function ArticleDetailPage() {
         <div className="container footer-grid">
           <div className="footer-col">
             <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
-            <p>📧 nhasachhaian@gmail.com</p>
+            <p>📧 Nhà Sách Hoàng Kim</p>
           </div>
           <div className="footer-col">
             <h4>Hỗ Trợ</h4>

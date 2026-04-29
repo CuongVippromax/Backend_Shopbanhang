@@ -133,7 +133,7 @@ export default function VNPayCallbackPage() {
           <div className="result-actions">
             {paymentResult?.success ? (
               <>
-                <Link to="/don-hang" className="btn btn-primary">
+                <Link to="/don-hang" className="btn btn-secondary">
                   Xem đơn hàng của tôi
                 </Link>
                 <Link to="/cua-hang" className="btn btn-secondary">
@@ -178,7 +178,7 @@ export default function VNPayCallbackPage() {
         <div className="container footer-grid">
           <div className="footer-col">
             <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
-            <p>📧 nhasachhaian@gmail.com</p>
+            <p>📧 Nhà Sách Hoàng Kim</p>
           </div>
           <div className="footer-col">
             <h4>Hỗ Trợ</h4>

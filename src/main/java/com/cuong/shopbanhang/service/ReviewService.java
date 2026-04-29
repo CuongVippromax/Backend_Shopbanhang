@@ -208,11 +208,19 @@ public class ReviewService {
                 .reviewId(review.getReviewId())
                 .bookId(review.getBook().getBookId())
                 .bookName(review.getBook().getBookName())
+                .bookTitle(review.getBook().getBookName())
+                .bookAuthor(review.getBook().getAuthor())
+                .bookImage(review.getBook().getImage())
+                .thumbnailUrl(review.getBook().getImage())
                 .userId(review.getUser().getUserId())
                 .username(review.getUser().getUsername())
+                .userName(review.getUser().getUsername())
+                .reviewerName(review.getUser().getUsername())
                 .rating(review.getRating())
                 .comment(review.getComment())
+                .content(review.getComment())
                 .createdAt(review.getCreatedAt())
+                .reviewDate(review.getCreatedAt())
                 .build();
     }
 }

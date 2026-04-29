@@ -4,17 +4,25 @@ import ImgAsset from '../public';
 import './CartPage.css';
 import UserMenu from '../Components/UserMenu';
 import { useCart } from '../context/CartContext';
-import { getCart, updateCartItem, removeCartItem } from '../api';
+import { getCart, updateCartItem, removeCartItem, getCategories } from '../api';
 
 export default function CartPage() {
   const { cartCount, refresh } = useCart();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState('');
+  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadCart();
+    getCategories().then(data => {
+      if (data && data.content) {
+        setCategories(data.content);
+      } else if (Array.isArray(data)) {
+        setCategories(data);
+      }
+    }).catch(err => console.error('Error fetching categories:', err));
   }, []);
 
   const loadCart = async () => {
@@ -199,7 +207,7 @@ export default function CartPage() {
         <div className="container footer-grid">
           <div className="footer-col">
             <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
-            <p>📧 nhasachhaian@gmail.com</p>
+            <p>📧 nhasachhoangkim@gmail.com</p>
           </div>
           <div className="footer-col">
             <h4>Hỗ Trợ</h4>
@@ -212,18 +220,16 @@ export default function CartPage() {
           <div className="footer-col">
             <h4>Danh Mục</h4>
             <ul>
-              <li>Sách thiếu nhi</li>
-              <li>Sách kỹ năng</li>
-              <li>Sách tiếng anh</li>
-              <li>Sách khởi nghiệp</li>
-              <li>Sách nuôi dạy con</li>
+              {categories.slice(0, 5).map((cat) => (
+                <li key={cat.categoryId}><Link to={`/cua-hang?categoryId=${cat.categoryId}`} style={{color: 'inherit', textDecoration: 'none'}}>{cat.categoryName}</Link></li>
+              ))}
             </ul>
           </div>
           <div className="footer-col">
             <h4>Hotline Hỗ Trợ</h4>
             <p style={{marginBottom: '5px', fontSize: '13px', color: '#000'}}>Phương thức thanh toán</p>
             <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', letterSpacing: '0'}}>
-               💳 🏦 💵
+               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
             </div>
           </div>
         </div>

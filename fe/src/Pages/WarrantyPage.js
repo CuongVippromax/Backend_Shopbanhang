@@ -172,7 +172,7 @@ export default function WarrantyPage() {
         <div className="warranty-contact">
           <h3>Liên Hệ Bảo Hành</h3>
           <p>Hotline: <strong>098.246.8686</strong></p>
-          <p>Email: hoangkim.bookstore@gmail.com</p>
+          <p>Email: hoangkimbookstore@gmail.com</p>
           <p>Giờ làm việc: 8:00 - 21:00 (Thứ 2 - Chủ nhật)</p>
           <p style={{marginTop: '15px'}}>
             <Link to="/lien-he" style={{color: 'white', textDecoration: 'underline'}}>

@@ -179,7 +179,6 @@
 .products-section {
   border: 1px solid #e8e8e8;
   border-radius: 6px;
-  overflow-x: auto;
 }
 
 .products-header {
@@ -244,7 +243,12 @@
 .products-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: auto;
+  table-layout: fixed;
+}
+
+.products-table th,
+.products-table td {
+  text-align: left;
 }
 
 .products-table th:nth-child(1),
@@ -255,12 +259,12 @@
 
 .products-table th:nth-child(2),
 .products-table td:nth-child(2) {
-  min-width: 250px;
+  width: auto;
 }
 
 .products-table th:nth-child(3),
 .products-table td:nth-child(3) {
-  width: 150px;
+  width: 130px;
   text-align: right;
 }
 
@@ -272,7 +276,7 @@
 
 .products-table th:nth-child(5),
 .products-table td:nth-child(5) {
-  width: 150px;
+  width: 140px;
   text-align: right;
 }
 

@@ -9,6 +9,161 @@ import Header from '../Components/Header';
 import { useCart } from '../context/CartContext';
 import { getBooks, getBooksByCategory, getCategories, getFeaturedArticles } from '../api';
 
+// Component hiển thị icon danh mục
+const CategoryIcon = ({ categoryName }) => {
+  if (!categoryName) return null;
+  const lowerName = categoryName.toLowerCase();
+
+  // Tiểu thuyết - Cuốn sách 3D với bìa cứng
+  if (lowerName.includes('tiểu thuyết') || lowerName.includes('tieu thuyet')) {
+    return (
+      <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+        <circle cx="35" cy="35" r="34" fill="url(#gradTT)" />
+        <defs><linearGradient id="gradTT" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+        <rect x="22" y="16" width="26" height="38" rx="2" fill="white" />
+        <rect x="22" y="16" width="4" height="38" fill="#e65100" />
+        <rect x="28" y="22" width="16" height="4" rx="1" fill="#FF6B35" opacity="0.6" />
+        <rect x="28" y="29" width="12" height="2" fill="#ccc" />
+        <rect x="28" y="34" width="14" height="2" fill="#ccc" />
+        <rect x="28" y="39" width="10" height="2" fill="#ccc" />
+        <rect x="28" y="44" width="12" height="2" fill="#ccc" />
+      </svg>
+    );
+  }
+
+  // Khoa học - Nguyên tử
+  if (lowerName.includes('khoa học') || lowerName.includes('khoa hoc')) {
+    return (
+      <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+        <circle cx="35" cy="35" r="34" fill="url(#gradKH)" />
+        <defs><linearGradient id="gradKH" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+        <ellipse cx="35" cy="35" rx="20" ry="7" fill="none" stroke="white" strokeWidth="2" transform="rotate(-30, 35, 35)" />
+        <ellipse cx="35" cy="35" rx="20" ry="7" fill="none" stroke="white" strokeWidth="2" transform="rotate(30, 35, 35)" />
+        <ellipse cx="35" cy="35" rx="20" ry="7" fill="none" stroke="white" strokeWidth="2" transform="rotate(90, 35, 35)" />
+        <circle cx="35" cy="35" r="6" fill="white" />
+        <circle cx="35" cy="35" r="3" fill="#e65100" />
+      </svg>
+    );
+  }
+
+  // Kinh tế - Biểu đồ tăng trưởng
+  if (lowerName.includes('kinh tế') || lowerName.includes('kinh te')) {
+    return (
+      <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+        <circle cx="35" cy="35" r="34" fill="url(#gradKT)" />
+        <defs><linearGradient id="gradKT" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+        <rect x="16" y="42" width="8" height="12" rx="1" fill="white" />
+        <rect x="28" y="34" width="8" height="20" rx="1" fill="white" />
+        <rect x="40" y="26" width="8" height="28" rx="1" fill="white" />
+        <path d="M20 40 L32 32 L44 22" fill="none" stroke="#e65100" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M44 22 L48 22 L44 18" fill="none" stroke="#e65100" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  // Tâm lý - Kỹ năng sống - Hai người kết nối
+  if (lowerName.includes('tâm lý') || lowerName.includes('tam ly') || lowerName.includes('kỹ năng') || lowerName.includes('ky nang')) {
+    return (
+      <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+        <circle cx="35" cy="35" r="34" fill="url(#gradTL)" />
+        <defs><linearGradient id="gradTL" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+        <circle cx="24" cy="28" r="8" fill="white" />
+        <ellipse cx="24" cy="46" rx="10" ry="12" fill="white" />
+        <circle cx="46" cy="28" r="8" fill="white" />
+        <ellipse cx="46" cy="46" rx="10" ry="12" fill="white" />
+        <path d="M35 32 C35 28 32 26 30 28 C28 30 28 33 35 38 C42 33 42 30 40 28 C38 26 35 28 35 32" fill="#e65100" />
+      </svg>
+    );
+  }
+
+  // Thiếu nhi - Gấu con dễ thương
+  if (lowerName.includes('thiếu nhi') || lowerName.includes('thieu nhi')) {
+    return (
+      <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+        <circle cx="35" cy="35" r="34" fill="url(#gradSN)" />
+        <defs><linearGradient id="gradSN" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+        <circle cx="35" cy="40" r="16" fill="white" />
+        <circle cx="35" cy="26" r="12" fill="white" />
+        <circle cx="25" cy="18" r="5" fill="white" />
+        <circle cx="45" cy="18" r="5" fill="white" />
+        <circle cx="30" cy="25" r="2.5" fill="#333" />
+        <circle cx="40" cy="25" r="2.5" fill="#333" />
+        <ellipse cx="35" cy="30" rx="3" ry="2" fill="#333" />
+        <path d="M31 33 Q35 37 39 33" fill="none" stroke="#333" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M32 20 L35 24 L38 20 L35 16 Z" fill="#e65100" />
+      </svg>
+    );
+  }
+
+  // Lịch sử - Cuốn sách cổ với phong bì
+  if (lowerName.includes('lịch sử') || lowerName.includes('lich su')) {
+    return (
+      <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+        <circle cx="35" cy="35" r="34" fill="url(#gradLS)" />
+        <defs><linearGradient id="gradLS" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+        <rect x="18" y="20" width="34" height="32" rx="2" fill="white" />
+        <rect x="18" y="20" width="5" height="32" fill="#e8d5b7" />
+        <line x1="26" y1="28" x2="46" y2="28" stroke="#FF6B00" strokeWidth="1.5" />
+        <line x1="26" y1="34" x2="44" y2="34" stroke="#FF6B00" strokeWidth="1.5" />
+        <line x1="26" y1="40" x2="42" y2="40" stroke="#FF6B00" strokeWidth="1.5" />
+        <rect x="38" y="42" width="14" height="10" fill="none" stroke="#e65100" strokeWidth="1.5" rx="1" />
+        <line x1="38" y1="42" x2="45" y2="49" stroke="#e65100" strokeWidth="1.5" />
+      </svg>
+    );
+  }
+
+  // Công nghệ thông tin - Laptop với code
+  if (lowerName.includes('công nghệ') || lowerName.includes('cntt')) {
+    return (
+      <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+        <circle cx="35" cy="35" r="34" fill="url(#gradCN)" />
+        <defs><linearGradient id="gradCN" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+        <rect x="12" y="18" width="46" height="30" rx="3" fill="white" />
+        <rect x="15" y="21" width="40" height="24" rx="1" fill="#1a1a2e" />
+        <rect x="18" y="26" width="12" height="2" fill="#4ade80" />
+        <rect x="18" y="31" width="20" height="2" fill="#60a5fa" />
+        <rect x="18" y="36" width="8" height="2" fill="#f472b6" />
+        <rect x="28" y="36" width="16" height="2" fill="#fbbf24" />
+        <rect x="20" y="48" width="30" height="4" rx="1" fill="white" />
+        <rect x="16" y="52" width="38" height="3" rx="1" fill="white" />
+      </svg>
+    );
+  }
+
+  // Văn học nước ngoài - Sách mở với quả địa cầu
+  if (lowerName.includes('văn học') || lowerName.includes('van hoc')) {
+    return (
+      <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+        <circle cx="35" cy="35" r="34" fill="url(#gradVH)" />
+        <defs><linearGradient id="gradVH" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+        <path d="M12 20 Q20 16 35 20 Q50 16 58 20 L58 52 Q50 48 35 52 Q20 48 12 52 Z" fill="white" />
+        <line x1="35" y1="20" x2="35" y2="52" stroke="#e0e0e0" strokeWidth="1" />
+        <line x1="16" y1="28" x2="32" y2="28" stroke="#FF6B00" strokeWidth="1.5" opacity="0.5" />
+        <line x1="16" y1="34" x2="30" y2="34" stroke="#ccc" strokeWidth="1" />
+        <line x1="16" y1="38" x2="28" y2="38" stroke="#ccc" strokeWidth="1" />
+        <line x1="38" y1="28" x2="54" y2="28" stroke="#FF6B00" strokeWidth="1.5" opacity="0.5" />
+        <line x1="40" y1="34" x2="54" y2="34" stroke="#ccc" strokeWidth="1" />
+        <line x1="42" y1="38" x2="54" y2="38" stroke="#ccc" strokeWidth="1" />
+        <circle cx="46" cy="22" r="6" fill="none" stroke="#e65100" strokeWidth="1.5" />
+        <ellipse cx="46" cy="22" rx="6" ry="2" fill="none" stroke="#e65100" strokeWidth="1" />
+        <line x1="46" y1="16" x2="46" y2="28" stroke="#e65100" strokeWidth="1" />
+      </svg>
+    );
+  }
+
+  // Mặc định - Sách cơ bản
+  return (
+    <svg viewBox="0 0 70 70" style={{width: '100%', height: '100%'}}>
+      <circle cx="35" cy="35" r="34" fill="url(#gradDefault)" />
+      <defs><linearGradient id="gradDefault" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#e65100" /></linearGradient></defs>
+      <rect x="22" y="20" width="26" height="32" rx="3" fill="white" />
+      <rect x="26" y="26" width="18" height="3" fill="#e65100" opacity="0.5" />
+      <rect x="26" y="32" width="14" height="2" fill="#ccc" />
+      <rect x="26" y="37" width="16" height="2" fill="#ccc" />
+    </svg>
+  );
+};
+
 // Toast Notification Component
 const Toast = ({ message, type = 'success', onClose }) => {
   useEffect(() => {
@@ -114,17 +269,19 @@ const BookSection = ({ title, books, viewAllLink, onAddToCart }) => {
   };
 
   return (
-    <section className="book-section container">
-      <div className="section-header">
-        <h2>{title}</h2>
-        <a href={viewAllLink || '/cua-hang'} onClick={handleViewAll} className="view-more">Xem tất cả →</a>
-      </div>
-      <div className="book-grid">
-        {books.map((book) => (
-          <BookCard key={book.bookId} book={book} onAddToCart={onAddToCart} />
-        ))}
-      </div>
-    </section>
+    <div className="book-section-wrapper">
+      <section className="book-section container">
+        <div className="section-header">
+          <h2>{title}</h2>
+          <a href={viewAllLink || '/cua-hang'} onClick={handleViewAll} className="view-more">Xem tất cả →</a>
+        </div>
+        <div className="book-grid">
+          {books.map((book) => (
+            <BookCard key={book.bookId} book={book} onAddToCart={onAddToCart} />
+          ))}
+        </div>
+      </section>
+    </div>
   );
 };
 
@@ -262,23 +419,10 @@ export default function CleanHome() {
     return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
   };
 
-  const handleCategoryClick = async (category) => {
-    setSelectedCategory(category);
-    setCategoryLoading(true);
-    try {
-      const response = await getBooksByCategory(category.categoryId || category.id, { pageSize: 20 });
-      setCategoryBooks(response?.data || []);
-    } catch (error) {
-      console.error('Error loading category books:', error);
-      setCategoryBooks([]);
-    } finally {
-      setCategoryLoading(false);
-    }
-  };
-
-  const handleCloseCategoryBooks = () => {
-    setSelectedCategory(null);
-    setCategoryBooks([]);
+  const handleCategoryClick = (category) => {
+    // Chuyển hướng sang trang cửa hàng với categoryId
+    const categoryId = category.categoryId || category.id;
+    window.location.href = `/cua-hang?categoryId=${categoryId}`;
   };
 
   return (
@@ -371,35 +515,14 @@ export default function CleanHome() {
               onClick={() => handleCategoryClick(cat)}
               style={{ cursor: 'pointer' }}
             >
-              <div className="icon-circle">
-                <img src={cat.image || ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageimgfluidmautoobjectcontainmh100} alt={cat.categoryName} />
+              <div className="icon-circle" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CategoryIcon categoryName={cat.categoryName} />
               </div>
               <span>{cat.categoryName}</span>
             </div>
           ))
         )}
       </section>
-
-      {/* Category Books Section */}
-      {selectedCategory && (
-        <section className="category-books-section container">
-          <div className="category-books-header">
-            <h2>{selectedCategory.categoryName}</h2>
-            <button className="close-btn" onClick={handleCloseCategoryBooks}>×</button>
-          </div>
-          {categoryLoading ? (
-            <p>Đang tải sách...</p>
-          ) : categoryBooks.length > 0 ? (
-            <div className="book-grid">
-              {categoryBooks.map((book) => (
-                <BookCard key={book.bookId} book={book} onAddToCart={handleAddToCart} />
-              ))}
-            </div>
-          ) : (
-            <p>Không có sách trong danh mục này</p>
-          )}
-        </section>
-      )}
 
       {/* Flash Sale Section */}
       <section className="flash-sale-section container">
@@ -446,12 +569,13 @@ export default function CleanHome() {
       )}
 
       {/* Tin Tức Nổi Bật */}
-      <section className="home-news-section container">
-        <div className="section-header">
-          <h2>Tin Tức Nổi Bật</h2>
-          <Link to="/tin-tuc" className="view-more">Xem tất cả →</Link>
-        </div>
-        <div className="home-news-grid">
+      <div className="news-section-wrapper">
+        <section className="home-news-section container">
+          <div className="section-header">
+            <h2>Tin Tức Nổi Bật</h2>
+            <Link to="/tin-tuc" className="view-more">Xem tất cả →</Link>
+          </div>
+          <div className="home-news-grid">
           {loading ? (
             <p>Đang tải tin tức...</p>
           ) : articles.length > 0 ? (
@@ -481,6 +605,7 @@ export default function CleanHome() {
           )}
         </div>
       </section>
+      </div>
 
       {/* Subscription */}
       <div className="newsletter-bar">
@@ -512,12 +637,10 @@ export default function CleanHome() {
             <h4>Danh Mục</h4>
             <ul>
               {categories.slice(0, 5).map((cat) => (
-                <li 
-                  key={cat.categoryId || cat.id}
-                  onClick={() => window.location.href = `/cua-hang?categoryId=${cat.categoryId || cat.id}`}
-                  style={{cursor: 'pointer'}}
-                >
-                  {cat.categoryName}
+                <li key={cat.categoryId || cat.id}>
+                  <Link to={`/cua-hang?categoryId=${cat.categoryId || cat.id}`} style={{color: 'inherit', textDecoration: 'none'}}>
+                    {cat.categoryName}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -525,7 +648,7 @@ export default function CleanHome() {
           <div className="footer-col">
             <h4>Hình Thức Hỗ Trợ</h4>
             <div className="payment-icons">
-               💳 🏦 💵
+               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
             </div>
           </div>
         </div>

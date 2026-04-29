@@ -212,7 +212,31 @@ export const updateOrderStatus = (id, status) => getAdminClient().put(`/orders/$
 export const updatePaymentStatus = (id, status) => getAdminClient().put(`/orders/${id}/payment-status?status=${status}`);
 
 // Admin Reviews
-export const getAllReviewsAdmin = (params) => getAdminClient().get('/reviews', { params });
+export const getAllReviewsAdmin = (params) => {
+  const queryParams = { ...params };
+  // Backend expects 1-based page (pageNo), frontend uses 0-based page
+  if (queryParams.page !== undefined) {
+    queryParams.pageNo = queryParams.page + 1;
+    delete queryParams.page;
+  }
+  // Backend expects pageSize, frontend uses size
+  if (queryParams.size !== undefined) {
+    queryParams.pageSize = queryParams.size;
+    delete queryParams.size;
+  }
+  // Backend expects search, frontend uses keyword
+  if (queryParams.keyword !== undefined) {
+    queryParams.search = queryParams.keyword;
+    delete queryParams.keyword;
+  }
+        // Remove rating filter if empty or not a valid number
+        if (queryParams.rating && !isNaN(parseInt(queryParams.rating))) {
+          queryParams.rating = parseInt(queryParams.rating);
+        } else {
+          delete queryParams.rating;
+        }
+  return getAdminClient().get('/reviews', { params: queryParams });
+};
 export const deleteReviewAdmin = (id) => getAdminClient().delete(`/reviews/${id}`);
 
 // Admin Articles

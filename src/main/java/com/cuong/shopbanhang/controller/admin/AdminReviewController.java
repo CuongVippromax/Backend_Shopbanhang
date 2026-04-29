@@ -15,6 +15,8 @@ import com.cuong.shopbanhang.dto.response.ReviewResponse;
 import com.cuong.shopbanhang.model.Review;
 import com.cuong.shopbanhang.repository.ReviewRepository;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/admin/reviews")
 @RequiredArgsConstructor
@@ -30,7 +32,8 @@ public class AdminReviewController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "reviewId:desc") String sortBy,
             @RequestParam(defaultValue = "") String search,
-            @RequestParam(required = false) Long bookId) {
+            @RequestParam(required = false) Long bookId,
+            @RequestParam(required = false) Integer rating) {
 
         String[] sortParts = sortBy.split(":");
         String sortField = sortParts[0];
@@ -55,7 +58,15 @@ public class AdminReviewController {
             reviewPage = reviewRepository.findAll(pageable);
         }
 
-        var reviews = reviewPage.getContent().stream()
+        // Filter by rating if provided
+        List<Review> filteredReviews = reviewPage.getContent();
+        if (rating != null) {
+            filteredReviews = filteredReviews.stream()
+                    .filter(r -> r.getRating() != null && r.getRating().equals(rating))
+                    .toList();
+        }
+
+        var reviews = filteredReviews.stream()
                 .map(this::toResponse)
                 .toList();
 
@@ -95,11 +106,19 @@ public class AdminReviewController {
                 .reviewId(review.getReviewId())
                 .bookId(review.getBook() != null ? review.getBook().getBookId() : null)
                 .bookName(review.getBook() != null ? review.getBook().getBookName() : null)
+                .bookTitle(review.getBook() != null ? review.getBook().getBookName() : null)
+                .bookAuthor(review.getBook() != null ? review.getBook().getAuthor() : null)
+                .bookImage(review.getBook() != null ? review.getBook().getImage() : null)
+                .thumbnailUrl(review.getBook() != null ? review.getBook().getImage() : null)
                 .userId(review.getUser() != null ? review.getUser().getUserId() : null)
                 .username(review.getUser() != null ? review.getUser().getUsername() : null)
+                .userName(review.getUser() != null ? review.getUser().getUsername() : null)
+                .reviewerName(review.getUser() != null ? review.getUser().getUsername() : null)
                 .rating(review.getRating())
                 .comment(review.getComment())
+                .content(review.getComment())
                 .createdAt(review.getCreatedAt())
+                .reviewDate(review.getCreatedAt())
                 .build();
     }
 }

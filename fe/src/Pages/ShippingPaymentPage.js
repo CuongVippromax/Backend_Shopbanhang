@@ -224,7 +224,7 @@ export default function ShippingPaymentPage() {
         <div className="shipping-contact">
           <h3>Hỗ Trợ Vận Chuyển</h3>
           <p>Hotline: <strong>098.246.8686</strong></p>
-          <p>Email: hoangkim.bookstore@gmail.com</p>
+          <p>Email: hoangkimbookstore@gmail.com</p>
           <p>Zalo: 098.246.8686</p>
           <p style={{marginTop: '15px'}}>
             <Link to="/lien-he" style={{color: 'white', textDecoration: 'underline'}}>

@@ -15,12 +15,6 @@ body {
   color: var(--text-main);
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 15px;
-}
-
 /* Top Bar */
 .order-detail-page .top-bar {
   background-color: var(--bg-gray);
@@ -317,10 +311,20 @@ body {
   margin-top: 60px;
 }
 
+.order-detail-page .main-footer .container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
 .order-detail-page .footer-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 30px;
+  width: 100%;
 }
 
 .order-detail-page .footer-col h3 {
@@ -418,7 +422,9 @@ body {
   }
   
   .order-detail-page .footer-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
+    gap: 20px;
   }
 }

@@ -96,6 +96,8 @@ export default function ShopPage() {
     const categoryId = searchParams.get('categoryId');
     if (categoryId) {
       setSelectedCategory(categoryId);
+    } else {
+      setSelectedCategory('');
     }
   }, [searchParams]);
 
@@ -410,7 +412,7 @@ export default function ShopPage() {
         <div className="container footer-grid">
           <div className="footer-col">
             <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
-            <p>📧 nhasachhaian@gmail.com</p>
+            <p>📧 nhasachhoangkim@gmail.com</p>
           </div>
           <div className="footer-col">
             <h4>Hỗ Trợ</h4>
@@ -424,12 +426,10 @@ export default function ShopPage() {
             <h4>Danh Mục</h4>
             <ul>
               {categories.slice(0, 5).map((cat) => (
-                <li 
-                  key={cat.categoryId || cat.id}
-                  onClick={() => handleFooterCategoryClick(cat.categoryId || cat.id)}
-                  style={{cursor: 'pointer'}}
-                >
-                  {cat.categoryName}
+                <li key={cat.categoryId || cat.id}>
+                  <Link to={`/cua-hang?categoryId=${cat.categoryId || cat.id}`} style={{color: 'inherit', textDecoration: 'none'}}>
+                    {cat.categoryName}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -438,7 +438,7 @@ export default function ShopPage() {
             <h4>Hotline Hỗ Trợ</h4>
             <p style={{marginBottom: '5px', fontSize: '13px', color: '#000'}}>Phương thức thanh toán</p>
             <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', letterSpacing: '0'}}>
-               💳 🏦 💵
+               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
             </div>
           </div>
         </div>

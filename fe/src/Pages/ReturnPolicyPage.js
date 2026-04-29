@@ -135,7 +135,7 @@ export default function ReturnPolicyPage() {
         <div className="contact-box">
           <h3>Đội Ngũ Hỗ Trợ Khách Hàng</h3>
           <p>Hotline: <strong>098.246.8686</strong></p>
-          <p>Email: hoangkim.bookstore@gmail.com</p>
+          <p>Email: hoangkimbookstore@gmail.com</p>
           <p>Địa chỉ: 2b/23/154, đường Ngọc Hồi, phường Hoàng Liệt, quận Hoàng Mai, Hà Nội</p>
         </div>
       </div>
