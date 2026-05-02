@@ -142,9 +142,16 @@ body {
 .order-detail-page .status-DELIVERED { background: #d4edda; color: #155724; }
 .order-detail-page .status-CANCELLED { background: #f8d7da; color: #721c24; }
 
-.order-detail-page .payment-PAID { background: #f9f9f9; color: #fff; }
-.order-detail-page .payment-UNPAID { background: #17a2b8; color: #fff; }
-.order-detail-page .payment-REFUNDED { background: #20c997; color: #fff; }
+.order-detail-page .payment-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.order-detail-page .payment-PAID { background: #f9f9f9; color: #333; }
+.order-detail-page .payment-UNPAID { background: #17a2b8; color: #333; }
+.order-detail-page .payment-REFUNDED { background: #20c997; color: #333; }
 
 .order-detail-page .order-detail-section {
   padding: 20px;
@@ -261,7 +268,7 @@ body {
 
 .order-detail-page .item-total {
   font-weight: 700;
-  color: var(--primary-orange);
+  color: #0b3c68;
   font-size: 16px;
   text-align: right;
   min-width: 120px;

@@ -157,7 +157,7 @@
 .checkout-page .summary-item-price {
   font-weight: 600;
   font-size: 14px;
-  color: var(--primary-orange, #f37021);
+  color: #0b3c68;
   white-space: nowrap;
 }
 
@@ -177,7 +177,7 @@
 .checkout-page .summary-row.total {
   font-size: 18px;
   font-weight: 700;
-  color: #d32f2f;
+  color: #0b3c68;
   padding-top: 12px;
   margin-top: 8px;
   border-top: 1px solid #ddd;

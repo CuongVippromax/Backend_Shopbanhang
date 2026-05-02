@@ -286,12 +286,12 @@ body {
 
 /* Flash Sale */
 .flash-sale-section {
-  background: linear-gradient(135deg, #e65100 0%, #ff6d00 100%);
+  background: linear-gradient(135deg, #0b3c68 0%, #1a5a9c 100%);
   border-radius: 12px;
-  border: 3px solid #ff6d00;
+  border: 3px solid #1a5a9c;
   margin-top: 40px !important;
   margin-bottom: 15px !important;
-  box-shadow: 0 4px 15px rgba(255, 109, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(11, 60, 104, 0.3);
   overflow: hidden;
 }
 
@@ -302,29 +302,29 @@ body {
 
 .ebook-badge-sale {
   background: linear-gradient(135deg, #ffd700 0%, #ff8f00 100%);
-  color: #e65100;
+  color: #0b3c68;
   font-weight: bold;
 }
 
 .ebook-buy-btn {
-  background: linear-gradient(135deg, #e65100 0%, #ff6d00 100%);
+  background: linear-gradient(135deg, #0b3c68 0%, #1a5a9c 100%);
   color: #ffffff;
 }
 
 .ebook-buy-btn:hover {
-  background: linear-gradient(135deg, #ff6d00 0%, #ff8f00 100%);
+  background: linear-gradient(135deg, #1a5a9c 0%, #2a6ab0 100%);
 }
 
 .view-all-btn {
-  background: linear-gradient(135deg, #e65100 0%, #ff6d00 100%);
+  background: linear-gradient(135deg, #0b3c68 0%, #1a5a9c 100%);
   color: #ffffff;
 }
 
 .view-all-btn:hover {
-  background: linear-gradient(135deg, #ff6d00 0%, #ff8f00 100%);
+  background: linear-gradient(135deg, #1a5a9c 0%, #2a6ab0 100%);
 }
 .flash-sale-header {
-  background: linear-gradient(135deg, #e65100 0%, #ff6d00 100%);
+  background: linear-gradient(135deg, #0b3c68 0%, #1a5a9c 100%);
   padding: 15px 20px;
   display: flex;
   align-items: center;
@@ -361,7 +361,7 @@ body {
 }
 .time-block span {
   background: white;
-  color: #e65100;
+  color: #0b3c68;
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 16px;
@@ -378,14 +378,14 @@ body {
   gap: 12px;
 }
 .flash-sale-footer {
-  background: linear-gradient(135deg, #e65100 0%, #ff6d00 100%);
+  background: linear-gradient(135deg, #0b3c68 0%, #1a5a9c 100%);
   padding: 12px;
   text-align: center;
 }
 .flash-sale-footer .view-all-btn {
   display: inline-block;
   background: white;
-  color: #e65100;
+  color: #0b3c68;
   padding: 10px 30px;
   border-radius: 25px;
   text-decoration: none;
@@ -560,7 +560,7 @@ body {
 
 .ebook-category {
   font-size: 10px;
-  color: #f7931e;
+  color: #0b3c68;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   font-weight: 600;
@@ -608,7 +608,7 @@ body {
 }
 
 .ebook-current-price {
-  color: #e74c3c;
+  color: #0b3c68;
   font-size: 18px;
   font-weight: 700;
 }

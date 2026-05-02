@@ -338,8 +338,8 @@
   gap: 8px;
   align-items: center;
 }
-.current-price {
-  color: #e53e3e;
+.news-book-card .current-price {
+  color: #0b3c68;
   font-weight: 700;
   font-size: 14px;
 }

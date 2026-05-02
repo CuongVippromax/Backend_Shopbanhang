@@ -104,6 +104,16 @@
   color: #e74c3c;
 }
 
+.dropdown-item.admin-link {
+  background: linear-gradient(135deg, #0b3c68, #1a5a9c);
+  color: #fff;
+  font-weight: 600;
+}
+
+.dropdown-item.admin-link:hover {
+  background: linear-gradient(135deg, #1a5a9c, #2a6ab0);
+}
+
 .dropdown-divider {
   height: 1px;
   background: #eee;

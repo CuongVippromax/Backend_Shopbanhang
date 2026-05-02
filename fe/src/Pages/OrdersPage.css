@@ -116,7 +116,7 @@
 
 .orders-page .order-item-price {
   font-weight: 600;
-  color: var(--primary-orange, #f37021);
+  color: #0b3c68;
   white-space: nowrap;
 }
 
@@ -132,7 +132,7 @@
 .orders-page .order-total {
   font-size: 16px;
   font-weight: 700;
-  color: #d32f2f;
+  color: #0b3c68;
 }
 
 .orders-page .btn-cancel-order {

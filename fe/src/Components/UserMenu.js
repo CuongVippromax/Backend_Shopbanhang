@@ -164,6 +164,11 @@ export default function UserMenu() {
               <Link to="/tai-khoan" className="dropdown-item" onClick={() => setShowDropdown(false)}>
                 👤 Tài khoản của tôi
               </Link>
+              {user?.role === 'ADMIN' && (
+                <Link to="/admin" className="dropdown-item admin-link" onClick={() => setShowDropdown(false)}>
+                  ⚙️ Quản trị viên
+                </Link>
+              )}
               <Link to="/don-hang" className="dropdown-item" onClick={() => setShowDropdown(false)}>
                 📦 Đơn hàng
               </Link>
