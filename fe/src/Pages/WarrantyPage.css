@@ -5,7 +5,7 @@
 }
 
 .warranty-page .page-header {
-  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+  display: none;
 }
 
 .warranty-content {

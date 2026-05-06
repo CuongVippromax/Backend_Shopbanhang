@@ -52,7 +52,7 @@ export default function ShippingPaymentPage() {
 
       <div className="shipping-content">
         <div className="shipping-section">
-          <h2><span className="icon">🚚</span> Phương Thức Giao Hàng</h2>
+          <h2> Phương Thức Giao Hàng</h2>
           <p>
             Nhà Sách Hoàng Kim hợp tác với các đơn vị vận chuyển uy tín để đảm bảo 
             sách được giao đến tay khách hàng nhanh chóng và an toàn nhất.
@@ -60,7 +60,7 @@ export default function ShippingPaymentPage() {
           
           <div className="shipping-methods">
             <div className="shipping-card recommended">
-              <div className="icon">📦</div>
+              <div className="icon"></div>
               <h4>Giao Hàng Tiêu Chuẩn</h4>
               <p className="time">Nhận hàng trong 2-4 ngày</p>
               <p className="price">
@@ -72,7 +72,7 @@ export default function ShippingPaymentPage() {
             </div>
             
             <div className="shipping-card">
-              <div className="icon">⚡</div>
+              <div className="icon"></div>
               <h4>Giao Hàng Nhanh</h4>
               <p className="time">Nhận hàng trong 1-2 ngày</p>
               <p className="price">35.000₫</p>
@@ -82,7 +82,7 @@ export default function ShippingPaymentPage() {
             </div>
             
             <div className="shipping-card">
-              <div className="icon">🏃</div>
+              <div className="icon"></div>
               <h4>Giao Hàng Hỏa Tốc</h4>
               <p className="time">Nhận hàng trong 4-6 giờ</p>
               <p className="price">50.000₫ - 70.000₫</p>
@@ -94,33 +94,33 @@ export default function ShippingPaymentPage() {
         </div>
 
         <div className="shipping-section">
-          <h2><span className="icon">💳</span> Hình Thức Thanh Toán</h2>
+          <h2> Hình Thức Thanh Toán</h2>
           <p>Chúng tôi cung cấp nhiều hình thức thanh toán linh hoạt cho khách hàng:</p>
           
           <div className="payment-methods">
             <div className="payment-card">
-              <div className="icon">💵</div>
+              <div className="icon"></div>
               <h4>Thanh Toán Khi Nhận Hàng (COD)</h4>
               <p>Trả tiền mặt khi nhận được sản phẩm</p>
               <span className="fee">Miễn phí</span>
             </div>
             
             <div className="payment-card">
-              <div className="icon">🏦</div>
+              <div className="icon"></div>
               <h4>Chuyển Khoản Ngân Hàng</h4>
               <p>Chuyển khoản trực tiếp qua internet banking</p>
               <span className="fee">Miễn phí</span>
             </div>
             
             <div className="payment-card">
-              <div className="icon">💳</div>
+              <div className="icon"></div>
               <h4>Thanh Toán VNPay</h4>
               <p>Thanh toán qua cổng VNPay với thẻ ATM/Visa/MasterCard</p>
               <span className="fee">Miễn phí</span>
             </div>
             
             <div className="payment-card">
-              <div className="icon">📱</div>
+              <div className="icon"></div>
               <h4>Ví Điện Tử</h4>
               <p>ZaloPay, Momo, VNPay Wallet</p>
               <span className="fee">Miễn phí</span>
@@ -129,7 +129,7 @@ export default function ShippingPaymentPage() {
         </div>
 
         <div className="shipping-section">
-          <h2><span className="icon">📍</span> Khu Vực Giao Hàng</h2>
+          <h2> Khu Vực Giao Hàng</h2>
           <table className="shipping-table">
             <thead>
               <tr>
@@ -169,7 +169,7 @@ export default function ShippingPaymentPage() {
         </div>
 
         <div className="shipping-section">
-          <h2><span className="icon">📋</span> Quy Trình Đặt Hàng</h2>
+          <h2> Quy Trình Đặt Hàng</h2>
           <div className="shipping-timeline">
             <div className="timeline-item">
               <div className="dot">1</div>
@@ -210,7 +210,7 @@ export default function ShippingPaymentPage() {
         </div>
 
         <div className="shipping-section">
-          <h2><span className="icon">⚠️</span> Lưu Ý Quan Trọng</h2>
+          <h2> Lưu Ý Quan Trọng</h2>
           <ul>
             <li>Đơn hàng từ 150.000₫ trở lên sẽ được <strong>miễn phí giao hàng</strong> trên toàn quốc</li>
             <li>Thời gian giao hàng tính từ khi đơn được xác nhận thành công</li>

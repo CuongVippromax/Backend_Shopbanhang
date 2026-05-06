@@ -52,7 +52,7 @@ export default function WarrantyPage() {
 
       <div className="warranty-content">
         <div className="warranty-section">
-          <h2><span className="icon">🛡️</span> Chính Sách Bảo Hành</h2>
+          <h2> Chính Sách Bảo Hành</h2>
           <p>
             Nhà Sách Hoàng Kim cam kết cung cấp sản phẩm chất lượng tốt nhất cho khách hàng.
             Tất cả các sản phẩm đều được kiểm tra kỹ lưỡng trước khi giao hàng. Chúng tôi
@@ -94,32 +94,32 @@ export default function WarrantyPage() {
         </div>
 
         <div className="warranty-section">
-          <h2><span className="icon">✅</span> Điều Kiện Bảo Hành</h2>
+          <h2> Điều Kiện Bảo Hành</h2>
           <p>Để được bảo hành, sản phẩm cần đáp ứng các điều kiện sau:</p>
           <ul className="shield-list">
             <li>
-              <span className="icon">📦</span>
+              <span className="icon"></span>
               <div>
                 <strong>Còn trong thời gian bảo hành</strong>
                 <span>Theo bảng thời gian quy định</span>
               </div>
             </li>
             <li>
-              <span className="icon">🧾</span>
+              <span className="icon"></span>
               <div>
                 <strong>Có hóa đơn mua hàng</strong>
                 <span>Hoặc xác nhận đơn hàng hợp lệ</span>
               </div>
             </li>
             <li>
-              <span className="icon">📷</span>
+              <span className="icon"></span>
               <div>
                 <strong>Lỗi từ nhà sản xuất</strong>
                 <span>Không áp dụng với lỗi do người dùng</span>
               </div>
             </li>
             <li>
-              <span className="icon">🏷️</span>
+              <span className="icon"></span>
               <div>
                 <strong>Còn nguyên nhãn mác</strong>
                 <span>Bao bì sản phẩm còn đầy đủ</span>
@@ -129,7 +129,7 @@ export default function WarrantyPage() {
         </div>
 
         <div className="warranty-section">
-          <h2><span className="icon">❌</span> Trường Hợp Không Được Bảo Hành</h2>
+          <h2> Trường Hợp Không Được Bảo Hành</h2>
           <ul>
             <li>Sản phẩm bị hư hỏng do sử dụng không đúng cách hoặc bảo quản không đúng</li>
             <li>Sản phẩm bị rách, ướt, mốc do tác động của môi trường bên ngoài</li>
@@ -141,7 +141,7 @@ export default function WarrantyPage() {
         </div>
 
         <div className="warranty-section">
-          <h2><span className="icon">🔧</span> Quy Trình Bảo Hành</h2>
+          <h2> Quy Trình Bảo Hành</h2>
           <ul className="step-list">
             <li>
               <strong>Liên hệ hỗ trợ:</strong> Gọi hotline 098.246.8686 hoặc nhắn tin qua Zalo
@@ -159,7 +159,7 @@ export default function WarrantyPage() {
         </div>
 
         <div className="warranty-section">
-          <h2><span className="icon">📝</span> Lưu Ý Khi Sử Dụng</h2>
+          <h2> Lưu Ý Khi Sử Dụng</h2>
           <ul>
             <li>Bảo quản sách nơi khô ráo, tránh ánh nắng trực tiếp và độ ẩm cao</li>
             <li>Không để sách tiếp xúc với nước, hóa chất hoặc nhiệt độ cao</li>

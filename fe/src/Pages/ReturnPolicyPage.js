@@ -52,7 +52,7 @@ export default function ReturnPolicyPage() {
 
       <div className="policy-content">
         <div className="policy-section">
-          <h2><span className="icon">🔄</span> Chính Sách Đổi Trả</h2>
+          <h2> Chính Sách Đổi Trả</h2>
           <p>
             Nhằm đảm bảo quyền lợi tối đa cho khách hàng, Nhà Sách Hoàng Kim áp dụng 
             chính sách đổi trả linh hoạt và thuận tiện cho tất cả các đơn hàng.
@@ -76,7 +76,7 @@ export default function ReturnPolicyPage() {
         </div>
 
         <div className="policy-section">
-          <h2><span className="icon">📋</span> Quy Trình Đổi Trả</h2>
+          <h2> Quy Trình Đổi Trả</h2>
           <ul className="step-list">
             <li>
               <strong>Liên hệ hotline:</strong> Gọi 098.246.8686 hoặc nhắn tin qua Zalo để thông báo yêu cầu đổi trả
@@ -94,7 +94,7 @@ export default function ReturnPolicyPage() {
         </div>
 
         <div className="policy-section">
-          <h2><span className="icon">💰</span> Chính Sách Hoàn Tiền</h2>
+          <h2> Chính Sách Hoàn Tiền</h2>
           <p>Sau khi sản phẩm được xác nhận đủ điều kiện đổi trả, quý khách sẽ được hoàn tiền theo các hình thức:</p>
           <ul>
             <li><strong>Hoàn tiền qua tài khoản ngân hàng:</strong> Trong vòng 5-7 ngày làm việc</li>
@@ -105,20 +105,20 @@ export default function ReturnPolicyPage() {
         </div>
 
         <div className="policy-section">
-          <h2><span className="icon">⚠️</span> Lưu Ý Quan Trọng</h2>
+          <h2> Lưu Ý Quan Trọng</h2>
           <div className="condition-grid">
             <div className="condition-card">
-              <div className="icon">📚</div>
+              <div className="icon"></div>
               <h4>Sách Bìa Cứng</h4>
               <p>Chỉ đổi trả nếu có lỗi từ nhà sản xuất</p>
             </div>
             <div className="condition-card">
-              <div className="icon">📖</div>
+              <div className="icon"></div>
               <h4>Sách Đã Đọc</h4>
               <p>Không áp dụng đổi trả nếu đã có dấu hiệu sử dụng</p>
             </div>
             <div className="condition-card">
-              <div className="icon">🎁</div>
+              <div className="icon"></div>
               <h4>Sản Phẩm Khuyến Mãi</h4>
               <p>Áp dụng theo điều kiện riêng của từng chương trình</p>
             </div>
@@ -127,7 +127,7 @@ export default function ReturnPolicyPage() {
 
         <div className="policy-note">
           <p>
-            <strong>📞 Liên hệ hỗ trợ:</strong> Nếu có bất kỳ thắc mắc nào về chính sách đổi trả, 
+            <strong> Liên hệ hỗ trợ:</strong> Nếu có bất kỳ thắc mắc nào về chính sách đổi trả, 
             vui lòng liên hệ hotline <strong>098.246.8686</strong> hoặc <Link to="/lien-he" style={{color: '#e65100'}}>liên hệ qua website</Link>.
           </p>
         </div>

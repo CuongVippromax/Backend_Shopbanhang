@@ -5,10 +5,7 @@
 }
 
 .page-header {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-  color: white;
-  padding: 60px 0 40px;
-  text-align: center;
+  display: none;
 }
 
 .page-header h1 {
