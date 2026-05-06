@@ -72,13 +72,13 @@ export default function AboutPage() {
           
           <p className="highlight-text"><strong>Danh mục sản phẩm đa dạng và đặc biệt, với những mặt hàng độc quyền được lựa chọn kỹ lưỡng, chính là yếu tố làm nên sự khác biệt của Nhà Sách Hoàng Kim. Chính nhờ đó, chúng tôi đã xây dựng được niềm tin vững chắc và sự yêu mến từ phía khách hàng.</strong></p>
 
-          <p>📚 <strong>Sách quốc văn:</strong> Nhà Sách Hoàng Kim mang đến một kho tàng sách quốc văn phong phú từ các nhà xuất bản và công ty sách uy tín trên cả nước. Đặc biệt, Hoàng Kim còn hợp tác xuất bản nhiều đầu sách chất lượng, đáp ứng nhu cầu học tập và giải trí của độc giả với những tựa sách được đón nhận rộng rãi trên thị trường.</p>
+          <p><strong>Sách quốc văn:</strong> Nhà Sách Hoàng Kim mang đến một kho tàng sách quốc văn phong phú từ các nhà xuất bản và công ty sách uy tín trên cả nước. Đặc biệt, Hoàng Kim còn hợp tác xuất bản nhiều đầu sách chất lượng, đáp ứng nhu cầu học tập và giải trí của độc giả với những tựa sách được đón nhận rộng rãi trên thị trường.</p>
 
-          <p>🌍 <strong>Sách ngoại văn:</strong> Với danh mục sách ngoại văn đa dạng, Nhà Sách Hoàng Kim lựa chọn và cung cấp các tựa sách tiếng Anh chất lượng từ những nhà xuất bản hàng đầu thế giới như Penguin Random House, HarperCollins, và Macmillan Publishers. Nhiều cuốn sách được phân phối độc quyền tại Hoàng Kim, mang đến cơ hội tiếp cận nguồn tri thức quốc tế nhanh chóng và dễ dàng.</p>
+          <p><strong>Sách ngoại văn:</strong> Với danh mục sách ngoại văn đa dạng, Nhà Sách Hoàng Kim lựa chọn và cung cấp các tựa sách tiếng Anh chất lượng từ những nhà xuất bản hàng đầu thế giới như Penguin Random House, HarperCollins, và Macmillan Publishers. Nhiều cuốn sách được phân phối độc quyền tại Hoàng Kim, mang đến cơ hội tiếp cận nguồn tri thức quốc tế nhanh chóng và dễ dàng.</p>
 
-          <p>✏️ <strong>Dụng cụ học tập, văn phòng phẩm, đồ chơi, quà tặng:</strong> Nhà Sách Hoàng Kim không chỉ có sách mà còn cung cấp nhiều sản phẩm chính hãng, đa dạng từ các thương hiệu nổi tiếng trong và ngoài nước. Các sản phẩm này luôn được cập nhật xu hướng để đáp ứng sở thích và nhu cầu ngày càng cao của khách hàng.</p>
+          <p><strong>Dụng cụ học tập, văn phòng phẩm, đồ chơi, quà tặng:</strong> Nhà Sách Hoàng Kim không chỉ có sách mà còn cung cấp nhiều sản phẩm chính hãng, đa dạng từ các thương hiệu nổi tiếng trong và ngoài nước. Các sản phẩm này luôn được cập nhật xu hướng để đáp ứng sở thích và nhu cầu ngày càng cao của khách hàng.</p>
 
-          <p>🎶 <strong>Băng, đĩa:</strong> Với sự đầu tư vào các sản phẩm âm nhạc và phim ảnh, Nhà Sách Hoàng Kim giới thiệu đến khách hàng những album của nhiều nghệ sĩ nổi tiếng cùng các bộ phim được yêu thích. Đây là điểm đến lý tưởng cho những ai tìm kiếm các sản phẩm giải trí chất lượng.</p>
+          <p><strong>Băng, đĩa:</strong> Với sự đầu tư vào các sản phẩm âm nhạc và phim ảnh, Nhà Sách Hoàng Kim giới thiệu đến khách hàng những album của nhiều nghệ sĩ nổi tiếng cùng các bộ phim được yêu thích. Đây là điểm đến lý tưởng cho những ai tìm kiếm các sản phẩm giải trí chất lượng.</p>
 
           <p>Hi vọng với trang thương mại điện tử nhasachhoangkim.com, Nhà Sách Hoàng Kim có thể gia tăng tiện ích cho khách hàng, đồng thời mang những sản phẩm của hệ thống nhà sách đến với mọi khách hàng trên cả nước.</p>
           

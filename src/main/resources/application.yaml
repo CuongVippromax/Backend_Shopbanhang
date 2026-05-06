@@ -55,6 +55,7 @@ spring:
         api-key: ${AI_API_KEY}
         model: ${GEMINI_MODEL:gemini-3.1-flash-lite-preview}
 app:
+  base-url: http://localhost:8080
   security:
     allowedOrigins:
       - http://localhost:5173
@@ -65,6 +66,8 @@ app:
       - /api/v1/docs/**
       - /swagger-ui.html
       - /swagger-ui/**
+      - /v3/api-docs/**
+      - /api-docs/**
       - /api/v1/books/**
       - /api/books/**
       - /api/v1/books/flash-sale
@@ -121,3 +124,13 @@ payment:
     version: 2.1.0
     command: pay
     orderType: other
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+  show-actuator: false

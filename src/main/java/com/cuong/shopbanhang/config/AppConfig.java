@@ -91,6 +91,13 @@ public class AppConfig {
         var allowedOrigins = appProperties.getSecurity() != null
                 ? appProperties.getSecurity().getAllowedOrigins()
                 : java.util.Arrays.asList("http://localhost:5173");
+        if (allowedOrigins == null) {
+            allowedOrigins = java.util.Arrays.asList("http://localhost:5173");
+        }
+        allowedOrigins = new java.util.ArrayList<>(allowedOrigins);
+        if (!allowedOrigins.contains("http://localhost:8080")) {
+            allowedOrigins.add("http://localhost:8080");
+        }
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(java.util.Arrays.asList("*"));
