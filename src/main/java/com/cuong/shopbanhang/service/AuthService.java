@@ -24,6 +24,7 @@ import com.cuong.shopbanhang.model.User;
 import com.cuong.shopbanhang.repository.UserRepository;
 import com.cuong.shopbanhang.security.JwtTokenProvider;
 import com.cuong.shopbanhang.security.UserPrincipal;
+import com.cuong.shopbanhang.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,16 +37,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisTemplate<String, String> redisTemplate;
+    private final EmailService emailService;
 
-    /**
-     * Xác thực người dùng và tạo access token + refresh token.
-     * 
-     * EXCEPTIONS CÓ THỂ NÉM RA:
-     * - BadRequestException (1): Khi username/password không đúng
-     * 
-     * @param request LoginRequest chứa usernameOrEmail và password
-     * @return LoginResponse chứa accessToken, refreshToken, userId, username, email, role
-     */
+    
     public LoginResponse login(LoginRequest request) {
         try {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(request.getUsernameOrEmail(), request.getPassword());
@@ -97,15 +91,7 @@ public class AuthService {
         return response;
     }
 
-    /**
-     * Tạo access token mới từ refresh token.
-     * 
-     * EXCEPTIONS CÓ THỂ NÉM RA:
-     * - TokenException (1): Khi refresh token không hợp lệ hoặc user không tồn tại
-     * 
-     * @param refreshToken Token để tạo access token mới
-     * @return LoginResponse chứa accessToken mới, refreshToken cũ
-     */
+   
     public LoginResponse createAccessTooken(String refreshToken) {
         // EXCEPTION: TokenException - Khi token không hợp lệ
         if (!tokenProvider.validateToken(refreshToken)) {
@@ -131,16 +117,6 @@ public class AuthService {
                 .build();
     }
 
-    /**
-     * Thay đổi mật khẩu người dùng.
-     * Yêu cầu người dùng phải đăng nhập.
-     * 
-     * EXCEPTIONS CÓ THỂ NÉM RA:
-     * - UnauthorizedException (1): Khi người dùng chưa đăng nhập
-     * - BadRequestException (2): Khi mật khẩu hiện tại sai, hoặc mật khẩu mới không khớp
-     * 
-     * @param request ChangePasswordRequest chứa currentPassword, newPassword, confirmPassword
-     */
     @Transactional
     public void changePassword(ChangePasswordRequest request) {
         Long userId = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
@@ -159,17 +135,10 @@ public class AuthService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+
+        emailService.sendPasswordChangeNotification(user.getEmail(), user.getUsername());
     }
 
-    /**
-     * Đăng xuất và thêm token vào blacklist.
-     * Token sẽ bị vô hiệu hóa và không thể sử dụng lại.
-     * 
-     * EXCEPTIONS CÓ THỂ NÉM RA:
-     * - TokenException (2): Khi token không hợp lệ, hoặc hết hạn
-     * 
-     * @param token JWT token cần blacklist
-     */
     @Transactional
     public void logout(String token) {
         if (!StringUtils.hasText(token)) {
@@ -200,16 +169,6 @@ public class AuthService {
         redisTemplate.delete("refreshToken:" + userId);
     }
 
-    /**
-     * Làm mới refresh token.
-     * Tạo refresh token mới và lưu vào Redis.
-     * 
-     * EXCEPTIONS CÓ THỂ NÉM RA:
-     * - TokenException (3): Khi token không hợp lệ, bị thu hồi, hoặc không tìm thấy
-     * 
-     * @param refreshToken Refresh token cũ
-     * @return Refresh token mới
-     */
     public String refreshToken(String refreshToken) {
         // EXCEPTION: TokenException - Khi token không hợp lệ
         if (!tokenProvider.validateToken(refreshToken)) {

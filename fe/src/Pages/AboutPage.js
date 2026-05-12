@@ -96,11 +96,9 @@ export default function AboutPage() {
           <div className="footer-col">
             <h4>Hỗ Trợ</h4>
             <ul>
-              <li>Giới thiệu về chúng tôi</li>
-              <li>Chính sách bảo mật</li>
-              <li>Chính sách đổi trả và hoàn tiền</li>
-              <li>Chính sách thanh toán</li>
-              <li>Chính sách vận chuyển</li>
+              <li><Link to="/chinh-sach-doi-tra" style={{color: 'inherit', textDecoration: 'none'}}>Chính sách đổi trả sản phẩm</Link></li>
+              <li><Link to="/quy-dinh-bao-hanh" style={{color: 'inherit', textDecoration: 'none'}}>Quy định bảo hành</Link></li>
+              <li><Link to="/giao-nhan-va-thanh-toan" style={{color: 'inherit', textDecoration: 'none'}}>Giao nhận và thanh toán</Link></li>
             </ul>
           </div>
           <div className="footer-col">

@@ -424,3 +424,26 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
 }
+
+.ebook-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ebook-add-cart-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ebook-add-cart-btn:hover {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+}

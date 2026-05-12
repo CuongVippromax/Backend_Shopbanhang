@@ -44,7 +44,7 @@ export default function ChangePasswordPage() {
       await changePassword(form);
       setSuccess('Đổi mật khẩu thành công!');
       setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setTimeout(() => setSuccess(''), 3000);
+      setTimeout(() => navigate('/tai-khoan'), 1500);
     } catch (err) {
       setError(err.message || 'Đổi mật khẩu thất bại!');
     } finally {

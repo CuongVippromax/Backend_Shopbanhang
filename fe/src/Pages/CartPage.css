@@ -66,10 +66,11 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1px solid #ccc;
+  border: 1px solid #999;
   background: white;
-  color: #ccc;
-  font-size: 16px;
+  color: #666;
+  font-size: 18px;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;

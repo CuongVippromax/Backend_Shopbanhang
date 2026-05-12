@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import ImgAsset from '../public';
 import './ShopPage.css';
 import './CleanHome.css';
-import { getBooks, getCategories } from '../api';
+import { getBooks, getCategories, addToCart as apiAddToCart } from '../api';
 import UserMenu from '../Components/UserMenu';
 import CategoryDropdown from '../Components/CategoryDropdown';
 import { useCart } from '../context/CartContext';
 
-const BookCard = ({ book, isFlashSale }) => {
+const BookCard = ({ book, isFlashSale, onAddToCart, onBuyNow }) => {
   const imgSrc = book.image || ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentwoocommerce_thumbnailsizewoocommerce_thumbnail;
 
   const formatPrice = (price) => {
@@ -24,7 +24,17 @@ const BookCard = ({ book, isFlashSale }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    alert('Đã thêm vào giỏ hàng!');
+    if (onAddToCart) {
+      onAddToCart(book);
+    }
+  };
+
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onBuyNow) {
+      onBuyNow(book);
+    }
   };
 
   return (
@@ -66,9 +76,14 @@ const BookCard = ({ book, isFlashSale }) => {
           <span className="ebook-current-price">{formatPrice(book.price)}đ</span>
         </div>
 
-        <button className="ebook-buy-btn" onClick={handleAddToCart}>
-          Mua ngay
-        </button>
+        <div className="ebook-actions">
+          <button className="ebook-add-cart-btn" onClick={handleAddToCart}>
+            Thêm vào giỏ
+          </button>
+          <button className="ebook-buy-btn" onClick={handleBuyNow}>
+            Mua ngay
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -78,6 +93,7 @@ const ITEMS_PER_PAGE = 15;
 
 export default function ShopPage() {
   const { cartCount } = useCart();
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [allBooks, setAllBooks] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -89,6 +105,46 @@ export default function ShopPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [searchParams] = useSearchParams();
+  const [toast, setToast] = useState(null);
+
+  // Handle buy now - thêm vào giỏ hàng và chuyển đến trang thanh toán
+  const handleBuyNow = async (book) => {
+    // Check login first
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.userId) {
+      localStorage.setItem('pendingBuyBookId', book.bookId);
+      window.location.href = '/dang-nhap';
+      return;
+    }
+
+    try {
+      await apiAddToCart({ bookId: book.bookId, quantity: 1 });
+      window.dispatchEvent(new Event('cartUpdated'));
+      navigate('/thanh-toan');
+    } catch (error) {
+      console.error('Error buying now:', error);
+      alert('Có lỗi xảy ra, vui lòng thử lại!');
+    }
+  };
+
+  // Handle add to cart - thêm vào giỏ hàng
+  const handleAddToCart = async (book) => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.userId) {
+      window.location.href = '/dang-nhap';
+      return;
+    }
+
+    try {
+      await apiAddToCart({ bookId: book.bookId, quantity: 1 });
+      window.dispatchEvent(new Event('cartUpdated'));
+      setToast({ message: `Đã thêm "${book.bookName}" vào giỏ hàng!`, type: 'success' });
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      setToast({ message: 'Có lỗi xảy ra, vui lòng thử lại!', type: 'error' });
+    }
+  };
 
   // Get categoryId from URL if exists
   useEffect(() => {
@@ -180,6 +236,24 @@ export default function ShopPage() {
   };
   return (
     <div className="shop-page">
+      {/* Toast Notification */}
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          top: '100px',
+          right: '20px',
+          background: toast.type === 'success' ? '#2ecc71' : '#e74c3c',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          zIndex: 9999,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          animation: 'slideIn 0.3s ease'
+        }}>
+          {toast.message}
+        </div>
+      )}
+      
       {/* Main Header (Tái sử dụng) */}
       <header className="main-header">
         <div className="container header-inner">
@@ -307,7 +381,7 @@ export default function ShopPage() {
             <>
               <div className="shop-grid">
                 {books.map((book) => (
-                  <BookCard key={book.bookId} book={book} />
+                  <BookCard key={book.bookId} book={book} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
                 ))}
               </div>
               

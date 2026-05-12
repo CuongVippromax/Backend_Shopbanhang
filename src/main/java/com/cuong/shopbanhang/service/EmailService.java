@@ -43,7 +43,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Xác nhận đơn hàng #" + orderId);
+            helper.setSubject("Xác nhận đơn hàng - Nhà Sách Hoàng Kim" + orderId);
 
             String htmlContent = "<html>" +
                     "<body style='font-family: Arial, sans-serif;'>" +
@@ -57,7 +57,7 @@ public class EmailService {
                     "<h3>Chi tiết sản phẩm:</h3>" +
                     orderDetails +
                     "<p>Chúng tôi sẽ sớm giao hàng cho bạn!</p>" +
-                    "<p>Trân trọng,<br>ShopBanHang</p>" +
+                    "<p>Trân trọng,<br>Nhà Sách Hoàng Kim</p>" +
                     "</body>" +
                     "</html>";
 
@@ -66,6 +66,40 @@ public class EmailService {
         } catch (MessagingException e) {
             // EXCEPTION: BadRequestException - Khi gửi email thất bại
             throw new BadRequestException("Không thể gửi email xác nhận đơn hàng. Vui lòng thử lại sau."); // EX-003
+        }
+    }
+
+    /**
+     * Gửi email thông báo đổi mật khẩu thành công.
+     * 
+     * EXCEPTIONS CÓ THỂ NÉM RA:
+     * - BadRequestException (1): Khi gửi email thất bại
+     * 
+     * @param toEmail Email người nhận
+     * @param username Tên đăng nhập
+     */
+    public void sendPasswordChangeNotification(String toEmail, String username) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Thông báo thay đổi mật khẩu - Nhà Sách Hoàng Kim");
+
+            String htmlContent = "<html>" +
+                    "<body style='font-family: Arial, sans-serif;'>" +
+                    "<h2>Thay đổi mật khẩu thành công</h2>" +
+                    "<p>Xin chào <strong>" + username + "</strong>,</p>" +
+                    "<p>Mật khẩu của bạn đã được thay đổi thành công.</p>" +
+                    "<p>Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ với chúng tôi ngay.</p>" +
+                    "<p>Trân trọng,<br>Nhà Sách Hoàng Kim</p>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            log.error("Failed to send password change notification email to {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -84,7 +118,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Đặt lại mật khẩu - ShopBanHang");
+            helper.setSubject("Đặt lại mật khẩu - Nhà Sách Hoàng Kim");
 
             String htmlContent = "<html>" +
                     "<body style='font-family: Arial, sans-serif;'>" +
@@ -94,7 +128,7 @@ public class EmailService {
                     "style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Đặt lại mật khẩu</a></p>" +
                     "<p>Link có hiệu lực trong 24 giờ.</p>" +
                     "<p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>" +
-                    "<p>Trân trọng,<br>ShopBanHang</p>" +
+                    "<p>Trân trọng,<br>Nhà Sách Hoàng Kim</p>" +
                     "</body>" +
                     "</html>";
 

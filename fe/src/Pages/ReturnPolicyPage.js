@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './ReturnPolicyPage.css';
 import UserMenu from '../Components/UserMenu';
 import { useCart } from '../context/CartContext';
+import { getCategories } from '../api';
 
 export default function ReturnPolicyPage() {
   const { cartCount } = useCart();
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    getCategories().then(data => {
+      if (data && data.content) {
+        setCategories(data.content);
+      } else if (Array.isArray(data)) {
+        setCategories(data);
+      }
+    }).catch(err => console.error('Error fetching categories:', err));
+  }, []);
   
   return (
     <div className="return-policy-page">
@@ -139,6 +151,39 @@ export default function ReturnPolicyPage() {
           <p>Địa chỉ: 2b/23/154, đường Ngọc Hồi, phường Hoàng Liệt, quận Hoàng Mai, Hà Nội</p>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="main-footer" style={{marginTop: '60px'}}>
+        <div className="container footer-grid">
+          <div className="footer-col">
+            <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
+            <p>📧 nhasachhoangkim@gmail.com</p>
+          </div>
+          <div className="footer-col">
+            <h4>Hỗ Trợ</h4>
+            <ul>
+              <li><Link to="/chinh-sach-doi-tra" style={{color: 'inherit', textDecoration: 'none'}}>Chính sách đổi trả sản phẩm</Link></li>
+              <li><Link to="/quy-dinh-bao-hanh" style={{color: 'inherit', textDecoration: 'none'}}>Quy định bảo hành</Link></li>
+              <li><Link to="/giao-nhan-va-thanh-toan" style={{color: 'inherit', textDecoration: 'none'}}>Giao nhận và thanh toán</Link></li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Danh Mục</h4>
+            <ul>
+              {categories.slice(0, 5).map((cat) => (
+                <li key={cat.categoryId}><Link to={`/cua-hang?categoryId=${cat.categoryId}`} style={{color: 'inherit', textDecoration: 'none'}}>{cat.categoryName}</Link></li>
+              ))}
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Hotline Hỗ Trợ</h4>
+            <p style={{marginBottom: '5px', fontSize: '13px', color: '#000'}}>Phương thức thanh toán</p>
+            <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', letterSpacing: '0'}}>
+               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

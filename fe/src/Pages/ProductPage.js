@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import ImgAsset from '../public';
 import './ProductPage.css';
 import { getBookById, addToCart, getReviewsByBookId, createReview, getBooksByCategory } from '../api';
@@ -8,6 +8,7 @@ import { useCart } from '../context/CartContext';
 
 export default function ProductPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { cartCount, refresh } = useCart();
   const [book, setBook] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -136,12 +137,15 @@ export default function ProductPage() {
       const result = await addToCart({ bookId: parseInt(id), quantity });
       console.log('Buy now add to cart result:', result);
       setCartMessage('Đặt hàng thành công! Đang chuyển đến thanh toán...');
-      // Refresh cart count before redirecting
-      await refresh();
-      // Chuyển hướng đến trang thanh toán trực tiếp
-      setTimeout(() => {
-        window.location.href = '/thanh-toan';
-      }, 1000);
+      
+      // Wait a bit to ensure backend saved the data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event('cartUpdated'));
+      
+      // Use navigate instead of window.location.href
+      navigate('/thanh-toan');
     } catch (error) {
       console.error('Error buying now:', error);
       const errorMsg = error?.message || error?.response?.data || 'Mua ngay thất bại!';

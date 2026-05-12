@@ -40,9 +40,7 @@ public class OrderController {
                 order.getUser() != null ? order.getUser().getUserId() : null);
             OrderResponse response = orderService.toOrderResponse(order);
             log.info("OrderResponse fullName: {}", response.getFullName());
-            // Gửi email xác nhận đơn hàng
-            // VNPay: email sẽ được gửi ở callback (PaymentController) sau khi thanh toán thành công
-            // COD và các phương thức khác: gửi email ngay tại đây
+            
             String pm = order.getPaymentMethod();
             boolean isVnPay = pm != null && (pm.equalsIgnoreCase("VNPAY") || pm.equalsIgnoreCase("vnpay"));
             if (!isVnPay) {

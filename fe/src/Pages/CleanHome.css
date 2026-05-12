@@ -315,6 +315,29 @@ body {
   background: linear-gradient(135deg, #1a5a9c 0%, #2a6ab0 100%);
 }
 
+.ebook-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ebook-add-cart-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.ebook-add-cart-btn:hover {
+  background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+}
+
 .view-all-btn {
   background: linear-gradient(135deg, #0b3c68 0%, #1a5a9c 100%);
   color: #ffffff;

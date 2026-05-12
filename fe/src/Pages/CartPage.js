@@ -23,6 +23,16 @@ export default function CartPage() {
         setCategories(data);
       }
     }).catch(err => console.error('Error fetching categories:', err));
+
+    // Listen for cart updates from other pages
+    const handleCartUpdate = () => {
+      loadCart();
+    };
+    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadCart = async () => {
@@ -127,9 +137,41 @@ export default function CartPage() {
         {loading ? (
           <p>Đang tải giỏ hàng...</p>
         ) : cartItems.length === 0 ? (
-          <div className="empty-cart">
-            <p>Giỏ hàng trống</p>
-            <Link to="/cua-hang" className="btn-continue">← TIẾP TỤC MUA SẮM</Link>
+          <div className="empty-cart" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '400px',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              fontSize: '64px',
+              marginBottom: '20px',
+              opacity: 0.5
+            }}>
+              🛒
+            </div>
+            <h2 style={{
+              fontSize: '24px',
+              color: '#666',
+              marginBottom: '30px',
+              fontWeight: '500'
+            }}>
+              Giỏ hàng trống
+            </h2>
+            <Link to="/cua-hang" style={{
+              padding: '12px 40px',
+              background: 'linear-gradient(135deg, #ff6b35, #f7931e)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '25px',
+              fontWeight: '600',
+              fontSize: '14px',
+              transition: 'all 0.3s ease'
+            }}>
+              Tiếp tục mua hàng
+            </Link>
           </div>
         ) : (
           <div className="cart-layout">

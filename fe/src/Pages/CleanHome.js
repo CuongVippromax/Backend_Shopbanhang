@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './CleanHome.css';
 import ImgAsset from '../public';
 import UserMenu from '../Components/UserMenu';
 import CategoryDropdown from '../Components/CategoryDropdown';
 import BannerSlider from '../Components/BannerSlider';
 import { useCart } from '../context/CartContext';
-import { getBooks, getCategories, getFeaturedArticles } from '../api';
+import { getBooks, getCategories, getFeaturedArticles, addToCart as apiAddToCart } from '../api';
 
 // Component hiển thị icon danh mục
 const CategoryIcon = ({ categoryName }) => {
@@ -191,7 +191,7 @@ const Toast = ({ message, type = 'success', onClose }) => {
 };
 
 // Component sách - Phong cách Ebook Store
-const BookCard = ({ book, isFlashSale, onAddToCart }) => {
+const BookCard = ({ book, isFlashSale, onAddToCart, onBuyNow }) => {
   const imgSrc = book.image || book.thumbnailUrl || ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentwoocommerce_thumbnailsizewoocommerce_thumbnail;
 
   const formatPrice = (price) => {
@@ -209,6 +209,14 @@ const BookCard = ({ book, isFlashSale, onAddToCart }) => {
     e.stopPropagation();
     if (onAddToCart) {
       onAddToCart(book);
+    }
+  };
+
+  const handleBuyNow = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onBuyNow) {
+      onBuyNow(book);
     }
   };
 
@@ -252,15 +260,20 @@ const BookCard = ({ book, isFlashSale, onAddToCart }) => {
           <span className="ebook-current-price">{formatPrice(book.price)}đ</span>
         </div>
 
-        <button className="ebook-buy-btn" onClick={handleAddToCart}>
-          Mua ngay
-        </button>
+        <div className="ebook-actions">
+          <button className="ebook-add-cart-btn" onClick={handleAddToCart}>
+            Thêm vào giỏ
+          </button>
+          <button className="ebook-buy-btn" onClick={handleBuyNow}>
+            Mua ngay
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-const BookSection = ({ title, books, viewAllLink, onAddToCart }) => {
+const BookSection = ({ title, books, viewAllLink, onAddToCart, onBuyNow }) => {
   const handleViewAll = (e) => {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -276,7 +289,7 @@ const BookSection = ({ title, books, viewAllLink, onAddToCart }) => {
         </div>
         <div className="book-grid">
           {books.map((book) => (
-            <BookCard key={book.bookId} book={book} onAddToCart={onAddToCart} />
+            <BookCard key={book.bookId} book={book} onAddToCart={onAddToCart} onBuyNow={onBuyNow} />
           ))}
         </div>
       </section>
@@ -286,6 +299,7 @@ const BookSection = ({ title, books, viewAllLink, onAddToCart }) => {
 
 export default function CleanHome() {
   const { cartCount } = useCart();
+  const navigate = useNavigate();
   const [toast, setToast] = useState(null);
   const [featuredBooks, setFeaturedBooks] = useState([]);
   const [newBooks, setNewBooks] = useState([]);
@@ -297,9 +311,46 @@ export default function CleanHome() {
   const [countdown, setCountdown] = useState({ hours: 0, minutes: 0, seconds: 0 });
   const categoryRef = useRef(null);
 
-  // Handle add to cart - chuyển sang trang giỏ hàng
-  const handleAddToCart = (book) => {
-    window.location.href = '/gio-hang';
+  // Handle buy now - thêm vào giỏ hàng và chuyển đến trang thanh toán
+  const handleBuyNow = async (book) => {
+    // Check login first
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.userId) {
+      // Lưu bookId để sau khi đăng nhập xong có thể mua luôn
+      localStorage.setItem('pendingBuyBookId', book.bookId);
+      window.location.href = '/dang-nhap';
+      return;
+    }
+
+    try {
+      await apiAddToCart({ bookId: book.bookId, quantity: 1 });
+      // Dispatch event để cập nhật cart count
+      window.dispatchEvent(new Event('cartUpdated'));
+      // Chuyển thẳng đến trang thanh toán
+      navigate('/thanh-toan');
+    } catch (error) {
+      console.error('Error buying now:', error);
+      setToast({ message: 'Có lỗi xảy ra, vui lòng thử lại!', type: 'error' });
+    }
+  };
+
+  // Handle add to cart - thêm vào giỏ hàng và hiển thị thông báo
+  const handleAddToCart = async (book) => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.userId) {
+      window.location.href = '/dang-nhap';
+      return;
+    }
+
+    try {
+      await apiAddToCart({ bookId: book.bookId, quantity: 1 });
+      window.dispatchEvent(new Event('cartUpdated'));
+      setToast({ message: `Đã thêm "${book.bookName}" vào giỏ hàng!`, type: 'success' });
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      setToast({ message: 'Có lỗi xảy ra, vui lòng thử lại!', type: 'error' });
+    }
   };
 
   // Flash Sale countdown timer - đếm ngược đến 10h sáng mỗi ngày
@@ -534,7 +585,7 @@ export default function CleanHome() {
             <p>Đang tải...</p>
           ) : flashSaleBooks.length > 0 ? (
             flashSaleBooks.slice(0, 5).map((book) => (
-              <BookCard key={book.bookId} book={book} isFlashSale={true} onAddToCart={handleAddToCart} />
+              <BookCard key={book.bookId} book={book} isFlashSale={true} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
             ))
           ) : (
             <p>Không có sản phẩm giảm giá</p>
@@ -549,12 +600,12 @@ export default function CleanHome() {
 
       {/* Sách nổi bật */}
       {!loading && featuredBooks.length > 0 && (
-        <BookSection title="Sách Nổi Bật" books={featuredBooks.slice(0, 5)} viewAllLink="/cua-hang" onAddToCart={handleAddToCart} />
+        <BookSection title="Sách Nổi Bật" books={featuredBooks.slice(0, 5)} viewAllLink="/cua-hang" onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
       )}
 
       {/* Sách mới */}
       {!loading && newBooks.length > 0 && (
-        <BookSection title="Sách Mới" books={newBooks.slice(0, 5)} viewAllLink="/cua-hang" onAddToCart={handleAddToCart} />
+        <BookSection title="Sách Mới" books={newBooks.slice(0, 5)} viewAllLink="/cua-hang" onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
       )}
 
       {/* Tin Tức Nổi Bật */}

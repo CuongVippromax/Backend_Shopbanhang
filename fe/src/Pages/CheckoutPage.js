@@ -40,7 +40,12 @@ export default function CheckoutPage() {
         getCart(),
         getUserProfile()
       ]);
-      setCartItems(cartData?.items || []);
+      
+      // Backend trả CartResponse trực tiếp (không wrapped trong DataResponse)
+      // CartResponse có format: { cartId, userId, items: [...], totalItems, totalPrice }
+      const items = cartData?.items || [];
+      console.log('CheckoutPage - Cart data loaded:', items.length, 'items');
+      setCartItems(items);
 
       // Pre-fill from user profile
       // Backend trả DataResponse<UserResponse>, interceptor trả response.data → profileData là DataResponse
