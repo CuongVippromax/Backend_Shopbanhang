@@ -4,15 +4,15 @@ import ImgAsset from '../public';
 import './CheckoutPage.css';
 import UserMenu from '../Components/UserMenu';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../Components/Toast';
 import { getCart, createOrder, getUserProfile } from '../api';
 
 export default function CheckoutPage() {
   const { cartCount, clearAll } = useCart();
+  const { success, error } = useToast();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(null);
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
@@ -75,7 +75,6 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    setError('');
     setPlacing(true);
 
     try {
@@ -105,29 +104,26 @@ export default function CheckoutPage() {
             throw new Error('Không nhận được URL thanh toán từ VNPay');
           }
         } catch (paymentError) {
-          setError('Không thể kết nối thanh toán VNPay. Vui lòng thử lại!');
+          error('Không thể kết nối thanh toán VNPay. Vui lòng thử lại!');
           setPlacing(false);
           return;
         }
         return;
       }
 
-      // COD: hiển thị thông báo thành công và chuyển đến trang chi tiết đơn hàng
+      // COD: hiển thị toast thành công và chuyển đến trang chi tiết đơn hàng
       const orderId = order?.orderId;
-      setSuccess({
-        orderId,
-        message: 'Đặt hàng thành công!'
-      });
+      success(`Đặt hàng thành công! Mã đơn: #${orderId}`);
       
       // Xóa giỏ hàng sau khi đặt thành công
       clearAll();
       
-      // Chuyển đến trang chi tiết đơn hàng sau 1.5s
+      // Chuyển đến trang chi tiết đơn hàng sau 2s
       setTimeout(() => {
         navigate(`/don-hang/${orderId}`);
-      }, 1500);
+      }, 2000);
     } catch (err) {
-      setError(err.message || 'Đặt hàng thất bại!');
+      error(err.message || 'Đặt hàng thất bại!');
     } finally {
       setPlacing(false);
     }
@@ -180,87 +176,6 @@ export default function CheckoutPage() {
       <main className="container checkout-content">
         <h2>💳 Thanh Toán</h2>
 
-        {/* Success Notification */}
-        {success && (
-          <div style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: '#fff',
-            padding: '40px 50px',
-            borderRadius: '16px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-            zIndex: 9999,
-            textAlign: 'center',
-            minWidth: '320px',
-            animation: 'fadeInScale 0.3s ease-out'
-          }}>
-            <div style={{
-              width: '70px',
-              height: '70px',
-              backgroundColor: '#28a745',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px',
-              fontSize: '36px',
-              color: '#fff'
-            }}>
-              ✓
-            </div>
-            <h3 style={{
-              color: '#28a745',
-              fontSize: '24px',
-              marginBottom: '10px',
-              fontWeight: '600'
-            }}>
-              {success.message}
-            </h3>
-            <p style={{
-              color: '#666',
-              fontSize: '16px',
-              marginBottom: '5px'
-            }}>
-              Mã đơn hàng: <strong>#{success.orderId}</strong>
-            </p>
-            <p style={{
-              color: '#888',
-              fontSize: '14px',
-              marginTop: '15px'
-            }}>
-              Đang chuyển đến trang chi tiết...
-            </p>
-          </div>
-        )}
-
-        <style>{`
-          @keyframes fadeInScale {
-            from {
-              opacity: 0;
-              transform: translate(-50%, -50%) scale(0.8);
-            }
-            to {
-              opacity: 1;
-              transform: translate(-50%, -50%) scale(1);
-            }
-          }
-        `}</style>
-
-        {/* Overlay */}
-        {success && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            zIndex: 9998
-          }} />
-        )}
-
         {loading ? (
           <p>Đang tải...</p>
         ) : cartItems.length === 0 ? (
@@ -272,8 +187,6 @@ export default function CheckoutPage() {
           <form className="checkout-layout" onSubmit={handlePlaceOrder}>
             {/* Left: Checkout Form */}
             <div className="checkout-form">
-              {error && <div className="error-msg">{error}</div>}
-
               <div className="form-group">
                 <label>Họ và tên <span className="required">*</span></label>
                 <input

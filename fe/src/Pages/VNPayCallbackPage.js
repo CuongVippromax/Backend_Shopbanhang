@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import './VNPayCallbackPage.css';
 import UserMenu from '../Components/UserMenu';
+import { useToast } from '../Components/Toast';
 
 export default function VNPayCallbackPage() {
   const [searchParams] = useSearchParams();
+  const { success, error } = useToast();
   const [loading, setLoading] = useState(true);
   const [paymentResult, setPaymentResult] = useState(null);
 
@@ -21,29 +23,44 @@ export default function VNPayCallbackPage() {
         );
         const data = await response.json();
 
+        const isSuccess = vnp_ResponseCode === '00';
         setPaymentResult({
-          success: vnp_ResponseCode === '00',
+          success: isSuccess,
           responseCode: vnp_ResponseCode,
           orderId: vnp_TxnRef,
           amount: vnp_Amount ? (parseInt(vnp_Amount) / 100).toLocaleString('vi-VN') + ' ₫' : null,
           bankTranNo: vnp_BankTranNo,
-          message: data.message || (vnp_ResponseCode === '00' ? 'Thanh toán thành công!' : 'Thanh toán thất bại!')
+          message: data.message || (isSuccess ? 'Thanh toán thành công!' : 'Thanh toán thất bại!')
         });
+
+        // Show toast notification
+        if (isSuccess) {
+          success('Thanh toán thành công! Cảm ơn bạn đã đặt hàng tại Nhà Sách Hoàng Kim.');
+        } else {
+          error('Thanh toán thất bại! Vui lòng thử lại hoặc chọn phương thức thanh toán khác.');
+        }
       } catch (error) {
         console.error('Error verifying payment:', error);
+        const isSuccess = vnp_ResponseCode === '00';
         setPaymentResult({
-          success: vnp_ResponseCode === '00',
+          success: isSuccess,
           responseCode: vnp_ResponseCode,
           orderId: vnp_TxnRef,
-          message: vnp_ResponseCode === '00' ? 'Thanh toán thành công!' : 'Thanh toán thất bại!'
+          message: isSuccess ? 'Thanh toán thành công!' : 'Thanh toán thất bại!'
         });
+        
+        if (isSuccess) {
+          success('Thanh toán thành công!');
+        } else {
+          error('Thanh toán thất bại!');
+        }
       } finally {
         setLoading(false);
       }
     };
 
     verifyPayment();
-  }, [searchParams, vnp_ResponseCode, vnp_TxnRef, vnp_Amount, vnp_BankTranNo]);
+  }, [searchParams, vnp_ResponseCode, vnp_TxnRef, vnp_Amount, vnp_BankTranNo, success, error]);
 
   if (loading) {
     return (

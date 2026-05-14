@@ -87,6 +87,20 @@
   align-items: center;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.liked-item:hover {
+  opacity: 0.8;
+}
+
+.liked-item a {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
 }
 .liked-item:last-child {
   border-bottom: none;
@@ -96,6 +110,14 @@
   height: 80px;
   object-fit: cover;
   border-radius: 4px;
+  flex-shrink: 0;
+}
+.liked-item:hover img {
+  opacity: 0.9;
+}
+.liked-info {
+  flex: 1;
+  min-width: 0;
 }
 .liked-info h5 {
   margin: 0 0 5px 0;
@@ -103,12 +125,16 @@
   color: var(--dark-blue);
   line-height: 1.4;
   font-weight: normal;
+  transition: color 0.2s;
+}
+.liked-item:hover .liked-info h5 {
+  color: var(--primary-orange);
 }
 
-/* Shop Grid - 5 cột như trang chủ */
+/* Shop Grid - 4 cột để card rộng hơn */
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 25px;
 }
 

@@ -55,8 +55,12 @@ body {
 
 /* Header */
 .main-header {
-  padding: 25px 0;
+  padding: 20px 0;
   background: #fff;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 .header-inner {
   display: flex;
@@ -65,8 +69,12 @@ body {
   gap: 30px;
 }
 .logo-img {
-  max-width: 200px;
+  max-width: 180px;
   height: auto;
+  transition: transform 0.3s ease;
+}
+.logo-img:hover {
+  transform: scale(1.02);
 }
 .logo-text {
   font-size: 24px;
@@ -76,58 +84,101 @@ body {
 
 /* Search */
 .search-area {
-  flex: 0 0 350px;
-  max-width: 350px;
+  flex: 0 0 400px;
+  max-width: 400px;
   display: flex;
-  border: 2px solid var(--primary-orange);
-  border-radius: 4px;
+  border: 2px solid var(--border-color);
+  border-radius: 25px;
   overflow: hidden;
   margin-left: auto;
   margin-right: 20px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+.search-area:focus-within {
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(245, 114, 36, 0.1);
+  background: #fff;
 }
 .search-area input {
   flex: 1;
   border: none;
-  padding: 8px 12px;
+  padding: 12px 18px;
   outline: none;
-  font-size: 13px;
+  font-size: 14px;
+  background: transparent;
+}
+.search-area input::placeholder {
+  color: var(--text-light);
 }
 .search-btn {
   background: var(--dark-blue);
   border: none;
   color: #fff;
-  padding: 0 15px;
+  padding: 0 20px;
   cursor: pointer;
   font-size: 14px;
+  transition: background 0.3s ease;
+}
+.search-btn:hover {
+  background: var(--primary-orange);
 }
 
 /* Cart */
 .cart-area {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 20px;
   font-size: 14px;
-  font-weight: bold;
+}
+.cart-area a {
+  transition: all 0.3s ease;
+}
+.cart-area a:hover {
+  opacity: 0.8;
+}
+.cart-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text-main);
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+.cart-link:hover {
+  border-color: var(--primary-orange);
+  box-shadow: 0 2px 8px rgba(245, 114, 36, 0.15);
+}
+.cart-text {
+  font-weight: 500;
+  font-size: 13px;
+}
+.cart-price {
+  color: var(--primary-orange);
+  font-weight: 600;
 }
 .cart-icon {
   position: relative;
-  border: 2px solid var(--border-color);
-  padding: 10px;
-  border-radius: 4px;
+  font-size: 22px;
 }
 .cart-count {
   position: absolute;
-  top: -10px;
+  top: -8px;
   right: -10px;
   background: var(--primary-orange);
   color: #fff;
-  font-size: 12px;
-  width: 20px;
-  height: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  border: 2px solid #fff;
 }
 
 /* Categories Menu Dropdown */
@@ -137,41 +188,49 @@ body {
 
 /* Nav */
 .main-nav {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
   background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
 }
 .nav-inner {
   display: flex;
   align-items: center;
 }
 .cat-title {
-  background: var(--primary-orange);
+  background: linear-gradient(135deg, var(--primary-orange) 0%, #e56520 100%);
   color: #fff;
-  font-weight: bold;
-  padding: 15px 20px;
+  font-weight: 600;
+  padding: 14px 20px;
   width: 220px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: background 0.2s ease;
+  gap: 10px;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  border-radius: 0;
 }
 
 .categories-menu:hover .cat-title {
-  background: #e56520;
+  background: linear-gradient(135deg, #e56520 0%, #d35400 100%);
 }
 .nav-links {
   display: flex;
   list-style: none;
   margin: 0 0 0 30px;
-  gap: 30px;
+  gap: 35px;
 }
 .nav-links li {
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
+  font-size: 14px;
+  padding: 16px 0;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
 }
 .nav-links li:hover, .nav-links li.active {
   color: var(--primary-orange);
+  border-bottom-color: var(--primary-orange);
 }
 
 /* Hero Section */

@@ -1,0 +1,294 @@
+@keyframes toastPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes checkDraw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes textFade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide-in notification from right - for login/logout */
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes progressShrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.toast-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+/* Original toast style (center popup - for order success, etc.) */
+.toast {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: toastPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  pointer-events: auto;
+}
+
+.toast-box {
+  width: 160px;
+  height: 160px;
+  background: #fff;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 16px;
+  box-shadow: 
+    0 0 0 3px #e5e7eb,
+    0 12px 48px rgba(0, 0, 0, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.toast-icon {
+  width: 50px;
+  height: 50px;
+}
+
+.toast-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.toast-icon .checkmark-path {
+  fill: none;
+  stroke: #22c55e;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: checkDraw 0.6s ease-out 0.3s forwards;
+}
+
+.toast-message {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  padding: 0 10px;
+  opacity: 0;
+  animation: textFade 0.4s ease-out 0.8s forwards;
+}
+
+/* Success notification style - giống login/logout (popup center) */
+.toast--success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: toastPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  pointer-events: auto;
+}
+
+.toast-box--success {
+  width: 160px;
+  height: 160px;
+  background: #fff;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 16px;
+  box-shadow: 
+    0 0 0 3px #e5e7eb,
+    0 12px 48px rgba(0, 0, 0, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.toast-box--success .toast-icon-wrapper {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-box--success .toast-icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.toast-box--success .toast-message {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  padding: 0 10px;
+  opacity: 0;
+  animation: textFade 0.4s ease-out 0.8s forwards;
+  line-height: 1.3;
+}
+
+/* Login/Logout/Update notification style - giống nhau (popup center) */
+.toast--login-success,
+.toast--logout-success,
+.toast--update-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: toastPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  pointer-events: auto;
+}
+
+.toast-box--login-success,
+.toast-box--logout-success,
+.toast-box--update-success {
+  width: 160px;
+  height: 160px;
+  background: #fff;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 16px;
+  box-shadow: 
+    0 0 0 3px #e5e7eb,
+    0 12px 48px rgba(0, 0, 0, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.toast-icon-wrapper {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-icon-wrapper .toast-icon-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.toast-icon-wrapper .toast-icon-svg.login-icon {
+  fill: #22c55e;
+}
+
+.toast-icon-wrapper .toast-icon-svg.logout-icon {
+  fill: #f59e0b;
+}
+
+.toast-message {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+  padding: 0 10px;
+  opacity: 0;
+  animation: textFade 0.4s ease-out 0.8s forwards;
+  line-height: 1.3;
+}
+
+.toast-icon-circle {
+  width: 60px;
+  height: 60px;
+}
+
+.toast-icon-circle .checkmark-path {
+  fill: none;
+  stroke: #22c55e;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: checkDraw 0.6s ease-out 0.3s forwards;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .toast--login-success,
+  .toast--logout-success {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+  }
+  
+  .toast-box--login-success,
+  .toast-box--logout-success {
+    min-width: auto;
+    max-width: 100%;
+    padding: 8px 12px;
+  }
+}

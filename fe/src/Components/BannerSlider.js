@@ -43,6 +43,12 @@ const BannerSlider = ({ images }) => {
     setTimeout(() => setIsAnimating(false), 700);
   };
 
+  const handleBannerClick = (image) => {
+    if (image.link) {
+      window.location.href = image.link;
+    }
+  };
+
   if (!images || images.length === 0) {
     return null;
   }
@@ -57,6 +63,8 @@ const BannerSlider = ({ images }) => {
               index === currentIndex ? 'active' : 
               index === (currentIndex === 0 ? images.length - 1 : currentIndex - 1) ? 'prev' : ''
             }`}
+            onClick={() => handleBannerClick(image)}
+            style={{ cursor: image.link ? 'pointer' : 'default' }}
           >
             <img src={image.src} alt={image.alt || `Banner ${index + 1}`} />
           </div>

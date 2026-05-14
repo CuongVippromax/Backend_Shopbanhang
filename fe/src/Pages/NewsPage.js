@@ -309,6 +309,43 @@ export default function NewsPage() {
 
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="main-footer" style={{marginTop: '50px'}}>
+        <div className="container footer-grid">
+          <div className="footer-col">
+            <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
+            <p>📧 nhasachhoangkim@gmail.com</p>
+          </div>
+          <div className="footer-col">
+            <h4>Hỗ Trợ</h4>
+            <ul>
+              <li><Link to="/chinh-sach-doi-tra" style={{color: 'inherit', textDecoration: 'none'}}>Chính sách đổi trả sản phẩm</Link></li>
+              <li><Link to="/quy-dinh-bao-hanh" style={{color: 'inherit', textDecoration: 'none'}}>Quy định bảo hành</Link></li>
+              <li><Link to="/giao-nhan-va-thanh-toan" style={{color: 'inherit', textDecoration: 'none'}}>Giao nhận và thanh toán</Link></li>
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Danh Mục</h4>
+            <ul>
+              {relatedBooks.slice(0, 5).map((book, idx) => (
+                <li key={book.bookId || idx}>
+                  <Link to={`/san-pham/${book.bookId}`} style={{color: 'inherit', textDecoration: 'none'}}>
+                    {book.bookName}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="footer-col">
+            <h4>Hotline Hỗ Trợ</h4>
+            <p style={{marginBottom: '5px', fontSize: '13px', color: '#000'}}>Phương thức thanh toán</p>
+            <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', letterSpacing: '0'}}>
+               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

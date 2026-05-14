@@ -1,36 +1,34 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { login } from '../api';
+import { useToast } from '../Components/Toast';
 import './LoginPage.css';
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const location = useLocation();
+  const { success, error: showError } = useToast();
   const [form, setForm] = useState({
     usernameOrEmail: '',
     password: ''
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const from = location.state?.from?.pathname || '/';
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!form.usernameOrEmail || !form.password) {
-      setError('Vui lòng nhập tên đăng nhập và mật khẩu!');
+      showError('Vui lòng nhập tên đăng nhập và mật khẩu!');
       return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
       const response = await login(form);
@@ -45,20 +43,29 @@ export default function LoginPage() {
           fullName: data.fullName,
           role: data.role
         }));
-        
-        // Check if user is admin, redirect to admin page
+
+        // Nếu là admin thì lưu thêm adminToken
         if (data.role === 'ADMIN') {
-          navigate('/admin', { replace: true });
-        } else {
-          navigate(from, { replace: true });
+          localStorage.setItem('adminToken', data.accessToken);
         }
-        window.location.reload();
+
+        // Hiển thị thông báo thành công
+        success('Đăng nhập thành công!');
+
+        // Check if user is admin, redirect to admin page
+        setTimeout(() => {
+          if (data.role === 'ADMIN') {
+            window.location.href = '/admin';
+          } else {
+            window.location.href = from === '/' ? '/' : from;
+          }
+        }, 1500);
       } else {
-        setError('Đăng nhập thất bại. Vui lòng thử lại.');
+        showError('Đăng nhập thất bại. Vui lòng thử lại.');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Tên đăng nhập hoặc mật khẩu không đúng!');
+      showError(err.message || 'Tên đăng nhập hoặc mật khẩu không đúng!');
     } finally {
       setLoading(false);
     }
@@ -77,8 +84,6 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="login-form">
-            {error && <div className="error-message">{error}</div>}
-            
             <div className="form-group">
               <label htmlFor="usernameOrEmail">Tên đăng nhập hoặc Email</label>
               <input

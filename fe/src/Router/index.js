@@ -61,27 +61,27 @@ const RouterDOM = () => {
       <ScrollToTop />
       <Routes>
         {/* Public Routes */}
-        <Route exact path="/" element={<CleanHome />} />
-        <Route exact path="/cua-hang" element={<ShopPage />} />
-        <Route exact path="/gio-hang" element={<CartPage />} />
-        <Route exact path="/san-pham/:id" element={<ProductPage />} />
-        <Route exact path="/dang-nhap" element={<LoginPage />} />
-        <Route exact path="/lien-he" element={<ContactPage />} />
-        <Route exact path="/gioi-thieu" element={<AboutPage />} />
-        <Route exact path="/tin-tuc" element={<NewsPage />} />
-        <Route exact path="/bai-viet/:slug" element={<ArticleDetailPage />} />
-        <Route exact path="/tai-khoan" element={<AccountPage />} />
-        <Route exact path="/don-hang" element={<OrdersPage />} />
-        <Route exact path="/don-hang/:orderId" element={<OrderDetailPage />} />
-        <Route exact path="/doi-mat-khau" element={<ChangePasswordPage />} />
-        <Route exact path="/thanh-toan" element={<CheckoutPage />} />
-        <Route exact path="/payment/vn-pay-callback" element={<VNPayCallbackPage />} />
-        <Route exact path="/chinh-sach-doi-tra" element={<ReturnPolicyPage />} />
-        <Route exact path="/quy-dinh-bao-hanh" element={<WarrantyPage />} />
-        <Route exact path="/giao-nhan-va-thanh-toan" element={<ShippingPaymentPage />} />
+        <Route path="/" element={<CleanHome />} />
+        <Route path="/cua-hang" element={<ShopPage />} />
+        <Route path="/gio-hang" element={<CartPage />} />
+        <Route path="/san-pham/:id" element={<ProductPage />} />
+        <Route path="/dang-nhap" element={<LoginPage />} />
+        <Route path="/lien-he" element={<ContactPage />} />
+        <Route path="/gioi-thieu" element={<AboutPage />} />
+        <Route path="/tin-tuc" element={<NewsPage />} />
+        <Route path="/bai-viet/:slug" element={<ArticleDetailPage />} />
+        <Route path="/tai-khoan" element={<AccountPage />} />
+        <Route path="/don-hang" element={<OrdersPage />} />
+        <Route path="/don-hang/:orderId" element={<OrderDetailPage />} />
+        <Route path="/doi-mat-khau" element={<ChangePasswordPage />} />
+        <Route path="/thanh-toan" element={<CheckoutPage />} />
+        <Route path="/payment/vn-pay-callback" element={<VNPayCallbackPage />} />
+        <Route path="/chinh-sach-doi-tra" element={<ReturnPolicyPage />} />
+        <Route path="/quy-dinh-bao-hanh" element={<WarrantyPage />} />
+        <Route path="/giao-nhan-va-thanh-toan" element={<ShippingPaymentPage />} />
 
         {/* Admin Routes */}
-        <Route exact path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={
           <AdminRoute>
             <AdminLayout />

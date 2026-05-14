@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login, register, getUserProfile } from '../api';
+import { useToast } from './Toast';
 import './UserMenu.css';
 
 export default function UserMenu() {
+  const { success, logoutSuccess, error: showError } = useToast();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -84,13 +86,23 @@ export default function UserMenu() {
           role: data.role
         };
         localStorage.setItem('user', JSON.stringify(userData));
+
+        // Nếu là admin thì lưu thêm adminToken và redirect
+        if (data.role === 'ADMIN') {
+          localStorage.setItem('adminToken', data.accessToken);
+          setTimeout(() => {
+            window.location.href = '/admin';
+          }, 500);
+        }
+
         setIsLoggedIn(true);
         setUser(userData);
         setShowLoginModal(false);
         setLoginForm({ usernameOrEmail: '', password: '' });
+        success('Đăng nhập thành công!');
       }
     } catch (error) {
-      setError(error.message || 'Đăng nhập thất bại!');
+      showError(error.message || 'Tên đăng nhập hoặc mật khẩu không đúng!');
     } finally {
       setLoading(false);
     }
@@ -114,9 +126,9 @@ export default function UserMenu() {
       setShowRegisterModal(false);
       setShowLoginModal(true);
       setRegisterForm({ username: '', email: '', password: '', confirmPassword: '', fullName: '', phone: '' });
-      alert('Đăng ký thành công! Vui lòng đăng nhập.');
+        success('Đăng ký thành công! Vui lòng đăng nhập.');
     } catch (error) {
-      setError(error.message || 'Đăng ký thất bại!');
+      showError(error.message || 'Đăng ký thất bại!');
     } finally {
       setLoading(false);
     }
@@ -128,6 +140,7 @@ export default function UserMenu() {
     setIsLoggedIn(false);
     setUser(null);
     setShowDropdown(false);
+    logoutSuccess('Đăng xuất thành công!');
     navigate('/');
   };
 

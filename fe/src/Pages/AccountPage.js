@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import './AccountPage.css';
 import UserMenu from '../Components/UserMenu';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../Components/Toast';
 import { getUserProfile, updateUserProfile } from '../api';
 
 export default function AccountPage() {
   const { cartCount } = useCart();
+  const { updateSuccess } = useToast();
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -16,8 +18,6 @@ export default function AccountPage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,18 +52,16 @@ export default function AccountPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setError('');
-    setSuccess('');
     try {
       const { username, ...updateData } = form;
       await updateUserProfile(updateData);
-      setSuccess('Cập nhật thông tin thành công!');
+      updateSuccess('Cập nhật thông tin thành công!');
       // Update localStorage
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
       localStorage.setItem('user', JSON.stringify({ ...storedUser, ...updateData }));
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.message || 'Cập nhật thất bại!');
+      console.error('Error updating profile:', err);
+      alert(err.message || 'Cập nhật thất bại!');
     } finally {
       setSaving(false);
     }
@@ -119,15 +117,11 @@ export default function AccountPage() {
         {loading ? (
           <p>Đang tải thông tin...</p>
         ) : (
-          <>
-            {success && <div className="success-msg">{success}</div>}
-            {error && <div className="error-msg">{error}</div>}
-
-            <form className="profile-form" onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Tên đăng nhập</label>
-                <input type="text" value={form.username} disabled />
-              </div>
+          <form className="profile-form" onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Tên đăng nhập</label>
+              <input type="text" value={form.username} disabled />
+            </div>
               <div className="form-group">
                 <label>Họ và tên</label>
                 <input
@@ -168,7 +162,6 @@ export default function AccountPage() {
                 {saving ? 'Đang lưu...' : 'CẬP NHẬT THÔNG TIN'}
               </button>
             </form>
-          </>
         )}
       </main>
 

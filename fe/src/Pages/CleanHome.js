@@ -527,18 +527,22 @@ export default function CleanHome() {
         <div className="hero-grid">
           <div className="hero-main">
             <BannerSlider images={[
-              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_1, alt: 'Banner 1' },
-              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_2, alt: 'Banner 2' },
-              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_3, alt: 'Banner 3' },
-              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_4, alt: 'Banner 4' },
-              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_5, alt: 'Banner 5' },
-              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_6, alt: 'Banner 6' },
-              { src: '/image/1.jpg', alt: 'Banner 7' },
+              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_1, alt: 'Banner 1', link: '/cua-hang?category=kinh-te' },
+              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_2, alt: 'Banner 2', link: '/cua-hang?category=kinh-te' },
+              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_3, alt: 'Banner 3', link: '/cua-hang' },
+              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_4, alt: 'Banner 4', link: '/cua-hang' },
+              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_5, alt: 'Banner 5', link: '/cua-hang?sort=newest' },
+              { src: ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_6, alt: 'Banner 6', link: '/cua-hang' },
+              { src: '/image/1.jpg', alt: 'Banner 7', link: '/cua-hang' },
             ]} />
           </div>
           <div className="hero-side">
-            <img src={ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_4} alt="Side Banner" className="side-banner-img" />
-            <img src={ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_6} alt="Side Banner" className="side-banner-img" />
+            <a href="/cua-hang">
+              <img src={ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_4} alt="Side Banner" className="side-banner-img" />
+            </a>
+            <a href="/cua-hang?flashSale=true">
+              <img src={ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentlargesizelarge_6} alt="Side Banner" className="side-banner-img" />
+            </a>
           </div>
         </div>
       </section>

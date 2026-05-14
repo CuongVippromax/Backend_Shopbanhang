@@ -89,7 +89,7 @@ const BookCard = ({ book, isFlashSale, onAddToCart, onBuyNow }) => {
   );
 };
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = 16;
 
 export default function ShopPage() {
   const { cartCount } = useCart();
@@ -356,15 +356,17 @@ export default function ShopPage() {
             <ul className="liked-list">
               {books.slice(0, 5).map((book) => (
                 <li key={book.bookId} className="liked-item">
-                  <img src={book.image || ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentwoocommerce_thumbnailsizewoocommerce_thumbnail} alt={book.bookName} />
-                  <div className="liked-info">
-                    <h5>{book.bookName}</h5>
-                    <div className="price-row">
-                      <span className="current-price" style={{fontSize: '14px'}}>
-                        {new Intl.NumberFormat('vi-VN').format(book.price)} ₫
-                      </span>
+                  <Link to={`/san-pham/${book.bookId}`} style={{display: 'flex', gap: '15px', width: '100%', textDecoration: 'none', color: 'inherit'}}>
+                    <img src={book.image || ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentwoocommerce_thumbnailsizewoocommerce_thumbnail} alt={book.bookName} />
+                    <div className="liked-info">
+                      <h5>{book.bookName}</h5>
+                      <div className="price-row">
+                        <span className="current-price" style={{fontSize: '14px'}}>
+                          {new Intl.NumberFormat('vi-VN').format(book.price)} ₫
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>
