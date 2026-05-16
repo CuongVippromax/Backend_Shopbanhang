@@ -18,6 +18,7 @@ import ReturnPolicyPage from '../Pages/ReturnPolicyPage';
 import WarrantyPage from '../Pages/WarrantyPage';
 import ShippingPaymentPage from '../Pages/ShippingPaymentPage';
 import LoginPage from '../Pages/LoginPage';
+import AddressesPage from '../Pages/AddressesPage';
 
 // Admin Pages
 import AdminLogin from '../Pages/Admin/AdminLogin';
@@ -79,6 +80,7 @@ const RouterDOM = () => {
         <Route path="/chinh-sach-doi-tra" element={<ReturnPolicyPage />} />
         <Route path="/quy-dinh-bao-hanh" element={<WarrantyPage />} />
         <Route path="/giao-nhan-va-thanh-toan" element={<ShippingPaymentPage />} />
+        <Route path="/dia-chi" element={<AddressesPage />} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />

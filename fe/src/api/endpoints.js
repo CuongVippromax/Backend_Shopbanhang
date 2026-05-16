@@ -64,6 +64,13 @@ export const getUserProfile = () => apiClient.get('/users/me');
 export const updateUserProfile = (data) => apiClient.put('/users/me', data);
 export const changePassword = (data) => apiClient.post('/auth/change-password', data);
 
+// User Addresses
+export const getAddresses = () => apiClient.get('/users/addresses');
+export const addAddress = (data) => apiClient.post('/users/addresses', data);
+export const updateAddress = (addressId, data) => apiClient.put(`/users/addresses/${addressId}`, data);
+export const deleteAddress = (addressId) => apiClient.delete(`/users/addresses/${addressId}`);
+export const setDefaultAddress = (addressId) => apiClient.put(`/users/addresses/${addressId}/default`);
+
 // ============ CART APIs (User-specific) ============
 
 // Get current user's ID from localStorage

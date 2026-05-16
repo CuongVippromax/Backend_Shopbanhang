@@ -222,3 +222,48 @@
   border-radius: 6px;
   margin-bottom: 20px;
 }
+
+/* Address Picker */
+.address-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.address-input-group input {
+  flex: 1;
+}
+
+.btn-select-address {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-select-address:hover {
+  background: #5a6268;
+}
+
+.address-picker-modal {
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.address-picker-modal .modal__header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.address-picker-modal .modal__body {
+  padding: 0;
+}
+
+.address-picker-modal .modal__body .address-manager {
+  box-shadow: none;
+  border-radius: 0;
+}

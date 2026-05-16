@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import ImgAsset from '../public';
 import './OrderDetailPage.css';
 import UserMenu from '../Components/UserMenu';
-import { getOrderById } from '../api';
+import { getOrderById, cancelOrder } from '../api';
 
 export default function OrderDetailPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     loadOrderDetail();
   }, [orderId]);
 
-  const loadOrderDetail = async () => {
+  const loadOrderDetail = useCallback(async () => {
+    if (!orderId) return;
     setLoading(true);
     try {
       const data = await getOrderById(orderId);
@@ -24,6 +26,25 @@ export default function OrderDetailPage() {
       console.error('Error loading order:', err);
     } finally {
       setLoading(false);
+    }
+  }, [orderId]);
+
+  // Check if order can be cancelled (only PENDING or CONFIRMED status)
+  const canCancel = order && (order.orderStatus === 'PENDING' || order.orderStatus === 'CONFIRMED');
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm('Bạn có chắc muốn hủy đơn hàng này?')) return;
+    
+    setCancelling(true);
+    try {
+      await cancelOrder(orderId);
+      loadOrderDetail(); // Reload to get updated status
+      alert('Đơn hàng đã được hủy thành công!');
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+      alert(err.message || 'Không thể hủy đơn hàng. Vui lòng thử lại!');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -57,6 +78,14 @@ export default function OrderDetailPage() {
     PAID: 'Đã thanh toán',
     UNPAID: 'Chưa thanh toán',
     REFUNDED: 'Đã hoàn tiền'
+  };
+
+  const statusLabels = {
+    PENDING: 'Chờ xác nhận',
+    CONFIRMED: 'Đã xác nhận',
+    SHIPPING: 'Đang giao',
+    DELIVERED: 'Đã giao',
+    CANCELLED: 'Đã hủy'
   };
 
   if (loading) {
@@ -140,9 +169,9 @@ export default function OrderDetailPage() {
               <span className={`payment-badge payment-${order.paymentStatus}`}>
                 {paymentLabels[order.paymentStatus] || order.paymentStatus}
               </span>
-              {order.orderStatus === 'CANCELLED' && (
-                <span className="order-status status-CANCELLED">Đã hủy</span>
-              )}
+              <span className={`order-status-badge status-${order.orderStatus}`}>
+                {statusLabels[order.orderStatus] || order.orderStatus}
+              </span>
             </div>
           </div>
           <div className="order-header-right">
@@ -171,7 +200,6 @@ export default function OrderDetailPage() {
                     </div>
                     <div className="step-info">
                       <span className="step-label">{step.label}</span>
-                      {isCurrent && <span className="step-active">Đang ở đây</span>}
                     </div>
                   </div>
                 );
@@ -281,6 +309,19 @@ export default function OrderDetailPage() {
             ))}
           </div>
         </div>
+
+        {/* Cancel Order Button */}
+        {canCancel && (
+          <div className="cancel-order-section">
+            <button 
+              className="btn-cancel-order" 
+              onClick={handleCancelOrder}
+              disabled={cancelling}
+            >
+              {cancelling ? 'Đang hủy...' : 'Hủy đơn hàng'}
+            </button>
+          </div>
+        )}
       </main>
 
       {/* Footer */}

@@ -4,7 +4,7 @@ import './AccountPage.css';
 import UserMenu from '../Components/UserMenu';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../Components/Toast';
-import { getUserProfile, updateUserProfile } from '../api';
+import { getUserProfile, updateUserProfile, getAddresses } from '../api';
 
 export default function AccountPage() {
   const { cartCount } = useCart();
@@ -13,11 +13,12 @@ export default function AccountPage() {
     fullName: '',
     email: '',
     phone: '',
-    address: '',
     username: ''
   });
+  const [defaultAddress, setDefaultAddress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,15 +33,23 @@ export default function AccountPage() {
   const loadProfile = async () => {
     setLoading(true);
     try {
-      const data = await getUserProfile();
-      const user = data?.data || data;
+      const [profileData, addressesData] = await Promise.all([
+        getUserProfile(),
+        getAddresses()
+      ]);
+      const user = profileData?.data || profileData;
+      const addresses = addressesData?.data || addressesData || [];
+      
       setForm({
         fullName: user.fullName || '',
         email: user.email || '',
         phone: user.phone || user.phoneNumber || '',
-        address: user.address || '',
         username: user.username || ''
       });
+
+      // Find default address
+      const defaultAddr = addresses.find(addr => addr.isDefault) || addresses[0] || null;
+      setDefaultAddress(defaultAddr);
     } catch (err) {
       console.error('Error loading profile:', err);
       setError('Không thể tải thông tin tài khoản.');
@@ -49,16 +58,19 @@ export default function AccountPage() {
     }
   };
 
+  // Hiển thị lỗi khi có
+  useEffect(() => {
+    if (error) {
+      alert(error);
+    }
+  }, [error]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const { username, ...updateData } = form;
-      await updateUserProfile(updateData);
+      await updateUserProfile(form);
       updateSuccess('Cập nhật thông tin thành công!');
-      // Update localStorage
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem('user', JSON.stringify({ ...storedUser, ...updateData }));
     } catch (err) {
       console.error('Error updating profile:', err);
       alert(err.message || 'Cập nhật thất bại!');
@@ -117,11 +129,12 @@ export default function AccountPage() {
         {loading ? (
           <p>Đang tải thông tin...</p>
         ) : (
-          <form className="profile-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Tên đăng nhập</label>
-              <input type="text" value={form.username} disabled />
-            </div>
+          <>
+            <form className="profile-form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Tên đăng nhập</label>
+                <input type="text" value={form.username} disabled />
+              </div>
               <div className="form-group">
                 <label>Họ và tên</label>
                 <input
@@ -149,19 +162,37 @@ export default function AccountPage() {
                   placeholder="Nhập số điện thoại..."
                 />
               </div>
-              <div className="form-group">
-                <label>Địa chỉ</label>
-                <input
-                  type="text"
-                  value={form.address}
-                  onChange={(e) => setForm({...form, address: e.target.value})}
-                  placeholder="Nhập địa chỉ..."
-                />
-              </div>
               <button type="submit" className="btn-save" disabled={saving}>
                 {saving ? 'Đang lưu...' : 'CẬP NHẬT THÔNG TIN'}
               </button>
             </form>
+
+            <div className="address-section">
+              <h3>📍 Địa chỉ giao hàng mặc định</h3>
+              {defaultAddress ? (
+                <div className="default-address-display">
+                  <div className="address-detail-row">
+                    <span className="label">Người nhận:</span>
+                    <span className="value">{defaultAddress.recipientName} - {defaultAddress.phone}</span>
+                  </div>
+                  <div className="address-detail-row">
+                    <span className="label">Địa chỉ:</span>
+                    <span className="value">{defaultAddress.address}</span>
+                  </div>
+                  <div className="address-detail-row">
+                    <span className="label">Loại:</span>
+                    <span className="value">{defaultAddress.label}</span>
+                  </div>
+                  <Link to="/dia-chi" className="btn-manage-address">Quản lý địa chỉ</Link>
+                </div>
+              ) : (
+                <div className="no-default-address">
+                  <p>Chưa có địa chỉ mặc định.</p>
+                  <Link to="/dia-chi" className="btn-add-address">+ Thêm địa chỉ</Link>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </main>
 

@@ -13,6 +13,9 @@ import lombok.Setter;
 
 import com.cuong.shopbanhang.common.Role;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -49,9 +52,11 @@ public class User {
     @Size(max = 20, message = "Phone must not exceed 20 characters")
     private String phone;
     
-    @Column(name = "address")
-    @Size(max = 255, message = "Address must not exceed 255 characters")
+    @Column(name = "address", columnDefinition = "TEXT")
     private String address;
+
+    @Transient
+    private List<AddressItem> addresses = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")

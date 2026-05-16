@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import ImgAsset from '../public';
 import './CheckoutPage.css';
 import UserMenu from '../Components/UserMenu';
+import AddressManager from '../Components/AddressManager';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../Components/Toast';
-import { getCart, createOrder, getUserProfile } from '../api';
+import { getCart, createOrder, getUserProfile, getAddresses } from '../api';
 
 export default function CheckoutPage() {
   const { cartCount, clearAll } = useCart();
@@ -13,6 +14,8 @@ export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
+  const [showAddressPicker, setShowAddressPicker] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
@@ -36,9 +39,10 @@ export default function CheckoutPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [cartData, profileData] = await Promise.all([
+      const [cartData, profileData, addressesData] = await Promise.all([
         getCart(),
-        getUserProfile()
+        getUserProfile(),
+        getAddresses()
       ]);
       
       // Backend trả CartResponse trực tiếp (không wrapped trong DataResponse)
@@ -47,16 +51,30 @@ export default function CheckoutPage() {
       console.log('CheckoutPage - Cart data loaded:', items.length, 'items');
       setCartItems(items);
 
-      // Pre-fill from user profile
       // Backend trả DataResponse<UserResponse>, interceptor trả response.data → profileData là DataResponse
       const user = profileData?.data || profileData || {};
-      if (user) {
+      const addresses = addressesData?.data || addressesData || [];
+      
+      // Tìm địa chỉ mặc định hoặc địa chỉ đầu tiên
+      const defaultAddr = addresses.find(addr => addr.isDefault) || addresses[0];
+      
+      if (defaultAddr) {
+        setSelectedAddress(defaultAddr);
+        setForm(prev => ({
+          ...prev,
+          fullName: defaultAddr.recipientName || user.fullName || '',
+          phone: defaultAddr.phone || user.phone || user.phoneNumber || '',
+          email: user.email || '',
+          shippingAddress: defaultAddr.address || ''
+        }));
+      } else {
+        // Không có địa chỉ, chỉ pre-fill từ user profile
         setForm(prev => ({
           ...prev,
           fullName: user.fullName || '',
           phone: user.phone || user.phoneNumber || '',
           email: user.email || '',
-          shippingAddress: user.address || ''
+          shippingAddress: ''
         }));
       }
     } catch (err) {
@@ -72,6 +90,17 @@ export default function CheckoutPage() {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  const handleSelectAddress = (addr) => {
+    setSelectedAddress(addr);
+    setForm(prev => ({
+      ...prev,
+      fullName: addr.recipientName,
+      phone: addr.phone,
+      shippingAddress: addr.address
+    }));
+    setShowAddressPicker(false);
+  };
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -222,13 +251,22 @@ export default function CheckoutPage() {
 
               <div className="form-group">
                 <label>Địa chỉ giao hàng <span className="required">*</span></label>
-                <input
-                  type="text"
-                  value={form.shippingAddress}
-                  onChange={(e) => setForm({...form, shippingAddress: e.target.value})}
-                  placeholder="Nhập địa chỉ giao hàng..."
-                  required
-                />
+                <div className="address-input-group">
+                  <input
+                    type="text"
+                    value={form.shippingAddress}
+                    onChange={(e) => setForm({...form, shippingAddress: e.target.value})}
+                    placeholder="Nhập địa chỉ giao hàng..."
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="btn-select-address"
+                    onClick={() => setShowAddressPicker(true)}
+                  >
+                    Chọn địa chỉ
+                  </button>
+                </div>
               </div>
 
               <div className="form-group">
@@ -299,6 +337,24 @@ export default function CheckoutPage() {
               </button>
             </div>
           </form>
+        )}
+
+        {/* Address Picker Modal */}
+        {showAddressPicker && (
+          <div className="modal-overlay" onClick={() => setShowAddressPicker(false)}>
+            <div className="modal address-picker-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal__header">
+                <h2>Chọn địa chỉ giao hàng</h2>
+                <button className="modal__close" onClick={() => setShowAddressPicker(false)}>×</button>
+              </div>
+              <div className="modal__body">
+                <AddressManager
+                  selectionMode={true}
+                  onSelectAddress={handleSelectAddress}
+                />
+              </div>
+            </div>
+          </div>
         )}
       </main>
 

@@ -1,6 +1,7 @@
 package com.cuong.shopbanhang.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -17,15 +18,20 @@ import org.springframework.util.StringUtils;
 
 import com.cuong.shopbanhang.common.Role;
 import com.cuong.shopbanhang.dto.request.UserUpdateRequest;
+import com.cuong.shopbanhang.dto.response.AddressResponse;
 import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.dto.response.UserResponse;
 import com.cuong.shopbanhang.exception.BadRequestException;
 import com.cuong.shopbanhang.exception.ResourceAlreadyExistsException;
 import com.cuong.shopbanhang.exception.ResourceNotFoundException;
+import com.cuong.shopbanhang.model.AddressItem;
 import com.cuong.shopbanhang.model.PasswordResetToken;
 import com.cuong.shopbanhang.model.User;
 import com.cuong.shopbanhang.repository.PasswordResetTokenRepository;
 import com.cuong.shopbanhang.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +44,7 @@ public class UserService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final ObjectMapper objectMapper;
 
     /**
      * Tạo người dùng mới (đăng ký).
@@ -74,6 +81,7 @@ public class UserService {
                 .phone(savedUser.getPhone())
                 .phoneNumber(savedUser.getPhone())
                 .address(savedUser.getAddress())
+                .addresses(parseAddresses(savedUser.getAddress()))
                 .role(savedUser.getRole() != null ? savedUser.getRole().name() : "USER")
                 .build();
     }
@@ -100,6 +108,7 @@ public class UserService {
                 .phone(user.getPhone())
                 .phoneNumber(user.getPhone())
                 .address(user.getAddress())
+                .addresses(parseAddresses(user.getAddress()))
                 .role(user.getRole() != null ? user.getRole().name() : "USER")
                 .build();
     }
@@ -313,5 +322,27 @@ public class UserService {
         userRepository.save(user);
 
         passwordResetTokenRepository.delete(resetToken);
+    }
+
+    private List<AddressResponse> parseAddresses(String addressJson) {
+        if (addressJson == null || addressJson.isBlank()) {
+            return new ArrayList<>();
+        }
+        try {
+            List<AddressItem> items = objectMapper.readValue(addressJson, new TypeReference<List<AddressItem>>() {});
+            return items.stream()
+                    .map(item -> AddressResponse.builder()
+                            .id(item.getId())
+                            .label(item.getLabel())
+                            .recipientName(item.getRecipientName())
+                            .phone(item.getPhone())
+                            .address(item.getAddress())
+                            .isDefault(item.getIsDefault())
+                            .build())
+                    .toList();
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse addresses JSON: {}", e.getMessage());
+            return new ArrayList<>();
+        }
     }
 }

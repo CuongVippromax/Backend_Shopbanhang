@@ -185,6 +185,9 @@ export default function UserMenu() {
               <Link to="/don-hang" className="dropdown-item" onClick={() => setShowDropdown(false)}>
                 📦 Đơn hàng
               </Link>
+              <Link to="/dia-chi" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                📍 Địa chỉ giao hàng
+              </Link>
               <Link to="/doi-mat-khau" className="dropdown-item" onClick={() => setShowDropdown(false)}>
                 🔒 Đổi mật khẩu
               </Link>
