@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './ShippingPaymentPage.css';
-import UserMenu from '../Components/UserMenu';
-import { useCart } from '../context/CartContext';
+import MainHeader from '../Components/MainHeader';
 import { getCategories } from '../api';
 
 export default function ShippingPaymentPage() {
-  const { cartCount } = useCart();
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -18,45 +16,11 @@ export default function ShippingPaymentPage() {
       }
     }).catch(err => console.error('Error fetching categories:', err));
   }, []);
-  
+
   return (
     <div className="shipping-payment-page">
-      <header className="main-header">
-        <div className="container header-inner">
-          <div className="logo-area">
-            <Link to="/" style={{display: 'flex', alignItems: 'center', textDecoration: 'none'}}>
-              <img src="/image/logo-hoang-kim.jpg" alt="Logo Hoàng Kim" className="logo-img" style={{height: '70px', objectFit: 'contain'}} />
-            </Link>
-          </div>
-          <div className="search-area">
-            <input type="text" placeholder="Bạn muốn mua gì?" />
-            <button className="search-btn">🔍</button>
-          </div>
-          <div className="cart-area">
-            <Link to="/gio-hang" style={{display: 'flex', alignItems: 'center', gap: '15px', textDecoration: 'none', color: 'inherit', marginRight: '15px', paddingRight: '15px', borderRight: '1px solid #ddd'}}>
-              <div className="cart-text">Giỏ hàng / <span className="cart-price">0 ₫</span></div>
-              <div className="cart-icon">
-                <span className="cart-count">{cartCount}</span>
-                🛒
-              </div>
-            </Link>
-            <UserMenu />
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="main-nav" style={{marginBottom: '30px', background: '#f5f5f5'}}>
-        <div className="container nav-inner">
-          <ul className="nav-links">
-            <li><Link to="/" style={{color: 'inherit', textDecoration: 'none'}}>Trang chủ</Link></li>
-            <li><Link to="/cua-hang" style={{color: 'inherit', textDecoration: 'none'}}>Cửa hàng</Link></li>
-            <li><Link to="/tin-tuc" style={{color: 'inherit', textDecoration: 'none'}}>Tin tức</Link></li>
-            <li><Link to="/gioi-thieu" style={{color: 'inherit', textDecoration: 'none'}}>Giới thiệu</Link></li>
-            <li><Link to="/lien-he" style={{color: 'inherit', textDecoration: 'none'}}>Liên hệ</Link></li>
-          </ul>
-        </div>
-      </nav>
+      <MainHeader />
+      
       <div className="page-header">
         <h1>Giao Nhận & Thanh Toán</h1>
         <p>Thông tin vận chuyển và hình thức thanh toán tại Nhà Sách Hoàng Kim</p>
@@ -72,7 +36,6 @@ export default function ShippingPaymentPage() {
           
           <div className="shipping-methods">
             <div className="shipping-card recommended">
-              <div className="icon"></div>
               <h4>Giao Hàng Tiêu Chuẩn</h4>
               <p className="time">Nhận hàng trong 2-4 ngày</p>
               <p className="price">
@@ -84,7 +47,6 @@ export default function ShippingPaymentPage() {
             </div>
             
             <div className="shipping-card">
-              <div className="icon"></div>
               <h4>Giao Hàng Nhanh</h4>
               <p className="time">Nhận hàng trong 1-2 ngày</p>
               <p className="price">35.000₫</p>
@@ -94,7 +56,6 @@ export default function ShippingPaymentPage() {
             </div>
             
             <div className="shipping-card">
-              <div className="icon"></div>
               <h4>Giao Hàng Hỏa Tốc</h4>
               <p className="time">Nhận hàng trong 4-6 giờ</p>
               <p className="price">50.000₫ - 70.000₫</p>
@@ -111,28 +72,24 @@ export default function ShippingPaymentPage() {
           
           <div className="payment-methods">
             <div className="payment-card">
-              <div className="icon"></div>
               <h4>Thanh Toán Khi Nhận Hàng (COD)</h4>
               <p>Trả tiền mặt khi nhận được sản phẩm</p>
               <span className="fee">Miễn phí</span>
             </div>
             
             <div className="payment-card">
-              <div className="icon"></div>
               <h4>Chuyển Khoản Ngân Hàng</h4>
               <p>Chuyển khoản trực tiếp qua internet banking</p>
               <span className="fee">Miễn phí</span>
             </div>
             
             <div className="payment-card">
-              <div className="icon"></div>
               <h4>Thanh Toán VNPay</h4>
               <p>Thanh toán qua cổng VNPay với thẻ ATM/Visa/MasterCard</p>
               <span className="fee">Miễn phí</span>
             </div>
             
             <div className="payment-card">
-              <div className="icon"></div>
               <h4>Ví Điện Tử</h4>
               <p>ZaloPay, Momo, VNPay Wallet</p>
               <span className="fee">Miễn phí</span>
@@ -182,43 +139,13 @@ export default function ShippingPaymentPage() {
 
         <div className="shipping-section">
           <h2> Quy Trình Đặt Hàng</h2>
-          <div className="shipping-timeline">
-            <div className="timeline-item">
-              <div className="dot">1</div>
-              <div className="info">
-                <h4>Chọn sản phẩm</h4>
-                <p>Thêm sách vào giỏ hàng và kiểm tra thông tin</p>
-              </div>
-            </div>
-            <div className="timeline-item">
-              <div className="dot">2</div>
-              <div className="info">
-                <h4>Điền thông tin giao hàng</h4>
-                <p>Nhập địa chỉ, số điện thoại và thông tin người nhận</p>
-              </div>
-            </div>
-            <div className="timeline-item">
-              <div className="dot">3</div>
-              <div className="info">
-                <h4>Chọn phương thức thanh toán</h4>
-                <p> COD, chuyển khoản hoặc thanh toán online</p>
-              </div>
-            </div>
-            <div className="timeline-item">
-              <div className="dot">4</div>
-              <div className="info">
-                <h4>Xác nhận đơn hàng</h4>
-                <p>Nhấn đặt hàng và chờ xác nhận từ cửa hàng</p>
-              </div>
-            </div>
-            <div className="timeline-item">
-              <div className="dot">5</div>
-              <div className="info">
-                <h4>Nhận hàng</h4>
-                <p>Kiểm tra sản phẩm và thanh toán (nếu COD)</p>
-              </div>
-            </div>
-          </div>
+          <ul className="simple-list">
+            <li><strong>1. Chọn sản phẩm:</strong> Thêm sách vào giỏ hàng và kiểm tra thông tin</li>
+            <li><strong>2. Điền thông tin giao hàng:</strong> Nhập địa chỉ, số điện thoại và thông tin người nhận</li>
+            <li><strong>3. Chọn phương thức thanh toán:</strong> COD, chuyển khoản hoặc thanh toán online</li>
+            <li><strong>4. Xác nhận đơn hàng:</strong> Nhấn đặt hàng và chờ xác nhận từ cửa hàng</li>
+            <li><strong>5. Nhận hàng:</strong> Kiểm tra sản phẩm và thanh toán (nếu COD)</li>
+          </ul>
         </div>
 
         <div className="shipping-section">

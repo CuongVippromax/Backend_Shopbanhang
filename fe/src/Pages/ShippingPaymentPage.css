@@ -99,11 +99,6 @@
   box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);
 }
 
-.payment-card .icon {
-  font-size: 48px;
-  margin-bottom: 15px;
-}
-
 .payment-card h4 {
   color: #333;
   margin-bottom: 10px;
@@ -157,11 +152,6 @@
   transform: rotate(45deg);
 }
 
-.shipping-card .icon {
-  font-size: 40px;
-  margin-bottom: 15px;
-}
-
 .shipping-card h4 {
   color: #333;
   margin-bottom: 10px;
@@ -188,46 +178,16 @@
   margin: 20px 0;
 }
 
-.timeline-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  padding: 15px 0;
-  position: relative;
+.simple-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
 }
 
-.timeline-item:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  left: 17px;
-  top: 45px;
-  bottom: 0;
-  width: 2px;
-  background: #ddd;
-}
-
-.timeline-item .dot {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #2e7d32;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-.timeline-item .info h4 {
-  color: #333;
-  margin-bottom: 5px;
-}
-
-.timeline-item .info p {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
+.simple-list li {
+  padding: 10px 0;
+  color: #555;
+  line-height: 1.6;
 }
 
 .shipping-contact {

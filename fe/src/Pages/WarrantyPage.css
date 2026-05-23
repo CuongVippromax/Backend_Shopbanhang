@@ -57,18 +57,33 @@
 }
 
 .warranty-section ul li {
-  padding: 10px 0 10px 30px;
-  position: relative;
+  padding: 10px 0;
   color: #555;
   line-height: 1.6;
 }
 
-.warranty-section ul li::before {
-  content: "✓";
-  position: absolute;
-  left: 0;
-  color: #1565c0;
-  font-weight: bold;
+.step-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.step-list li {
+  padding: 10px 0;
+  color: #555;
+  line-height: 1.6;
+}
+
+.simple-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.simple-list li {
+  padding: 10px 0;
+  color: #555;
+  line-height: 1.6;
 }
 
 .warranty-table {
@@ -111,14 +126,6 @@
   background: #f8f9fa;
   padding: 20px;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.shield-list li .icon {
-  font-size: 36px;
-  flex-shrink: 0;
 }
 
 .shield-list li strong {

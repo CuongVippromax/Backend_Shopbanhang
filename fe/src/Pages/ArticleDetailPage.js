@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import './ArticleDetailPage.css';
-import UserMenu from '../Components/UserMenu';
-import { useCart } from '../context/CartContext';
+import MainHeader from '../Components/MainHeader';
 import { getArticleBySlug, getArticleById } from '../api';
 
 export default function ArticleDetailPage() {
   const { slug } = useParams();
-  const { cartCount } = useCart();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,46 +36,7 @@ export default function ArticleDetailPage() {
 
   return (
     <div className="article-detail-page">
-      {/* Main Header */}
-      <header className="main-header">
-        <div className="container header-inner">
-          <div className="logo-area">
-            <Link to="/" style={{display: 'flex', alignItems: 'center', textDecoration: 'none'}}>
-              <img src="/image/logo-hoang-kim.jpg" alt="Logo Hoàng Kim" className="logo-img" style={{height: '70px', objectFit: 'contain'}} />
-            </Link>
-          </div>
-          <div className="search-area">
-            <input type="text" placeholder="Bạn muốn mua gì?" />
-            <button className="search-btn">🔍</button>
-          </div>
-          <div className="cart-area">
-            <Link to="/gio-hang" style={{display: 'flex', alignItems: 'center', gap: '15px', textDecoration: 'none', color: 'inherit', marginRight: '15px', paddingRight: '15px', borderRight: '1px solid #ddd'}}>
-              <div className="cart-text">Giỏ hàng / <span className="cart-price">0 ₫</span></div>
-              <div className="cart-icon">
-                <span className="cart-count">{cartCount}</span>
-                🛒
-              </div>
-            </Link>
-            <UserMenu />
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="main-nav" style={{marginBottom: '30px'}}>
-        <div className="container nav-inner">
-          <div className="categories-menu" style={{background: 'var(--primary-orange)', padding: '15px 20px', color: 'white', fontWeight: 'bold', width: '220px', display: 'flex', alignItems: 'center', gap: '10px'}}>
-            <span>☰</span> Danh mục sản phẩm
-          </div>
-          <ul className="nav-links">
-            <li><Link to="/" style={{color: 'inherit', textDecoration: 'none'}}>Trang chủ</Link></li>
-            <li><Link to="/cua-hang" style={{color: 'inherit', textDecoration: 'none'}}>Cửa hàng</Link></li>
-            <li><Link to="/tin-tuc" style={{color: 'var(--primary-orange)', textDecoration: 'none'}}>Tin tức</Link></li>
-            <li><Link to="/gioi-thieu" style={{color: 'inherit', textDecoration: 'none'}}>Giới thiệu</Link></li>
-            <li><Link to="/lien-he" style={{color: 'inherit', textDecoration: 'none'}}>Liên hệ</Link></li>
-          </ul>
-        </div>
-      </nav>
+      <MainHeader />
 
       {/* Article Content */}
       <main className="container article-content-area">

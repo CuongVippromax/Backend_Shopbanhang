@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './WarrantyPage.css';
-import UserMenu from '../Components/UserMenu';
-import { useCart } from '../context/CartContext';
+import MainHeader from '../Components/MainHeader';
 import { getCategories } from '../api';
 
 export default function WarrantyPage() {
-  const { cartCount } = useCart();
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -18,45 +16,11 @@ export default function WarrantyPage() {
       }
     }).catch(err => console.error('Error fetching categories:', err));
   }, []);
-  
+
   return (
     <div className="warranty-page">
-      <header className="main-header">
-        <div className="container header-inner">
-          <div className="logo-area">
-            <Link to="/" style={{display: 'flex', alignItems: 'center', textDecoration: 'none'}}>
-              <img src="/image/logo-hoang-kim.jpg" alt="Logo Hoàng Kim" className="logo-img" style={{height: '70px', objectFit: 'contain'}} />
-            </Link>
-          </div>
-          <div className="search-area">
-            <input type="text" placeholder="Bạn muốn mua gì?" />
-            <button className="search-btn">🔍</button>
-          </div>
-          <div className="cart-area">
-            <Link to="/gio-hang" style={{display: 'flex', alignItems: 'center', gap: '15px', textDecoration: 'none', color: 'inherit', marginRight: '15px', paddingRight: '15px', borderRight: '1px solid #ddd'}}>
-              <div className="cart-text">Giỏ hàng / <span className="cart-price">0 ₫</span></div>
-              <div className="cart-icon">
-                <span className="cart-count">{cartCount}</span>
-                🛒
-              </div>
-            </Link>
-            <UserMenu />
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="main-nav" style={{marginBottom: '30px', background: '#f5f5f5'}}>
-        <div className="container nav-inner">
-          <ul className="nav-links">
-            <li><Link to="/" style={{color: 'inherit', textDecoration: 'none'}}>Trang chủ</Link></li>
-            <li><Link to="/cua-hang" style={{color: 'inherit', textDecoration: 'none'}}>Cửa hàng</Link></li>
-            <li><Link to="/tin-tuc" style={{color: 'inherit', textDecoration: 'none'}}>Tin tức</Link></li>
-            <li><Link to="/gioi-thieu" style={{color: 'inherit', textDecoration: 'none'}}>Giới thiệu</Link></li>
-            <li><Link to="/lien-he" style={{color: 'inherit', textDecoration: 'none'}}>Liên hệ</Link></li>
-          </ul>
-        </div>
-      </nav>
+      <MainHeader />
+      
       <div className="page-header">
         <h1>Quy Định Bảo Hành</h1>
         <p>Cam kết chất lượng sản phẩm từ Nhà Sách Hoàng Kim</p>
@@ -110,28 +74,24 @@ export default function WarrantyPage() {
           <p>Để được bảo hành, sản phẩm cần đáp ứng các điều kiện sau:</p>
           <ul className="shield-list">
             <li>
-              <span className="icon"></span>
               <div>
                 <strong>Còn trong thời gian bảo hành</strong>
                 <span>Theo bảng thời gian quy định</span>
               </div>
             </li>
             <li>
-              <span className="icon"></span>
               <div>
                 <strong>Có hóa đơn mua hàng</strong>
                 <span>Hoặc xác nhận đơn hàng hợp lệ</span>
               </div>
             </li>
             <li>
-              <span className="icon"></span>
               <div>
                 <strong>Lỗi từ nhà sản xuất</strong>
                 <span>Không áp dụng với lỗi do người dùng</span>
               </div>
             </li>
             <li>
-              <span className="icon"></span>
               <div>
                 <strong>Còn nguyên nhãn mác</strong>
                 <span>Bao bì sản phẩm còn đầy đủ</span>
@@ -154,19 +114,11 @@ export default function WarrantyPage() {
 
         <div className="warranty-section">
           <h2> Quy Trình Bảo Hành</h2>
-          <ul className="step-list">
-            <li>
-              <strong>Liên hệ hỗ trợ:</strong> Gọi hotline 098.246.8686 hoặc nhắn tin qua Zalo
-            </li>
-            <li>
-              <strong>Cung cấp thông tin:</strong> Mã đơn hàng, hình ảnh sản phẩm, mô tả lỗi
-            </li>
-            <li>
-              <strong>Kiểm tra và xác nhận:</strong> Nhân viên kiểm tra và xác nhận điều kiện bảo hành
-            </li>
-            <li>
-              <strong>Xử lý bảo hành:</strong> Đổi sản phẩm mới hoặc hoàn tiền theo yêu cầu
-            </li>
+          <ul className="simple-list">
+            <li><strong>1. Liên hệ hỗ trợ:</strong> Gọi hotline 098.246.8686 hoặc nhắn tin qua Zalo</li>
+            <li><strong>2. Cung cấp thông tin:</strong> Mã đơn hàng, hình ảnh sản phẩm, mô tả lỗi</li>
+            <li><strong>3. Kiểm tra và xác nhận:</strong> Nhân viên kiểm tra và xác nhận điều kiện bảo hành</li>
+            <li><strong>4. Xử lý bảo hành:</strong> Đổi sản phẩm mới hoặc hoàn tiền theo yêu cầu</li>
           </ul>
         </div>
 

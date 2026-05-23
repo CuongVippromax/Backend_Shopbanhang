@@ -37,11 +37,11 @@ import AdminArticleForm from '../Pages/Admin/AdminArticleForm';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   
   React.useEffect(() => {
     window.scrollTo(0, 0);
-  }, [pathname]);
+  }, [pathname, search]);
   
   return null;
 };

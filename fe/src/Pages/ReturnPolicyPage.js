@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './ReturnPolicyPage.css';
-import UserMenu from '../Components/UserMenu';
-import { useCart } from '../context/CartContext';
+import MainHeader from '../Components/MainHeader';
 import { getCategories } from '../api';
 
 export default function ReturnPolicyPage() {
-  const { cartCount } = useCart();
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -18,45 +16,11 @@ export default function ReturnPolicyPage() {
       }
     }).catch(err => console.error('Error fetching categories:', err));
   }, []);
-  
+
   return (
     <div className="return-policy-page">
-      <header className="main-header">
-        <div className="container header-inner">
-          <div className="logo-area">
-            <Link to="/" style={{display: 'flex', alignItems: 'center', textDecoration: 'none'}}>
-              <img src="/image/logo-hoang-kim.jpg" alt="Logo Hoàng Kim" className="logo-img" style={{height: '70px', objectFit: 'contain'}} />
-            </Link>
-          </div>
-          <div className="search-area">
-            <input type="text" placeholder="Bạn muốn mua gì?" />
-            <button className="search-btn">🔍</button>
-          </div>
-          <div className="cart-area">
-            <Link to="/gio-hang" style={{display: 'flex', alignItems: 'center', gap: '15px', textDecoration: 'none', color: 'inherit', marginRight: '15px', paddingRight: '15px', borderRight: '1px solid #ddd'}}>
-              <div className="cart-text">Giỏ hàng / <span className="cart-price">0 ₫</span></div>
-              <div className="cart-icon">
-                <span className="cart-count">{cartCount}</span>
-                🛒
-              </div>
-            </Link>
-            <UserMenu />
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="main-nav" style={{marginBottom: '30px', background: '#f5f5f5'}}>
-        <div className="container nav-inner">
-          <ul className="nav-links">
-            <li><Link to="/" style={{color: 'inherit', textDecoration: 'none'}}>Trang chủ</Link></li>
-            <li><Link to="/cua-hang" style={{color: 'inherit', textDecoration: 'none'}}>Cửa hàng</Link></li>
-            <li><Link to="/tin-tuc" style={{color: 'inherit', textDecoration: 'none'}}>Tin tức</Link></li>
-            <li><Link to="/gioi-thieu" style={{color: 'inherit', textDecoration: 'none'}}>Giới thiệu</Link></li>
-            <li><Link to="/lien-he" style={{color: 'inherit', textDecoration: 'none'}}>Liên hệ</Link></li>
-          </ul>
-        </div>
-      </nav>
+      <MainHeader />
+      
       <div className="page-header">
         <h1>Chính Sách Đổi Trả Sản Phẩm</h1>
         <p>Nhà Sách Hoàng Kim - Cam kết chất lượng dịch vụ</p>
@@ -89,19 +53,11 @@ export default function ReturnPolicyPage() {
 
         <div className="policy-section">
           <h2> Quy Trình Đổi Trả</h2>
-          <ul className="step-list">
-            <li>
-              <strong>Liên hệ hotline:</strong> Gọi 098.246.8686 hoặc nhắn tin qua Zalo để thông báo yêu cầu đổi trả
-            </li>
-            <li>
-              <strong>Cung cấp thông tin:</strong> Mã đơn hàng, hình ảnh sản phẩm lỗi và mô tả tình trạng
-            </li>
-            <li>
-              <strong>Gửi sản phẩm:</strong> Đóng gói sản phẩm và gửi về địa chỉ cửa hàng hoặc chờ nhân viên hỗ trợ lấy tại nhà
-            </li>
-            <li>
-              <strong>Xác nhận và xử lý:</strong> Sau khi kiểm tra sản phẩm, chúng tôi sẽ liên hệ để tiến hành đổi/trả tiền
-            </li>
+          <ul className="simple-list">
+            <li><strong>1. Liên hệ hotline:</strong> Gọi 098.246.8686 hoặc nhắn tin qua Zalo để thông báo yêu cầu đổi trả</li>
+            <li><strong>2. Cung cấp thông tin:</strong> Mã đơn hàng, hình ảnh sản phẩm lỗi và mô tả tình trạng</li>
+            <li><strong>3. Gửi sản phẩm:</strong> Đóng gói sản phẩm và gửi về địa chỉ cửa hàng hoặc chờ nhân viên hỗ trợ lấy tại nhà</li>
+            <li><strong>4. Xác nhận và xử lý:</strong> Sau khi kiểm tra sản phẩm, chúng tôi sẽ liên hệ để tiến hành đổi/trả tiền</li>
           </ul>
         </div>
 
@@ -120,17 +76,14 @@ export default function ReturnPolicyPage() {
           <h2> Lưu Ý Quan Trọng</h2>
           <div className="condition-grid">
             <div className="condition-card">
-              <div className="icon"></div>
               <h4>Sách Bìa Cứng</h4>
               <p>Chỉ đổi trả nếu có lỗi từ nhà sản xuất</p>
             </div>
             <div className="condition-card">
-              <div className="icon"></div>
               <h4>Sách Đã Đọc</h4>
               <p>Không áp dụng đổi trả nếu đã có dấu hiệu sử dụng</p>
             </div>
             <div className="condition-card">
-              <div className="icon"></div>
               <h4>Sản Phẩm Khuyến Mãi</h4>
               <p>Áp dụng theo điều kiện riêng của từng chương trình</p>
             </div>

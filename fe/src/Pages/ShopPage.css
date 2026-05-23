@@ -346,7 +346,7 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  background: linear-gradient(135deg, #007bff, #0056b3);
   color: white;
   font-size: 11px;
   font-weight: 600;
@@ -428,17 +428,16 @@
 }
 
 .ebook-buy-btn {
-  width: 100%;
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  flex: 1;
+  padding: 8px 12px;
+  background: #2d5016;
   color: white;
   border: none;
   border-radius: 25px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -446,9 +445,9 @@
 }
 
 .ebook-buy-btn:hover {
-  background: linear-gradient(135deg, #e56520, #e68a1a);
+  background: #3d6b1e;
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+  box-shadow: 0 4px 15px rgba(45, 80, 22, 0.4);
 }
 
 .ebook-actions {
@@ -460,7 +459,7 @@
 .ebook-add-cart-btn {
   flex: 1;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  background: var(--primary-orange);
   color: white;
   border: none;
   border-radius: 20px;
@@ -471,5 +470,5 @@
 }
 
 .ebook-add-cart-btn:hover {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  background: #e55a1a;
 }
