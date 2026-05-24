@@ -4,9 +4,7 @@ import ImgAsset from '../public';
 import './ShopPage.css';
 import './CleanHome.css';
 import { getBooks, getCategories, addToCart as apiAddToCart } from '../api';
-import UserMenu from '../Components/UserMenu';
-import CategoryDropdown from '../Components/CategoryDropdown';
-import { useCart } from '../context/CartContext';
+import MainHeader from '../Components/MainHeader';
 
 const BookCard = ({ book, isFlashSale, onAddToCart, onBuyNow }) => {
   const imgSrc = book.image || ImgAsset.TrangchNhSchHiAnimportedbyHTMLtoFigmahttpsreforeaiwith_Imageattachmentwoocommerce_thumbnailsizewoocommerce_thumbnail;
@@ -92,7 +90,6 @@ const BookCard = ({ book, isFlashSale, onAddToCart, onBuyNow }) => {
 const ITEMS_PER_PAGE = 16;
 
 export default function ShopPage() {
-  const { cartCount } = useCart();
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [allBooks, setAllBooks] = useState([]);
@@ -103,7 +100,6 @@ export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [maxPrice, setMaxPrice] = useState(500000);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [searchParams] = useSearchParams();
   const [toast, setToast] = useState(null);
 
@@ -113,7 +109,7 @@ export default function ShopPage() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
       localStorage.setItem('pendingBuyBookId', book.bookId);
-      window.location.href = '/dang-nhap';
+      window.location.href = '/';
       return;
     }
 
@@ -131,7 +127,7 @@ export default function ShopPage() {
   const handleAddToCart = async (book) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
-      window.location.href = '/dang-nhap';
+      window.location.href = '/';
       return;
     }
 
@@ -254,71 +250,13 @@ export default function ShopPage() {
         </div>
       )}
       
-      {/* Main Header (Tái sử dụng) */}
-      <header className="main-header">
-        <div className="container header-inner">
-          <div className="logo-area">
-            <Link to="/" style={{display: 'flex', alignItems: 'center', textDecoration: 'none'}}>
-              <img src="/image/logo-hoang-kim.jpg" alt="Logo Hoàng Kim" className="logo-img" style={{height: '70px', objectFit: 'contain'}} />
-            </Link>
-          </div>
-          
-          <div className="search-area">
-            <input 
-              type="text" 
-              placeholder="Bạn muốn mua gì?" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch(e);
-                }
-              }}
-            />
-            <button className="search-btn" onClick={handleSearch}>🔍</button>
-          </div>
-
-          <div className="cart-area">
-            <Link to="/gio-hang" style={{display: 'flex', alignItems: 'center', gap: '15px', textDecoration: 'none', color: 'inherit', marginRight: '15px', paddingRight: '15px', borderRight: '1px solid #ddd'}}>
-              <div className="cart-text">Giỏ hàng / <span className="cart-price">0 ₫</span></div>
-              <div className="cart-icon">
-                <span className="cart-count">{cartCount}</span>
-                🛒
-              </div>
-            </Link>
-            <UserMenu />
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation (Tái sử dụng) */}
-      <nav className="main-nav" style={{marginBottom: '30px'}}>
-        <div className="container nav-inner">
-          <div 
-            className="categories-menu"
-            onMouseEnter={() => setShowCategoryDropdown(true)}
-            onMouseLeave={() => setShowCategoryDropdown(false)}
-            style={{position: 'relative'}}
-          >
-            <div style={{background: 'var(--primary-orange)', padding: '15px 20px', color: 'white', fontWeight: 'bold', width: '220px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer'}}>
-              <span>☰</span> Danh mục sản phẩm
-            </div>
-            {showCategoryDropdown && (
-              <CategoryDropdown 
-                categories={categories} 
-                onClose={() => setShowCategoryDropdown(false)} 
-              />
-            )}
-          </div>
-          <ul className="nav-links">
-            <li><Link to="/" style={{color: 'inherit', textDecoration: 'none'}}>Trang chủ</Link></li>
-            <li className="active"><Link to="/cua-hang" style={{color: 'var(--primary-orange)', textDecoration: 'none'}}>Cửa hàng</Link></li>
-            <li><Link to="/tin-tuc" style={{color: 'inherit', textDecoration: 'none'}}>Tin tức</Link></li>
-            <li><Link to="/gioi-thieu" style={{color: 'inherit', textDecoration: 'none'}}>Giới thiệu</Link></li>
-            <li><Link to="/lien-he" style={{color: 'inherit', textDecoration: 'none'}}>Liên hệ</Link></li>
-          </ul>
-        </div>
-      </nav>
+      {/* Main Header (Sử dụng MainHeader giống trang chủ) */}
+      <MainHeader 
+        activePage="shop" 
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onSearch={handleSearch}
+      />
 
       {/* Shop Content */}
       <div className="container shop-layout">

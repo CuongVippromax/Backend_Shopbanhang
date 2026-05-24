@@ -7,6 +7,23 @@ spring:
       port: 6379
   application:
     name: Hoang Kim Book
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/api/v1/auth/google/callback"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v2/userinfo
+            user-name-attribute: email
   datasource:
     url: jdbc:postgresql://localhost:5432/shopbanhang
     username: postgres
@@ -56,6 +73,7 @@ spring:
         model: ${GEMINI_MODEL:gemini-3.1-flash-lite-preview}
 app:
   base-url: http://localhost:8080
+  frontend-url: http://localhost:3000
   security:
     allowedOrigins:
       - http://localhost:5173
@@ -63,6 +81,8 @@ app:
       - http://localhost:4200
     publicEndpoints:
       - /api/v1/auth/**
+      - /oauth2/**
+      - /login/oauth2/**
       - /api/v1/docs/**
       - /swagger-ui.html
       - /swagger-ui/**

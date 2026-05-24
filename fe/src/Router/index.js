@@ -17,7 +17,7 @@ import VNPayCallbackPage from '../Pages/VNPayCallbackPage';
 import ReturnPolicyPage from '../Pages/ReturnPolicyPage';
 import WarrantyPage from '../Pages/WarrantyPage';
 import ShippingPaymentPage from '../Pages/ShippingPaymentPage';
-import LoginPage from '../Pages/LoginPage';
+import GoogleCallbackPage from '../Pages/GoogleCallbackPage';
 import AddressesPage from '../Pages/AddressesPage';
 
 // Admin Pages
@@ -66,7 +66,7 @@ const RouterDOM = () => {
         <Route path="/cua-hang" element={<ShopPage />} />
         <Route path="/gio-hang" element={<CartPage />} />
         <Route path="/san-pham/:id" element={<ProductPage />} />
-        <Route path="/dang-nhap" element={<LoginPage />} />
+        <Route path="/google-callback" element={<GoogleCallbackPage />} />
         <Route path="/lien-he" element={<ContactPage />} />
         <Route path="/gioi-thieu" element={<AboutPage />} />
         <Route path="/tin-tuc" element={<NewsPage />} />

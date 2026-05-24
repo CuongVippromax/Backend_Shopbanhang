@@ -48,4 +48,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // find active user by username (not deleted)
     Optional<User> findByUsernameAndDeletedFalse(String username);
+
+    // find user by provider and providerId (for OAuth2)
+    Optional<User> findByProviderAndProviderId(com.cuong.shopbanhang.common.AuthProvider provider, String providerId);
 }

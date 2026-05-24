@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import com.cuong.shopbanhang.common.Role;
+import com.cuong.shopbanhang.common.AuthProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,12 +57,24 @@ public class User {
     private String address;
 
     @Transient
+    @Builder.Default
     private List<AddressItem> addresses = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     @Builder.Default
     private Role role = Role.USER;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider")
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    @Column(name = "provider_id")
+    private String providerId;
+
+    @Column(name = "image_url")
+    private String imageUrl;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnoreProperties({"user", "cartItems"})

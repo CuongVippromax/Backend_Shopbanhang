@@ -59,6 +59,13 @@ export const logout = (token) => apiClient.post('/auth/logout', null, {
   headers: { 'Authorization': token }
 });
 
+// Google OAuth
+export const getGoogleAuthUrl = () => apiClient.get('/auth/google/url');
+export const googleCallback = (code) => apiClient.post('/auth/google/callback', { 
+  code,
+  redirectUri: 'http://localhost:8080/api/v1/auth/google/callback'
+});
+
 // User Profile - Backend uses /users/me
 export const getUserProfile = () => apiClient.get('/users/me');
 export const updateUserProfile = (data) => apiClient.put('/users/me', data);

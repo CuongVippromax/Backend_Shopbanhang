@@ -14,7 +14,8 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     loadOrderDetail();
-  }, [orderId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, loadOrderDetail]);
 
   const loadOrderDetail = useCallback(async () => {
     if (!orderId) return;

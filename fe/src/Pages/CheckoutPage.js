@@ -15,7 +15,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [, setSelectedAddress] = useState(null);
   const [form, setForm] = useState({
     fullName: '',
     phone: '',

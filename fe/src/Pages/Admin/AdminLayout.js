@@ -7,9 +7,13 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    // Xóa tất cả token (cả admin và user)
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
-    navigate('/dang-nhap');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
+    window.location.href = '/';
   };
 
   const menuItems = [

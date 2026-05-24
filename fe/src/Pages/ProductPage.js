@@ -8,7 +8,7 @@ import { useCart } from '../context/CartContext';
 export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { cartCount, refresh } = useCart();
+  const { refresh } = useCart();
   const [book, setBook] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [relatedBooks, setRelatedBooks] = useState([]);
@@ -96,7 +96,7 @@ export default function ProductPage() {
     if (!user.userId) {
       setCartMessage('Vui lòng đăng nhập để thêm vào giỏ hàng!');
       setTimeout(() => {
-        window.location.href = '/dang-nhap';
+        window.location.href = '/';
       }, 1500);
       return;
     }
@@ -125,7 +125,7 @@ export default function ProductPage() {
     if (!user.userId) {
       setCartMessage('Vui lòng đăng nhập để mua hàng!');
       setTimeout(() => {
-        window.location.href = '/dang-nhap';
+        window.location.href = '/';
       }, 1500);
       return;
     }
@@ -160,7 +160,7 @@ export default function ProductPage() {
     if (!user.userId) {
       setReviewMessage('Vui lòng đăng nhập để đánh giá sản phẩm!');
       setTimeout(() => {
-        window.location.href = '/dang-nhap';
+        window.location.href = '/';
       }, 1500);
       return;
     }

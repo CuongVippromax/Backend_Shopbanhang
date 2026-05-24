@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './CleanHome.css';
-import UserMenu from '../Components/UserMenu';
 import BannerSlider from '../Components/BannerSlider';
 import MainHeader from '../Components/MainHeader';
 import { getBooks, getCategories, getFeaturedArticles } from '../api';
@@ -222,7 +221,7 @@ const BookCard = ({ book, onAddToCart }) => {
     e.stopPropagation();
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
-      window.location.href = '/dang-nhap';
+      window.location.href = '/';
       return;
     }
     try {
@@ -310,7 +309,7 @@ export default function CleanHome() {
   const [booksByCategory, setBooksByCategory] = useState({});
   const [articles, setArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
-  const { refresh, cartCount } = useCart();
+  const { refresh } = useCart();
   const { success, error: showError } = useToast();
 
   useEffect(() => {
@@ -362,7 +361,7 @@ export default function CleanHome() {
   const handleAddToCart = async (book) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
-      window.location.href = '/dang-nhap';
+      window.location.href = '/';
       return;
     }
     try {
