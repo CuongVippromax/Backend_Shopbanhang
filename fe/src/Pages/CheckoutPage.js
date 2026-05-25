@@ -254,7 +254,7 @@ export default function CheckoutPage() {
                     onClick={() => setForm({...form, paymentMethod: 'VNPAY'})}
                   >
                     <input type="radio" name="payment" checked={form.paymentMethod === 'VNPAY'} readOnly />
-                    <label>🏦 Thanh toán qua VNPay</label>
+                    <label><img src="/image/vnpay.png" alt="VNPay" style={{width: '24px', height: 'auto', verticalAlign: 'middle', marginRight: '8px'}} /> Thanh toán qua VNPay</label>
                   </div>
                 </div>
               </div>

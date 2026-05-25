@@ -7,6 +7,7 @@ import com.cuong.shopbanhang.model.Order;
 import com.cuong.shopbanhang.service.OrderService;
 import com.cuong.shopbanhang.service.PaymentService;
 import com.cuong.shopbanhang.service.EmailService;
+import com.cuong.shopbanhang.service.CartService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +25,43 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final OrderService orderService;
     private final EmailService emailService;
+    private final CartService cartService;
 
     // Create VNPay payment
     @GetMapping("/vn-pay")
     public ResponseObject<PaymentDTO.VNPayResponse> pay(HttpServletRequest request) {
-        return new ResponseObject<>(HttpStatus.OK, "Success", paymentService.createVnPayPayment(request));
+        log.info("========== [VNPay] /vn-pay endpoint called ==========");
+        log.info("Request URL: {}", request.getRequestURL());
+        log.info("Request Method: {}", request.getMethod());
+        log.info("Request Parameters: orderId={}, amount={}, bankCode={}", 
+            request.getParameter("orderId"), 
+            request.getParameter("amount"),
+            request.getParameter("bankCode"));
+        
+        try {
+            ResponseObject<PaymentDTO.VNPayResponse> response = new ResponseObject<>(
+                HttpStatus.OK, 
+                "Success", 
+                paymentService.createVnPayPayment(request)
+            );
+            log.info("VNPay payment URL created successfully");
+            
+            // Access ResponseObject body
+            var payload = response.getBody();
+            if (payload != null) {
+                log.info("Response status code: {}", payload.code);
+                log.info("Response message: {}", payload.message);
+                if (payload.data != null && payload.data.getPaymentUrl() != null) {
+                    log.info("Payment URL length: {}", payload.data.getPaymentUrl().length());
+                    log.debug("Payment URL: {}", payload.data.getPaymentUrl());
+                }
+            }
+            
+            return response;
+        } catch (Exception e) {
+            log.error("Error creating VNPay payment: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     // Handle VNPay callback
@@ -50,6 +83,18 @@ public class PaymentController {
             // Chỉ xử lý nếu chưa thanh toán (tránh gọi 2 lần: server VNPay + frontend)
             if (order.getPaymentStatus() != PaymentStatus.PAID) {
                 orderService.updatePaymentStatus(orderId, PaymentStatus.PAID);
+
+                // Xóa cart items sau khi thanh toán VNPay thành công
+                Long userId = order.getUser() != null ? order.getUser().getUserId() : null;
+                if (userId != null) {
+                    try {
+                        cartService.clearCart(userId);
+                        log.info("Cleared cart for user {} after successful VNPay payment", userId);
+                    } catch (Exception e) {
+                        log.error("Failed to clear cart for user {} after VNPay payment", userId, e);
+                    }
+                }
+
                 try {
                     String orderDetailsHtml = orderService.buildOrderDetailsHtml(order);
                     emailService.sendOrderConfirmation(

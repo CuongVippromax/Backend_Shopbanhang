@@ -199,8 +199,8 @@ export default function ShippingPaymentPage() {
           <div className="footer-col">
             <h4>Hotline Hỗ Trợ</h4>
             <p style={{marginBottom: '5px', fontSize: '13px', color: '#000'}}>Phương thức thanh toán</p>
-            <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', letterSpacing: '0'}}>
-               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
+            <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', alignItems: 'center'}}>
+               <img src="/image/vnpay.png" alt="VNPay" style={{width: '60px', height: 'auto'}} />
             </div>
           </div>
         </div>

@@ -12,11 +12,6 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
 
-  useEffect(() => {
-    loadOrderDetail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId, loadOrderDetail]);
-
   const loadOrderDetail = useCallback(async () => {
     if (!orderId) return;
     setLoading(true);
@@ -29,6 +24,10 @@ export default function OrderDetailPage() {
       setLoading(false);
     }
   }, [orderId]);
+
+  useEffect(() => {
+    loadOrderDetail();
+  }, [orderId, loadOrderDetail]);
 
   // Check if order can be cancelled (only PENDING or CONFIRMED status)
   const canCancel = order && (order.orderStatus === 'PENDING' || order.orderStatus === 'CONFIRMED');

@@ -108,8 +108,11 @@ export default function ShopPage() {
     // Check login first
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
-      localStorage.setItem('pendingBuyBookId', book.bookId);
-      window.location.href = '/';
+      setToast({ message: 'Vui lòng đăng nhập để mua hàng!', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
+      setTimeout(() => {
+        window.dispatchEvent(new Event('openLoginModal'));
+      }, 3500);
       return;
     }
 
@@ -119,7 +122,7 @@ export default function ShopPage() {
       navigate('/thanh-toan');
     } catch (error) {
       console.error('Error buying now:', error);
-      alert('Có lỗi xảy ra, vui lòng thử lại!');
+      setToast({ message: 'Có lỗi xảy ra, vui lòng thử lại!', type: 'error' });
     }
   };
 
@@ -127,7 +130,11 @@ export default function ShopPage() {
   const handleAddToCart = async (book) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
-      window.location.href = '/';
+      setToast({ message: 'Vui lòng đăng nhập để thêm vào giỏ hàng!', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
+      setTimeout(() => {
+        window.dispatchEvent(new Event('openLoginModal'));
+      }, 3500);
       return;
     }
 
@@ -142,13 +149,19 @@ export default function ShopPage() {
     }
   };
 
-  // Get categoryId from URL if exists
+  // Get categoryId and search from URL if exists
   useEffect(() => {
     const categoryId = searchParams.get('categoryId');
+    const searchFromUrl = searchParams.get('search');
+    
     if (categoryId) {
       setSelectedCategory(categoryId);
     } else {
       setSelectedCategory('');
+    }
+    
+    if (searchFromUrl) {
+      setSearchTerm(searchFromUrl);
     }
   }, [searchParams]);
 

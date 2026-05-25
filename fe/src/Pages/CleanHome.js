@@ -309,6 +309,7 @@ export default function CleanHome() {
   const [booksByCategory, setBooksByCategory] = useState({});
   const [articles, setArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
+  const [subscribeEmail, setSubscribeEmail] = useState('');
   const { refresh } = useCart();
   const { success, error: showError } = useToast();
 
@@ -361,7 +362,10 @@ export default function CleanHome() {
   const handleAddToCart = async (book) => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
-      window.location.href = '/';
+      showError('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+      setTimeout(() => {
+        window.dispatchEvent(new Event('openLoginModal'));
+      }, 3500);
       return;
     }
     try {
@@ -373,6 +377,26 @@ export default function CleanHome() {
       console.error('Error adding to cart:', err);
       showError('Thêm vào giỏ hàng thất bại!');
     }
+  };
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    const email = subscribeEmail.trim();
+    
+    if (!email) {
+      showError('Vui lòng nhập địa chỉ email!');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showError('Địa chỉ email không hợp lệ!');
+      return;
+    }
+
+    success('Đăng ký nhận thông tin sản phẩm của nhà sách thành công!');
+    setSubscribeEmail('');
   };
 
   const flashSaleBooks = books.slice(0, 10);
@@ -518,8 +542,16 @@ export default function CleanHome() {
       {/* Subscription */}
       <div className="newsletter-bar">
         <div className="container newsletter-inner">
-          <input type="text" placeholder="Nhập địa chỉ email..." />
-          <button>ĐĂNG KÝ NGAY</button>
+          <form onSubmit={handleSubscribe} style={{display: 'flex', gap: '10px', flex: 1}}>
+            <input 
+              type="text" 
+              placeholder="Nhập địa chỉ email..." 
+              value={subscribeEmail}
+              onChange={(e) => setSubscribeEmail(e.target.value)}
+              style={{flex: 1, padding: '10px 15px', borderRadius: '4px', border: '1px solid #ddd'}}
+            />
+            <button type="submit">ĐĂNG KÝ NGAY</button>
+          </form>
         </div>
       </div>
 
@@ -527,9 +559,8 @@ export default function CleanHome() {
       <footer className="main-footer">
         <div className="container footer-grid">
           <div className="footer-col">
-            <h3 className="footer-logo">Nhà Sách Hải An</h3>
-            <p>📍 Địa chỉ: 2b/23/154, đường Ngọc Hồi, phường Hoàng Liệt, quận Hoàng Mai, Hà Nội.</p>
-            <p>☎️ Hotline: 098.246.8686</p>
+            <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
+            <p>📧 nhasachhoangkim@gmail.com</p>
           </div>
           <div className="footer-col">
             <h4>Hỗ Trợ</h4>
@@ -551,8 +582,8 @@ export default function CleanHome() {
           </div>
           <div className="footer-col">
             <h4>Hình Thức Hỗ Trợ</h4>
-            <div className="payment-icons">
-               💳 🏦 💵
+            <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', letterSpacing: '0'}}>
+               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
             </div>
           </div>
         </div>

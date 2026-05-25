@@ -56,6 +56,15 @@ export default function UserMenu() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Listen for open login modal event from other components
+  useEffect(() => {
+    const handleOpenLoginModal = () => {
+      setShowLoginModal(true);
+    };
+    window.addEventListener('openLoginModal', handleOpenLoginModal);
+    return () => window.removeEventListener('openLoginModal', handleOpenLoginModal);
+  }, []);
+
   // eslint-disable-next-line no-unused-vars
   const loadUserProfile = async () => {
     try {

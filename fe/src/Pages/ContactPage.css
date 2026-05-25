@@ -76,6 +76,10 @@
   cursor: pointer;
   align-self: flex-start;
 }
-.btn-submit-contact:hover {
+.btn-submit-contact:hover:not(:disabled) {
   background: #253549;
+}
+.btn-submit-contact:disabled {
+  background: #999;
+  cursor: not-allowed;
 }

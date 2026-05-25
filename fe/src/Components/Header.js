@@ -6,9 +6,14 @@ import { useCart } from '../context/CartContext';
 import { getCategories } from '../api';
 
 const Header = ({ showCategories = false, activeTab = 'home', showCategoryDropdown = false }) => {
-  const { cartCount } = useCart();
+  const { cartCount, cartTotal } = useCart();
   const [categories, setCategories] = useState([]);
   const [showDropdown, setShowDropdown] = useState(showCategoryDropdown);
+
+  const formatPrice = (price) => {
+    if (!price) return '0 ₫';
+    return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
+  };
 
   useEffect(() => {
     loadCategories();
@@ -41,7 +46,7 @@ const Header = ({ showCategories = false, activeTab = 'home', showCategoryDropdo
 
           <div className="cart-area">
             <Link to="/gio-hang" style={{display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', marginRight: '15px', paddingRight: '15px', borderRight: '1px solid #ddd'}}>
-              <div className="cart-text">Giỏ hàng / <span className="cart-price">0 ₫</span></div>
+              <div className="cart-text">Giỏ hàng / <span className="cart-price">{formatPrice(cartTotal)}</span></div>
               <div className="cart-icon">
                 <span className="cart-count">{cartCount}</span>
                 🛒

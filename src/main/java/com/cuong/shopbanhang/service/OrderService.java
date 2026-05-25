@@ -137,13 +137,23 @@ public class OrderService {
 
         for (CartItem item : cart.getCartItems()) {
             item.setOrderDetail(orderDetail);
-            item.setCart(null);
+            // Đánh dấu items là đang chờ thanh toán VNPay
+            if ("VNPAY".equals(request.getPaymentMethod())) {
+                item.setPendingPayment(true);
+            } else {
+                // Chỉ set cart = null cho COD (items được chuyển sang order)
+                item.setCart(null);
+            }
         }
 
         Order savedOrder = orderRepository.save(order);
 
-        cart.getCartItems().clear();
-        cartRepository.save(cart);
+        // Chỉ xóa cart items khi thanh toán COD
+        // Với VNPay, cart items được giữ lại cho đến khi thanh toán thực sự thành công
+        if (!"VNPAY".equals(request.getPaymentMethod())) {
+            cart.getCartItems().clear();
+            cartRepository.save(cart);
+        }
 
         return savedOrder;
     }
@@ -179,6 +189,7 @@ public class OrderService {
         if (itemsToRestore != null) {
             for (CartItem item : itemsToRestore) {
                 item.setOrderDetail(null);
+                item.setPendingPayment(false); // Xóa flag pending khi khôi phục
             }
 
             cartItemRepository.saveAll(itemsToRestore);

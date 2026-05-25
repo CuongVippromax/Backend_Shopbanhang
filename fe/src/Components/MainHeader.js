@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserMenu from './UserMenu';
 import { useCart } from '../context/CartContext';
 import { getCategories } from '../api';
 
-export default function MainHeader({ activePage = '', searchTerm = '', onSearchChange = () => {}, onSearch = () => {} }) {
-  const { cartCount } = useCart();
+export default function MainHeader({ activePage = '', searchTerm = '', onSearchChange = () => {} }) {
+  const navigate = useNavigate();
+  const { cartCount, cartTotal } = useCart();
   const [categories, setCategories] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
@@ -32,15 +33,20 @@ export default function MainHeader({ activePage = '', searchTerm = '', onSearchC
   };
 
   const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter' && onSearch) {
-      onSearch(e);
+    if (e.key === 'Enter' && localSearchTerm.trim()) {
+      navigate(`/cua-hang?search=${encodeURIComponent(localSearchTerm.trim())}`);
     }
   };
 
   const handleSearchClick = () => {
-    if (onSearch) {
-      onSearch({ preventDefault: () => {} });
+    if (localSearchTerm.trim()) {
+      navigate(`/cua-hang?search=${encodeURIComponent(localSearchTerm.trim())}`);
     }
+  };
+
+  const formatPrice = (price) => {
+    if (!price) return '0 ₫';
+    return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
   };
 
   return (
@@ -68,7 +74,7 @@ export default function MainHeader({ activePage = '', searchTerm = '', onSearchC
         </div>
         <div className="cart-area" style={{gap: '15px'}}>
           <Link to="/gio-hang" style={{display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: 'inherit', marginRight: '10px', paddingRight: '10px', borderRight: '1px solid #ddd'}}>
-            <div className="cart-text" style={{fontSize: '14px'}}>Giỏ hàng / <span className="cart-price">0 ₫</span></div>
+            <div className="cart-text" style={{fontSize: '14px'}}>Giỏ hàng / <span className="cart-price">{formatPrice(cartTotal)}</span></div>
             <div className="cart-icon">
               <span className="cart-count" style={{fontSize: '13px'}}>{cartCount}</span>
               🛒

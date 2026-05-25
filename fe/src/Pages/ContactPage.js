@@ -3,9 +3,18 @@ import { Link } from 'react-router-dom';
 import './ContactPage.css';
 import MainHeader from '../Components/MainHeader';
 import { getCategories } from '../api';
+import { useToast } from '../Components/Toast';
 
 export default function ContactPage() {
   const [categories, setCategories] = useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [sending, setSending] = useState(false);
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     getCategories().then(data => {
@@ -16,6 +25,49 @@ export default function ContactPage() {
       }
     }).catch(err => console.error('Error fetching categories:', err));
   }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.name.trim()) {
+      showError('Vui lòng nhập tên của bạn!');
+      return;
+    }
+    if (!formData.email.trim()) {
+      showError('Vui lòng nhập địa chỉ email!');
+      return;
+    }
+    if (!formData.message.trim()) {
+      showError('Vui lòng nhập nội dung liên hệ!');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      showError('Địa chỉ email không hợp lệ!');
+      return;
+    }
+
+    setSending(true);
+    try {
+      // Simulate sending (backend can add contact API later)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      success('Gửi liên hệ thành công! Chúng tôi sẽ phản hồi sớm nhất có thể.');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (err) {
+      showError('Gửi liên hệ thất bại! Vui lòng thử lại.');
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="contact-page">
       <MainHeader activePage="contact" />
@@ -40,28 +92,58 @@ export default function ContactPage() {
 
           {/* Right Column: Contact Form */}
           <div className="contact-right">
-            <form className="contact-form">
+            <form className="contact-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Tên của bạn (bắt buộc)</label>
-                <input type="text" className="form-input" />
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Nhập tên của bạn"
+                />
               </div>
               
               <div className="form-group">
                 <label>Địa chỉ Email (bắt buộc)</label>
-                <input type="email" className="form-input" />
+                <input 
+                  type="email" 
+                  className="form-input" 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Nhập địa chỉ email"
+                />
               </div>
               
               <div className="form-group">
                 <label>Tiêu đề:</label>
-                <input type="text" className="form-input" />
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  placeholder="Nhập tiêu đề (không bắt buộc)"
+                />
               </div>
               
               <div className="form-group">
                 <label>Thông điệp</label>
-                <textarea className="form-textarea" rows="6"></textarea>
+                <textarea 
+                  className="form-textarea" 
+                  rows="6"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Nhập nội dung liên hệ"
+                ></textarea>
               </div>
               
-              <button type="button" className="btn-submit-contact">GỬI ĐI</button>
+              <button type="submit" className="btn-submit-contact" disabled={sending}>
+                {sending ? 'ĐANG GỬI...' : 'GỬI ĐI'}
+              </button>
             </form>
           </div>
 

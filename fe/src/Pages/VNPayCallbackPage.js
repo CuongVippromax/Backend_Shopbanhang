@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import './VNPayCallbackPage.css';
-import UserMenu from '../Components/UserMenu';
+import MainHeader from '../Components/MainHeader';
 import { useToast } from '../Components/Toast';
+import { useCart } from '../context/CartContext';
 
 export default function VNPayCallbackPage() {
   const [searchParams] = useSearchParams();
   const { success, error } = useToast();
+  const { refresh } = useCart();
   const [loading, setLoading] = useState(true);
   const [paymentResult, setPaymentResult] = useState(null);
 
@@ -16,6 +18,13 @@ export default function VNPayCallbackPage() {
   const vnp_BankTranNo = searchParams.get('vnp_BankTranNo');
 
   useEffect(() => {
+    // Prevent multiple processing using sessionStorage (persists across re-mounts within same session)
+    const orderIdKey = `vnpay_processed_${vnp_TxnRef}`;
+    if (sessionStorage.getItem(orderIdKey)) {
+      setLoading(false);
+      return;
+    }
+
     const verifyPayment = async () => {
       try {
         const response = await fetch(
@@ -33,14 +42,16 @@ export default function VNPayCallbackPage() {
           message: data.message || (isSuccess ? 'Thanh toán thành công!' : 'Thanh toán thất bại!')
         });
 
-        // Show toast notification
         if (isSuccess) {
           success('Thanh toán thành công! Cảm ơn bạn đã đặt hàng tại Nhà Sách Hoàng Kim.');
+          sessionStorage.setItem(orderIdKey, 'true');
+          refresh();
         } else {
           error('Thanh toán thất bại! Vui lòng thử lại hoặc chọn phương thức thanh toán khác.');
+          sessionStorage.setItem(orderIdKey, 'true');
         }
-      } catch (error) {
-        console.error('Error verifying payment:', error);
+      } catch (err) {
+        console.error('Error verifying payment:', err);
         const isSuccess = vnp_ResponseCode === '00';
         setPaymentResult({
           success: isSuccess,
@@ -51,8 +62,11 @@ export default function VNPayCallbackPage() {
         
         if (isSuccess) {
           success('Thanh toán thành công!');
+          sessionStorage.setItem(orderIdKey, 'true');
+          refresh();
         } else {
           error('Thanh toán thất bại!');
+          sessionStorage.setItem(orderIdKey, 'true');
         }
       } finally {
         setLoading(false);
@@ -77,19 +91,8 @@ export default function VNPayCallbackPage() {
 
   return (
     <div className="vnpay-callback-page">
-      {/* Main Header */}
-      <header className="main-header">
-        <div className="container header-inner">
-          <div className="logo-area">
-            <Link to="/" style={{display: 'flex', alignItems: 'center', textDecoration: 'none'}}>
-              <img src="/image/logo-hoang-kim.jpg" alt="Logo Hoàng Kim" className="logo-img" style={{height: '70px', objectFit: 'contain'}} />
-            </Link>
-          </div>
-          <div className="cart-area">
-            <UserMenu />
-          </div>
-        </div>
-      </header>
+      {/* Main Header - Hiển thị đúng số lượng giỏ hàng */}
+      <MainHeader />
 
       {/* Callback Content */}
       <main className="vnpay-callback-container">

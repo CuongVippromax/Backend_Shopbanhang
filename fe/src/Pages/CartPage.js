@@ -4,13 +4,14 @@ import ImgAsset from '../public';
 import './CartPage.css';
 import MainHeader from '../Components/MainHeader';
 import { getCart, updateCartItem, removeCartItem, getCategories } from '../api';
+import { useToast } from '../Components/Toast';
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [notification, setNotification] = useState('');
   const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     loadCart();
@@ -62,11 +63,11 @@ export default function CartPage() {
   const handleRemoveItem = async (bookId) => {
     try {
       await removeCartItem(bookId);
-      setNotification('Đã xóa sản phẩm khỏi giỏ hàng.');
+      success('Đã xóa sản phẩm khỏi giỏ hàng.');
       loadCart();
-      setTimeout(() => setNotification(''), 3000);
     } catch (error) {
       console.error('Error removing item:', error);
+      showError('Xóa sản phẩm thất bại!');
     }
   };
 
@@ -83,12 +84,6 @@ export default function CartPage() {
 
       {/* Cart Content */}
       <main className="container cart-content-area">
-        {notification && (
-          <div className="cart-notification">
-            <span>✔️</span> {notification}
-          </div>
-        )}
-
         {loading ? (
           <p>Đang tải giỏ hàng...</p>
         ) : cartItems.length === 0 ? (

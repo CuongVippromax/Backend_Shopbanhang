@@ -4,18 +4,19 @@ import './ProductPage.css';
 import { getBookById, addToCart, getReviewsByBookId, createReview, getBooksByCategory } from '../api';
 import MainHeader from '../Components/MainHeader';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../Components/Toast';
 
 export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { refresh } = useCart();
+  const { success, error: showError } = useToast();
   const [book, setBook] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [relatedBooks, setRelatedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
-  const [, setCartMessage] = useState('');
   
   // Review form state
   const [reviewRating, setReviewRating] = useState(5);
@@ -91,64 +92,46 @@ export default function ProductPage() {
   };
 
   const handleAddToCart = async () => {
-    // Check login first
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
-      setCartMessage('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+      showError('Vui lòng đăng nhập để thêm vào giỏ hàng!');
       setTimeout(() => {
-        window.location.href = '/';
-      }, 1500);
+        window.dispatchEvent(new Event('openLoginModal'));
+      }, 3500);
       return;
     }
 
     setAddingToCart(true);
-    setCartMessage('');
     try {
-      const result = await addToCart({ bookId: parseInt(id), quantity });
-      console.log('Add to cart result:', result);
-      setCartMessage('Đã thêm vào giỏ hàng!');
-      // Refresh cart count in header
+      await addToCart({ bookId: parseInt(id), quantity });
       await refresh();
-      setTimeout(() => setCartMessage(''), 3000);
+      success('Đã thêm vào giỏ hàng!');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      const errorMsg = error?.message || error?.response?.data || 'Thêm vào giỏ hàng thất bại!';
-      setCartMessage(errorMsg.includes('logged in') ? 'Vui lòng đăng nhập!' : errorMsg);
+      showError('Thêm vào giỏ hàng thất bại!');
     } finally {
       setAddingToCart(false);
     }
   };
 
   const handleBuyNow = async () => {
-    // Check login first
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.userId) {
-      setCartMessage('Vui lòng đăng nhập để mua hàng!');
+      showError('Vui lòng đăng nhập để mua hàng!');
       setTimeout(() => {
-        window.location.href = '/';
-      }, 1500);
+        window.dispatchEvent(new Event('openLoginModal'));
+      }, 3500);
       return;
     }
 
     setAddingToCart(true);
-    setCartMessage('Đang xử lý đơn hàng...');
     try {
-      const result = await addToCart({ bookId: parseInt(id), quantity });
-      console.log('Buy now add to cart result:', result);
-      setCartMessage('Đặt hàng thành công! Đang chuyển đến thanh toán...');
-      
-      // Wait a bit to ensure backend saved the data
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Dispatch event to notify other components
+      await addToCart({ bookId: parseInt(id), quantity });
       window.dispatchEvent(new Event('cartUpdated'));
-      
-      // Use navigate instead of window.location.href
       navigate('/thanh-toan');
     } catch (error) {
       console.error('Error buying now:', error);
-      const errorMsg = error?.message || error?.response?.data || 'Mua ngay thất bại!';
-      setCartMessage(errorMsg.includes('logged in') ? 'Vui lòng đăng nhập!' : errorMsg);
+      showError('Mua ngay thất bại!');
     } finally {
       setAddingToCart(false);
     }

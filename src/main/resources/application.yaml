@@ -110,7 +110,7 @@ app:
 jwt:
   secretKey: ${JWT_SECRET}
   accessToken:
-    expiration: 86400000
+    expiration: 600000
   refreshToken:
     expiration: 604800000
 
@@ -130,6 +130,9 @@ logging:
     com.cuong.shopbanhang.service.EmailService: WARN
     com.cuong.shopbanhang.service.MinIOService: WARN
     com.cuong.shopbanhang.service.DashboardService: WARN
+    com.cuong.shopbanhang.service.PaymentService: DEBUG
+    com.cuong.shopbanhang.config.VNPayConfig: DEBUG
+    com.cuong.shopbanhang.controller.PaymentController: DEBUG
     org.springframework.web: WARN
     org.hibernate: WARN
     org.hibernate.SQL: WARN

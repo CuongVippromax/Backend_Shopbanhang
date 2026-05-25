@@ -13,6 +13,7 @@ export const useCart = () => {
 
 export const CartProvider = ({ children }) => {
   const [cartCount, setCartCount] = useState(0);
+  const [cartTotal, setCartTotal] = useState(0);
   const [cartItems, setCartItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -39,6 +40,9 @@ export const CartProvider = ({ children }) => {
       // Calculate total item count (sum of all quantities)
       const totalCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
       setCartCount(totalCount);
+      // Calculate total price
+      const totalPrice = items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+      setCartTotal(totalPrice);
     } catch (error) {
       console.error('Error loading cart:', error);
       setCartCount(0);
@@ -131,6 +135,7 @@ export const CartProvider = ({ children }) => {
       await clearCart();
       setCartItems([]);
       setCartCount(0);
+      setCartTotal(0);
       window.dispatchEvent(new Event('cartUpdated'));
       return true;
     } catch (error) {
@@ -146,6 +151,7 @@ export const CartProvider = ({ children }) => {
 
   const value = {
     cartCount,
+    cartTotal,
     cartItems,
     isLoading,
     isInitialized,

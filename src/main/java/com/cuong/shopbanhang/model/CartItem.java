@@ -37,4 +37,8 @@ public class CartItem {
     @JoinColumn(name = "order_detail_id")
     @JsonIgnoreProperties({"order", "items"})
     private OrderDetail orderDetail;
+
+    @Column(name = "pending_payment")
+    @Builder.Default
+    private Boolean pendingPayment = false;
 }
