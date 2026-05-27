@@ -31,4 +31,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     // Count books in a category
     @Query("SELECT COUNT(b) FROM Book b WHERE b.category.categoryId = :categoryId")
     Long countBooksByCategoryId(@Param("categoryId") Long categoryId);
+
+    // find books by category ID
+    @Query("SELECT b FROM Book b WHERE b.category.categoryId = :categoryId")
+    List<Book> findBooksByCategoryId(@Param("categoryId") Long categoryId);
 }

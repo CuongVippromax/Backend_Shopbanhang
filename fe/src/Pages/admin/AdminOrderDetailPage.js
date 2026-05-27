@@ -124,7 +124,15 @@ const AdminOrderDetailPage = () => {
 
           <div className="card">
             <h3 className="block-title">Thanh toán</h3>
-            <div className="info-row"><span>Phương thức</span><strong>{order.paymentMethod}</strong></div>
+            <div className="info-row">
+              <span>Phương thức</span>
+              <strong className="adm-pay-method">
+                {order.paymentMethod === 'VNPAY' && (
+                  <img src="/image/vnpay.png" alt="VNPay" className="adm-vnpay-img" />
+                )}
+                {order.paymentMethod}
+              </strong>
+            </div>
             <div className="status-options">
               {PAY_STATUSES.map((s) => (
                 <button key={s}
@@ -155,6 +163,8 @@ const AdminOrderDetailPage = () => {
         .sum-total strong { color: var(--color-primary); font-family: var(--font-serif); font-size: 20px; }
         .info-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
         .info-row span { color: var(--color-text-soft); }
+        .adm-pay-method { display: inline-flex; align-items: center; gap: 8px; }
+        .adm-vnpay-img { width: 28px; height: 28px; object-fit: contain; background: #fff; border-radius: 4px; padding: 2px; border: 1px solid var(--color-border-soft); }
         .status-options { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
         .status-btn {
           padding: 6px 12px;

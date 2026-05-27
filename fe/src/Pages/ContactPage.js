@@ -36,7 +36,7 @@ const ContactPage = () => {
                 <div className="ci-icon"><Icon name="location" /></div>
                 <div>
                   <strong>Địa chỉ</strong>
-                  <span>123 Đường Lê Lợi, Quận 1, TP. Hồ Chí Minh</span>
+                  <span>Số 262, Đường Phùng Hưng, Phường Phúc La, Quận Hà Đông, Hà Nội</span>
                 </div>
               </div>
               <div className="contact-card">

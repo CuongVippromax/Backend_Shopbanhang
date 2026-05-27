@@ -258,7 +258,11 @@ const CheckoutPage = () => {
                         checked={form.paymentMethod === m.value}
                         onChange={() => setForm({ ...form, paymentMethod: m.value })}
                       />
-                      <div className="pay-icon"><Icon name={m.icon} size={20} /></div>
+                      <div className="pay-icon">
+                        {m.value === 'VNPAY'
+                          ? <img src="/image/vnpay.png" alt="VNPay" className="vnpay-img" />
+                          : <Icon name={m.icon} size={20} />}
+                      </div>
                       <div>
                         <strong>{m.label}</strong>
                         <span>{m.desc}</span>
@@ -344,9 +348,12 @@ const CheckoutPage = () => {
           display: inline-flex; align-items: center; justify-content: center;
           overflow: hidden;
         }
+        .pay-option .pay-icon:has(.vnpay-img) {
+          background: #fff;
+        }
         .vnpay-img {
-          width: 20px;
-          height: 20px;
+          width: 24px;
+          height: 24px;
           object-fit: contain;
         }
 

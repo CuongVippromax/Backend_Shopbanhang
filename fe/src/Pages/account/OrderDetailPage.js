@@ -138,7 +138,13 @@ const OrderDetailPage = () => {
             <h3 className="block-title">Thanh toán</h3>
             <div className="od-info-row">
               <span>Phương thức</span>
-              <strong>{order.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng' : order.paymentMethod}</strong>
+              <strong className="od-pay-method">
+                {order.paymentMethod === 'VNPAY' && (
+                  <img src="/image/vnpay.png" alt="VNPay" className="od-vnpay-img" />
+                )}
+                {order.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng' :
+                  order.paymentMethod === 'VNPAY' ? 'Thanh toán VNPay' : order.paymentMethod}
+              </strong>
             </div>
             <div className="od-info-row">
               <span>Trạng thái</span>
@@ -233,6 +239,8 @@ const OrderDetailPage = () => {
         .od-info-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: var(--color-text-soft); }
         .od-info-row strong { color: var(--color-text); }
         .od-info-row svg { color: var(--color-primary); flex-shrink: 0; }
+        .od-pay-method { display: inline-flex; align-items: center; gap: 8px; }
+        .od-vnpay-img { width: 28px; height: 28px; object-fit: contain; background: #fff; border-radius: 4px; padding: 2px; border: 1px solid var(--color-border-soft); }
 
         .pay-tag { padding: 2px 10px; border-radius: 99px; font-size: 12px; }
         .pay-paid { background: #d8f0e2; color: #1d6c44; }

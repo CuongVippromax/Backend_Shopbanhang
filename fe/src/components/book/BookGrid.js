@@ -22,6 +22,7 @@ const BookGridSkeleton = ({ count = 8 }) => (
 );
 
 const BookGrid = ({ books, loading, skeletonCount = 8, columns = 'auto' }) => {
+  const cols = typeof columns === 'number' ? columns : 4;
   return (
     <div className="book-grid">
       {loading && <BookGridSkeleton count={skeletonCount} />}
@@ -31,11 +32,14 @@ const BookGrid = ({ books, loading, skeletonCount = 8, columns = 'auto' }) => {
       <style>{`
         .book-grid {
           display: grid;
-          grid-template-columns: repeat(${typeof columns === 'number' ? columns : 'auto-fill, minmax(220px, 1fr)'});
+          grid-template-columns: repeat(${cols}, 1fr);
           gap: 22px;
         }
-        @media (max-width: 540px) {
+        @media (max-width: 720px) {
           .book-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        }
+        @media (max-width: 540px) {
+          .book-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
         }
       `}</style>
     </div>

@@ -425,7 +425,7 @@ const FlashSale = ({ books, loading }) => (
         </h2>
         <Link to="/books" className="section-link">Xem tất cả <Icon name="arrow" size={14} /></Link>
       </div>
-      <BookGrid books={books} loading={loading} skeletonCount={10} />
+      <BookGrid books={books} loading={loading} skeletonCount={8} />
     </div>
     <style>{`
       .flash-section {
@@ -445,7 +445,7 @@ const FeaturedBooks = ({ books, loading }) => (
         </h2>
         <Link to="/books" className="section-link">Xem tất cả <Icon name="arrow" size={14} /></Link>
       </div>
-      <BookGrid books={books} loading={loading} skeletonCount={10} />
+      <BookGrid books={books} loading={loading} skeletonCount={8} />
     </div>
   </section>
 );
@@ -598,11 +598,11 @@ const HomePage = () => {
   const [heroBooks, setHeroBooks] = useState([]);
 
   useEffect(() => {
-    bookApi.getFlashSale(10)
+    bookApi.getFlashSale(8)
       .then((resp) => setFlash({ list: unwrapPage(resp).items, loading: false }))
       .catch(() => setFlash({ list: [], loading: false }));
 
-    bookApi.getRandom(10)
+    bookApi.getRandom(8)
       .then((data) => setFeatured({ list: data || [], loading: false }))
       .catch(() => setFeatured({ list: [], loading: false }));
 

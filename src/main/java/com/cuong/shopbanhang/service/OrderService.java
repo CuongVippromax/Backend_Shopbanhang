@@ -160,23 +160,22 @@ public class OrderService {
 
     /**
      * Hủy và xóa đơn hàng (dùng khi thanh toán thất bại).
-     * Khôi phục số lượng tồn kho và các mặt hàng trong giỏ.
-     * 
+     * Xóa order TRƯỚC, sau đó mới khôi phục giỏ hàng và tồn kho.
+     * Đảm bảo order không còn trong DB ngay cả khi các bước khôi phục thất bại.
+     *
      * EXCEPTIONS CÓ THỂ NÉM RA:
      * - ResourceNotFoundException (1): Khi không tìm thấy đơn hàng
      * - OrderException (2): Khi đơn hàng đã thanh toán thành công
-     * 
+     *
      * @param orderId ID của đơn hàng cần hủy và xóa
      */
     @Transactional
     public void cancelAndDeleteOrder(Long orderId) {
-        // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy đơn hàng
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
-        // EXCEPTION: OrderException - Khi đơn hàng đã thanh toán thành công
         if (order.getPaymentStatus() == PaymentStatus.PAID) {
-            throw new OrderException("Không thể xóa đơn hàng đã thanh toán thành công."); // EX-009
+            throw new OrderException("Không thể xóa đơn hàng đã thanh toán thành công.");
         }
 
         Long userId = order.getUser() != null ? order.getUser().getUserId() : null;
@@ -186,31 +185,47 @@ public class OrderService {
             itemsToRestore = new ArrayList<>(order.getOrderDetails().getItems());
         }
 
-        if (itemsToRestore != null) {
-            for (CartItem item : itemsToRestore) {
-                item.setOrderDetail(null);
-                item.setPendingPayment(false); // Xóa flag pending khi khôi phục
-            }
+        // BUOC 1: XOA ORDER NGAY (neu that bai thi rollback, nhung order van bi xoa)
+        order.setOrderDetails(null);
+        orderRepository.delete(order);
+        orderRepository.flush();
 
-            cartItemRepository.saveAll(itemsToRestore);
-            entityManager.flush();
+        // BUOC 2: Khôi phục giỏ hàng và tồn kho (nếu fail thì log nhưng không ảnh hưởng order đã xóa)
+        restoreCartAndInventory(userId, itemsToRestore);
+    }
+
+    /**
+     * Khôi phục các mặt hàng vào giỏ hàng và số lượng tồn kho.
+     * Chỉ log lỗi, không ném exception để không ảnh hưởng đến việc xóa order.
+     */
+    private void restoreCartAndInventory(Long userId, List<CartItem> itemsToRestore) {
+        if (itemsToRestore == null || itemsToRestore.isEmpty()) {
+            return;
         }
 
         // Khôi phục số lượng tồn kho
-        if (itemsToRestore != null) {
-            for (CartItem item : itemsToRestore) {
+        for (CartItem item : itemsToRestore) {
+            try {
                 Book book = item.getBook();
                 book.setQuantity(book.getQuantity() + item.getQuantity());
                 bookRepository.save(book);
+            } catch (Exception e) {
+                log.error("Failed to restore inventory for book {} after order cancellation", item.getBook().getBookId(), e);
             }
-            entityManager.flush();
         }
-
-        Cart userCart = userId != null ? cartRepository.findByUser_UserId(userId).orElse(null) : null;
+        entityManager.flush();
 
         // Khôi phục các mặt hàng vào giỏ hàng
-        if (userCart != null && itemsToRestore != null) {
-            for (CartItem item : itemsToRestore) {
+        Cart userCart = userId != null ? cartRepository.findByUser_UserId(userId).orElse(null) : null;
+        if (userCart == null) {
+            return;
+        }
+
+        for (CartItem item : itemsToRestore) {
+            try {
+                item.setOrderDetail(null);
+                item.setPendingPayment(false);
+
                 var existing = cartItemRepository.findByCart_CartIdAndBook_BookId(
                         userCart.getCartId(), item.getBook().getBookId());
                 if (existing.isPresent()) {
@@ -221,14 +236,12 @@ public class OrderService {
                     item.setCart(userCart);
                     cartItemRepository.save(item);
                 }
+            } catch (Exception e) {
+                log.error("Failed to restore cart item {} for user {} after order cancellation",
+                    item.getBook().getBookId(), userId, e);
             }
-            entityManager.flush();
         }
-
-        order.setOrderDetails(null);
-        orderRepository.save(order);
-        orderRepository.delete(order);
-
+        entityManager.flush();
         entityManager.clear();
     }
 

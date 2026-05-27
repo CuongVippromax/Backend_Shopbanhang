@@ -1,6 +1,10 @@
 package com.cuong.shopbanhang.service;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -61,25 +65,37 @@ public class PaymentService {
         String bankCode = request.getParameter("bankCode");
         log.debug("bankCode parameter: {}", bankCode);
 
-        log.info("Getting VNPay configuration...");
-        Map<String, String> vnpParamsMap = vnPayConfig.getVNPayConfig();
-        log.debug("VNPay config keys: {}", vnpParamsMap.keySet());
+        // Tạo Map config mới cho mỗi lần gọi (tránh cache)
+        Map<String, String> vnpParamsMap = new HashMap<>();
+        vnpParamsMap.put("vnp_Version", vnPayConfig.getVnp_Version());
+        vnpParamsMap.put("vnp_Command", vnPayConfig.getVnp_Command());
+        vnpParamsMap.put("vnp_TmnCode", vnPayConfig.getVnp_TmnCode());
+        vnpParamsMap.put("vnp_CurrCode", "VND");
         
-        if (vnpParamsMap == null || vnpParamsMap.isEmpty()) {
-            log.error("VNPay configuration is null or empty!");
-            throw new PaymentException("Cấu hình VNPay không hợp lệ. Vui lòng kiểm tra cài đặt.", "VNPay", "CONFIG_ERROR");
-        }
+        String orderInfo = "Thanh toan don hang:" + VNPayUtil.getRandomNumber(8);
+        vnpParamsMap.put("vnp_OrderInfo", orderInfo);
+        log.debug("Generated OrderInfo: {}", orderInfo);
         
-        // Log VNPay config values (mask sensitive data)
-        log.debug("VNPay URL: {}", vnPayConfig.getVnp_PayUrl());
-        log.debug("VNPay TmnCode: {}", vnPayConfig.getVnp_TmnCode());
-        log.debug("VNPay ReturnUrl: {}", vnpParamsMap.get("vnp_ReturnUrl"));
-        log.debug("VNPay Version: {}", vnpParamsMap.get("vnp_Version"));
-        log.debug("VNPay Command: {}", vnpParamsMap.get("vnp_Command"));
-        log.debug("VNPay ExpireDate: {}", vnpParamsMap.get("vnp_ExpireDate"));
+        vnpParamsMap.put("vnp_OrderType", vnPayConfig.getOrderType());
+        vnpParamsMap.put("vnp_Locale", "vn");
+        vnpParamsMap.put("vnp_ReturnUrl", vnPayConfig.getVnp_ReturnUrl());
+        
+        // Tạo timestamp mới cho mỗi lần gọi (tránh cache)
+        Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        
+        String vnpCreateDate = formatter.format(calendar.getTime());
+        vnpParamsMap.put("vnp_CreateDate", vnpCreateDate);
+        log.info("Generated CreateDate: {}", vnpCreateDate);
+        
+        // Set expire date (15 minutes from now)
+        calendar.add(Calendar.MINUTE, 15);
+        String vnp_ExpireDate = formatter.format(calendar.getTime());
+        vnpParamsMap.put("vnp_ExpireDate", vnp_ExpireDate);
+        log.info("Payment URL will expire in 15 minutes at: {}", vnp_ExpireDate);
         
         vnpParamsMap.put("vnp_Amount", String.valueOf(amount));
-        vnpParamsMap.put("vnp_TxnRef", orderIdStr);
+        vnpParamsMap.put("vnp_TxnRef", orderIdStr + "_" + System.currentTimeMillis());
         
         if (bankCode != null && !bankCode.isEmpty()) {
             vnpParamsMap.put("vnp_BankCode", bankCode);

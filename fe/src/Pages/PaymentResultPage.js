@@ -74,6 +74,9 @@ const PaymentResultPage = () => {
     <section className="section">
       <div className="container">
         <div className={`pay-result page-enter ${isSuccess ? 'is-success' : 'is-fail'}`}>
+          <div className="pay-brand">
+            <img src="/image/vnpay.png" alt="VNPay" className="pay-brand-img" />
+          </div>
           <div className="pay-icon">
             <Icon name={isSuccess ? 'check' : 'x'} size={40} />
           </div>
@@ -156,6 +159,15 @@ const PaymentResultPage = () => {
           background: var(--color-surface);
           border-radius: var(--radius-xl);
           box-shadow: var(--shadow-lg);
+        }
+        .pay-brand {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 16px;
+        }
+        .pay-brand-img {
+          height: 44px;
+          object-fit: contain;
         }
         .pay-icon {
           width: 96px; height: 96px;

@@ -19,6 +19,7 @@ import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.model.Category;
 import com.cuong.shopbanhang.model.Book;
 import com.cuong.shopbanhang.repository.CategoryRepository;
+import com.cuong.shopbanhang.repository.ReviewRepository;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "CategoryService")
 public class CategoryService {
     private final CategoryRepository categoryRepository;
+    private final ReviewRepository reviewRepository;
 
     /**
      * Tạo danh mục mới.
@@ -207,12 +209,52 @@ public class CategoryService {
 
     /**
      * Lấy danh sách sách theo tên danh mục.
-     * 
+     *
      * @param category Tên danh mục
      * @return List<Book> danh sách sách trong danh mục
      */
     public List<Book> loadBookWithCategory(String category) {
         return categoryRepository.findBooksByCategoryName(category);
+    }
+
+    /**
+     * Lấy danh sách sách theo ID danh mục.
+     *
+     * @param categoryId ID danh mục
+     * @return List<Book> danh sách sách trong danh mục
+     */
+    public List<Book> loadBookByCategoryId(Long categoryId) {
+        return categoryRepository.findBooksByCategoryId(categoryId);
+    }
+
+    /**
+     * Lấy danh sách sách theo ID danh mục, trả về format phù hợp cho frontend.
+     *
+     * @param categoryId ID danh mục
+     * @return List<Map<String, Object>> danh sách sách với format {bookId, bookName, price, image, category, categoryId, author, ...}
+     */
+    public List<java.util.Map<String, Object>> loadBooksByCategoryIdForFrontend(Long categoryId) {
+        List<Book> books = categoryRepository.findBooksByCategoryId(categoryId);
+        return books.stream().map(book -> {
+            java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+            map.put("bookId", book.getBookId());
+            map.put("bookName", book.getBookName());
+            map.put("price", book.getPrice());
+            map.put("quantity", book.getQuantity());
+            map.put("image", book.getImage());
+            map.put("description", book.getDescription());
+            map.put("category", book.getCategory() != null ? book.getCategory().getCategoryName() : null);
+            map.put("categoryId", book.getCategory() != null ? book.getCategory().getCategoryId() : null);
+            map.put("author", book.getAuthor());
+            map.put("publisher", book.getPublisher());
+            map.put("publicationYear", book.getPublicationYear());
+            // Lấy rating từ review
+            Double avgRating = reviewRepository.getAverageRating(book.getBookId());
+            Integer reviewCount = reviewRepository.getReviewCount(book.getBookId());
+            map.put("averageRating", avgRating != null ? avgRating : 0.0);
+            map.put("reviewCount", reviewCount != null ? reviewCount : 0);
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
     }
 
     /**

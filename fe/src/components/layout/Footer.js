@@ -33,15 +33,15 @@ const Footer = () => (
         <ul className="footer-list">
           <li><Link to="/contact">Liên hệ</Link></li>
           <li><Link to="/faq">Chính sách đổi trả</Link></li>
-          <li><Link to="/faq">Phương thức thanh toán</Link></li>
-          <li><Link to="/faq">Vận chuyển & giao hàng</Link></li>
+          <li><Link to="/payment-methods">Phương thức thanh toán</Link></li>
+          <li><Link to="/shipping">Vận chuyển & giao hàng</Link></li>
         </ul>
       </div>
 
       <div>
         <h4>Liên hệ</h4>
         <ul className="footer-contact">
-          <li><Icon name="location" size={16} /> 123 Đường Lê Lợi, Q.1, TP.HCM</li>
+          <li><Icon name="location" size={16} /> Số 262, Đường Phùng Hưng, P. Phúc La, Q. Hà Đông, Hà Nội</li>
           <li><Icon name="phone" size={16} /> 1900 1234 (8:00 - 21:00)</li>
           <li><Icon name="mail" size={16} /> hello@hoangkim.vn</li>
         </ul>

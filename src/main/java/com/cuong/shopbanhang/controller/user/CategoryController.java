@@ -33,8 +33,8 @@ public class CategoryController {
 
     // Get books by category
     @GetMapping("/{categoryId}/books")
-    public ResponseEntity<List<?>> getBooksByCategory(@PathVariable Long categoryId) {
-        List<?> books = categoryService.loadBookWithCategory(String.valueOf(categoryId));
+    public ResponseEntity<?> getBooksByCategory(@PathVariable Long categoryId) {
+        List<?> books = categoryService.loadBooksByCategoryIdForFrontend(categoryId);
         return ResponseEntity.ok(books);
     }
 }

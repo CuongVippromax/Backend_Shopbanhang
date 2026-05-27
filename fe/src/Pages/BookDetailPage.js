@@ -120,7 +120,12 @@ const BookDetailPage = () => {
       categoryApi.getBooks(book.categoryId)
         .then((list) => {
           const arr = Array.isArray(list) ? list : (list?.data || []);
-          setRelated(arr.filter((b) => b.bookId !== book.bookId).slice(0, 4));
+          const pool = arr.filter((b) => b.bookId !== book.bookId);
+          for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+          }
+          setRelated(pool.slice(0, 3));
         })
         .catch(() => setRelated([]));
     }
@@ -254,17 +259,18 @@ const BookDetailPage = () => {
                 })}
               </div>
             </div>
+
+            {related.length > 0 && (
+              <div className="card">
+                <h3 className="card-title">Sách đề xuất</h3>
+                <p className="related-sub">Một vài cuốn cùng danh mục bạn có thể quan tâm.</p>
+                <div className="related-grid">
+                  <BookGrid books={related} columns={3} />
+                </div>
+              </div>
+            )}
           </div>
 
-          {related.length > 0 && (
-            <div className="section-head mt-6">
-              <h2 className="section-title">
-                <small>Có thể bạn thích</small>
-                Sản phẩm cùng danh mục
-              </h2>
-            </div>
-          )}
-          {related.length > 0 && <BookGrid books={related} />}
         </div>
       </section>
 
@@ -392,6 +398,17 @@ const BookDetailPage = () => {
         }
         .card-title { font-family: var(--font-serif); font-size: 22px; margin-bottom: 16px; }
         .detail-desc { color: var(--color-text-soft); white-space: pre-line; line-height: 1.75; }
+        .related-sub { color: var(--color-text-mute); font-size: 13.5px; margin: -8px 0 16px; }
+        .related-grid { margin-top: 8px; }
+        .related-grid > .book-grid {
+          grid-template-columns: repeat(3, 1fr) !important;
+        }
+        @media (max-width: 900px) {
+          .related-grid > .book-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 540px) {
+          .related-grid > .book-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
 
         .review-list { margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
         .review-item { display: flex; gap: 12px; padding: 16px; border-radius: var(--radius-md); background: var(--color-surface-soft); border: 1px solid var(--color-border-soft); }

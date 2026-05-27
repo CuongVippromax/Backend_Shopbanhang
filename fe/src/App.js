@@ -29,6 +29,8 @@ const ArticleDetailPage = lazy(() => import('./pages/ArticleDetailPage'));
 const FaqPage = lazy(() => import('./pages/FaqPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
+const PaymentMethodsPage = lazy(() => import('./pages/PaymentMethodsPage'));
+const ShippingPage = lazy(() => import('./pages/ShippingPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'));
@@ -100,6 +102,8 @@ const App = () => {
             <Route path="/faq" element={<FaqPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/payment-methods" element={<PaymentMethodsPage />} />
+            <Route path="/shipping" element={<ShippingPage />} />
 
             <Route path="/account" element={<RequireAuth><AccountPage /></RequireAuth>}>
               <Route index element={<ProfilePage />} />
