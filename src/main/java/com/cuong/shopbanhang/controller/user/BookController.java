@@ -9,6 +9,8 @@ import com.cuong.shopbanhang.dto.response.BookResponse;
 import com.cuong.shopbanhang.dto.response.PageResponse;
 import com.cuong.shopbanhang.service.BookService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping({ "/api/v1/books", "/api/books" })
 @RequiredArgsConstructor
@@ -41,6 +43,14 @@ public class BookController {
     public ResponseEntity<PageResponse<?>> getFlashSaleBooks(
             @RequestParam(name = "limit", defaultValue = "5") int limit) {
         PageResponse<?> books = bookService.getAllBook(0, limit, "bookId:desc", null, null, null);
+        return ResponseEntity.ok(books);
+    }
+
+    // Get random books for homepage
+    @GetMapping("/random")
+    public ResponseEntity<List<BookResponse>> getRandomBooks(
+            @RequestParam(name = "limit", defaultValue = "8") int limit) {
+        List<BookResponse> books = bookService.getRandomBooks(limit);
         return ResponseEntity.ok(books);
     }
 }

@@ -1,22 +1,23 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import RouterDOM from './Router';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import './styles/theme.css';
+import App from './App';
+import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { ToastProvider } from './Components/Toast';
-import LoginSuccessHandler from './Components/LoginSuccessHandler';
-import ChatbotWrapper from './Components/ChatbotWrapper';
+import { ToastProvider } from './context/ToastContext';
 
-ReactDOM.render(
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
   <React.StrictMode>
-    <CartProvider>
+    <BrowserRouter>
       <ToastProvider>
-        <LoginSuccessHandler>
-          <RouterDOM />
-          <ChatbotWrapper />
-        </LoginSuccessHandler>
+        <AuthProvider>
+          <CartProvider>
+            <App />
+          </CartProvider>
+        </AuthProvider>
       </ToastProvider>
-    </CartProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
+    </BrowserRouter>
+  </React.StrictMode>
 );

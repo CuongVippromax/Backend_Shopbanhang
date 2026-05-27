@@ -1,172 +1,107 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getCart, addToCart as apiAddToCart, updateCartItem, removeCartItem, clearCart } from '../api';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { cartApi } from '../api/shopApi';
+import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 
 const CartContext = createContext(null);
 
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
-};
+const emptyCart = { cartId: null, userId: null, items: [], totalItems: 0, totalPrice: 0 };
 
 export const CartProvider = ({ children }) => {
-  const [cartCount, setCartCount] = useState(0);
-  const [cartTotal, setCartTotal] = useState(0);
-  const [cartItems, setCartItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const { user, isAuthenticated } = useAuth();
+  const toast = useToast();
+  const [cart, setCart] = useState(emptyCart);
+  const [loading, setLoading] = useState(false);
 
-  // Check if user is logged in
-  const isLoggedIn = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return !!(user.userId || user.id);
-  };
-
-  // Load cart from server
-  const loadCart = useCallback(async () => {
-    if (!isLoggedIn()) {
-      setCartCount(0);
-      setCartItems([]);
+  const fetchCart = useCallback(async () => {
+    if (!user?.userId) {
+      setCart(emptyCart);
       return;
     }
-
-    setIsLoading(true);
+    setLoading(true);
     try {
-      const data = await getCart();
-      const items = data?.items || [];
-      setCartItems(items);
-      // Calculate total item count (sum of all quantities)
-      const totalCount = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-      setCartCount(totalCount);
-      // Calculate total price
-      const totalPrice = items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
-      setCartTotal(totalPrice);
-    } catch (error) {
-      console.error('Error loading cart:', error);
-      setCartCount(0);
-      setCartItems([]);
+      const data = await cartApi.get(user.userId);
+      setCart(data || emptyCart);
+    } catch (e) {
+      setCart(emptyCart);
     } finally {
-      setIsLoading(false);
-      setIsInitialized(true);
+      setLoading(false);
     }
-  }, []);
+  }, [user?.userId]);
 
-  // Initialize cart on mount and when user changes
   useEffect(() => {
-    loadCart();
+    if (isAuthenticated) fetchCart();
+    else setCart(emptyCart);
+  }, [isAuthenticated, fetchCart]);
 
-    // Listen for storage changes (for multi-tab sync)
-    const handleStorageChange = (e) => {
-      if (e.key === 'user') {
-        loadCart();
-      }
-    };
-
-    // Custom event for cart updates within same tab
-    const handleCartUpdate = () => {
-      loadCart();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('cartUpdated', handleCartUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('cartUpdated', handleCartUpdate);
-    };
-  }, [loadCart]);
-
-  // Add item to cart
-  const addItem = async (bookId, quantity = 1) => {
-    if (!isLoggedIn()) {
-      alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
+  const requireLogin = () => {
+    if (!isAuthenticated) {
+      toast.show('Vui lòng đăng nhập để tiếp tục.', 'warning');
       return false;
     }
+    return true;
+  };
 
+  const addItem = useCallback(async (bookId, quantity = 1) => {
+    if (!requireLogin()) return false;
     try {
-      await apiAddToCart({ bookId, quantity });
-      await loadCart();
-      // Dispatch custom event for same-tab updates
-      window.dispatchEvent(new Event('cartUpdated'));
+      const data = await cartApi.add(user.userId, bookId, quantity);
+      setCart(data || emptyCart);
+      toast.show('Đã thêm vào giỏ hàng', 'success');
       return true;
-    } catch (error) {
-      console.error('Error adding to cart:', error);
+    } catch (e) {
+      toast.show(e.response?.data?.message || 'Không thể thêm vào giỏ hàng', 'error');
       return false;
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.userId, isAuthenticated]);
 
-  // Update item quantity
-  const updateItem = async (bookId, quantity) => {
-    if (!isLoggedIn()) return false;
-
+  const updateItem = useCallback(async (bookId, quantity) => {
+    if (!requireLogin()) return;
     try {
-      await updateCartItem(bookId, quantity);
-      await loadCart();
-      window.dispatchEvent(new Event('cartUpdated'));
-      return true;
-    } catch (error) {
-      console.error('Error updating cart item:', error);
-      return false;
+      const data = await cartApi.update(user.userId, bookId, quantity);
+      setCart(data || emptyCart);
+    } catch (e) {
+      toast.show('Không thể cập nhật số lượng', 'error');
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.userId, isAuthenticated]);
 
-  // Remove item from cart
-  const removeItem = async (bookId) => {
-    if (!isLoggedIn()) return false;
-
+  const removeItem = useCallback(async (bookId) => {
+    if (!requireLogin()) return;
     try {
-      await removeCartItem(bookId);
-      await loadCart();
-      window.dispatchEvent(new Event('cartUpdated'));
-      return true;
-    } catch (error) {
-      console.error('Error removing cart item:', error);
-      return false;
+      const data = await cartApi.remove(user.userId, bookId);
+      setCart(data || emptyCart);
+      toast.show('Đã xoá khỏi giỏ hàng', 'info');
+    } catch (e) {
+      toast.show('Không thể xoá sản phẩm', 'error');
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.userId, isAuthenticated]);
 
-  // Clear entire cart
-  const clearAll = async () => {
-    if (!isLoggedIn()) return false;
-
+  const clear = useCallback(async () => {
+    if (!user?.userId) return;
     try {
-      await clearCart();
-      setCartItems([]);
-      setCartCount(0);
-      setCartTotal(0);
-      window.dispatchEvent(new Event('cartUpdated'));
-      return true;
-    } catch (error) {
-      console.error('Error clearing cart:', error);
-      return false;
-    }
-  };
-
-  // Refresh cart manually
-  const refresh = () => {
-    return loadCart();
-  };
+      await cartApi.clear(user.userId);
+      setCart(emptyCart);
+    } catch (_) {}
+  }, [user?.userId]);
 
   const value = {
-    cartCount,
-    cartTotal,
-    cartItems,
-    isLoading,
-    isInitialized,
+    cart,
+    loading,
+    fetchCart,
     addItem,
     updateItem,
     removeItem,
-    clearAll,
-    refresh,
+    clear,
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
-export default CartContext;
+export const useCart = () => {
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error('useCart must be used inside CartProvider');
+  return ctx;
+};

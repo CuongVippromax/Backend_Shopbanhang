@@ -59,4 +59,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             "LOWER(b.author) LIKE LOWER(CONCAT('%', :search, '%')))"
         )
     Page<Book> findBooksWithSearch(@Param("search") String search, Pageable pageable);
+
+    // Lấy sách ngẫu nhiên (dùng cho trang chủ) - PostgreSQL
+    @Query(value = "SELECT * FROM \"book\" ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Book> findRandomBooks(@Param("limit") int limit);
 }

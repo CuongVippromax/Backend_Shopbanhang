@@ -1,80 +1,148 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import './AboutPage.css';
-import MainHeader from '../Components/MainHeader';
-import { getCategories } from '../api';
+import Breadcrumb from '../components/common/Breadcrumb';
+import { Icon } from '../components/common/Icon';
 
-export default function AboutPage() {
-  const [categories, setCategories] = useState([]);
+const values = [
+  { icon: 'book', title: 'Tri thức trước tiên', desc: 'Chọn lọc sách chất lượng, đa dạng thể loại, phục vụ mọi lứa tuổi.' },
+  { icon: 'shield', title: 'Uy tín & chính hãng', desc: 'Liên kết trực tiếp với NXB và đơn vị phát hành, cam kết hàng thật.' },
+  { icon: 'medal', title: 'Khách hàng là trung tâm', desc: 'Hỗ trợ tận tâm, đổi trả nhanh chóng và chăm sóc dài hạn.' },
+  { icon: 'truck', title: 'Giao hàng nhanh chóng', desc: 'Hệ thống vận chuyển toàn quốc, thời gian giao nhanh, đảm bảo an toàn.' },
+];
 
-  useEffect(() => {
-    getCategories().then(data => {
-      if (data && data.content) {
-        setCategories(data.content);
-      } else if (Array.isArray(data)) {
-        setCategories(data);
-      }
-    }).catch(err => console.error('Error fetching categories:', err));
-  }, []);
-  return (
-    <div className="about-page">
-      <MainHeader activePage="about" />
+const AboutPage = () => (
+  <>
+    <Breadcrumb items={[{ label: 'Về chúng tôi' }]} />
+    <section className="about-hero">
+      <div className="container about-hero-inner">
+        <span className="badge">Câu chuyện của chúng tôi</span>
+        <h1>Hành trình lan toả tri thức của <span className="hl">Hoàng Kim Books</span></h1>
+        <p>
+          Bắt đầu từ năm 2010, Hoàng Kim Books đặt sứ mệnh trở thành nơi mỗi cuốn sách tìm được người đọc tri kỷ —
+          góp phần xây dựng một cộng đồng yêu sách, ham học hỏi và không ngừng phát triển bản thân.
+        </p>
+      </div>
+    </section>
 
-      {/* About Content */}
-      <main className="container about-content-area">
-        <h1 className="about-title">Giới Thiệu Nhà Sách Hoàng Kim</h1>
-        
-        <div className="about-text">
-          <p><strong>Nhasachhoangkim.com</strong> là trang thương mại điện tử của <strong>Nhà Sách Hoàng Kim</strong>, hệ thống nhà sách thân thuộc của nhiều gia đình Việt kể từ nhà sách đầu tiên ra đời năm 1995 đến nay. Đến với không gian mua sắm trực tuyến nhasachhoangkim.com, khách hàng sẽ dễ dàng tìm thấy những tựa sách hấp dẫn, phong phú về thể loại từ nhiều nhà xuất bản, công ty sách danh tiếng trong và ngoài nước. Bên cạnh đó là đa dạng các sản phẩm dụng cụ học tập, văn phòng phẩm, quà tặng, đồ chơi giáo dục chính hãng đến từ các thương hiệu đáng tin cậy. Với phương châm không ngừng cải tiến và nâng cao chất lượng sản phẩm cùng dịch vụ, Nhà Sách Hoàng Kim cam kết mang đến cho khách hàng trải nghiệm mua sắm trực tuyến hiện đại và an toàn, từ quy trình đặt hàng nhanh chóng, phương thức thanh toán linh hoạt đến dịch vụ hỗ trợ khách hàng chu đáo và chuyên nghiệp.</p>
-          
-          <p className="highlight-text"><strong>Danh mục sản phẩm đa dạng và đặc biệt, với những mặt hàng độc quyền được lựa chọn kỹ lưỡng, chính là yếu tố làm nên sự khác biệt của Nhà Sách Hoàng Kim. Chính nhờ đó, chúng tôi đã xây dựng được niềm tin vững chắc và sự yêu mến từ phía khách hàng.</strong></p>
-
-          <p><strong>Sách quốc văn:</strong> Nhà Sách Hoàng Kim mang đến một kho tàng sách quốc văn phong phú từ các nhà xuất bản và công ty sách uy tín trên cả nước. Đặc biệt, Hoàng Kim còn hợp tác xuất bản nhiều đầu sách chất lượng, đáp ứng nhu cầu học tập và giải trí của độc giả với những tựa sách được đón nhận rộng rãi trên thị trường.</p>
-
-          <p><strong>Sách ngoại văn:</strong> Với danh mục sách ngoại văn đa dạng, Nhà Sách Hoàng Kim lựa chọn và cung cấp các tựa sách tiếng Anh chất lượng từ những nhà xuất bản hàng đầu thế giới như Penguin Random House, HarperCollins, và Macmillan Publishers. Nhiều cuốn sách được phân phối độc quyền tại Hoàng Kim, mang đến cơ hội tiếp cận nguồn tri thức quốc tế nhanh chóng và dễ dàng.</p>
-
-          <p><strong>Dụng cụ học tập, văn phòng phẩm, đồ chơi, quà tặng:</strong> Nhà Sách Hoàng Kim không chỉ có sách mà còn cung cấp nhiều sản phẩm chính hãng, đa dạng từ các thương hiệu nổi tiếng trong và ngoài nước. Các sản phẩm này luôn được cập nhật xu hướng để đáp ứng sở thích và nhu cầu ngày càng cao của khách hàng.</p>
-
-          <p><strong>Băng, đĩa:</strong> Với sự đầu tư vào các sản phẩm âm nhạc và phim ảnh, Nhà Sách Hoàng Kim giới thiệu đến khách hàng những album của nhiều nghệ sĩ nổi tiếng cùng các bộ phim được yêu thích. Đây là điểm đến lý tưởng cho những ai tìm kiếm các sản phẩm giải trí chất lượng.</p>
-
-          <p>Hi vọng với trang thương mại điện tử nhasachhoangkim.com, Nhà Sách Hoàng Kim có thể gia tăng tiện ích cho khách hàng, đồng thời mang những sản phẩm của hệ thống nhà sách đến với mọi khách hàng trên cả nước.</p>
-          
-          <p>Quý khách hàng có nhu cầu liên lạc, đóng góp ý kiến, phản hồi về sản phẩm dịch vụ của Nhà sách Hoàng Kim, vui lòng liên hệ:</p>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="main-footer" style={{marginTop: '60px'}}>
-        <div className="container footer-grid">
-          <div className="footer-col">
-            <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
-            <p>📧 nhasachhoangkim@gmail.com</p>
-          </div>
-          <div className="footer-col">
-            <h4>Hỗ Trợ</h4>
-            <ul>
-              <li><Link to="/chinh-sach-doi-tra" style={{color: 'inherit', textDecoration: 'none'}}>Chính sách đổi trả sản phẩm</Link></li>
-              <li><Link to="/quy-dinh-bao-hanh" style={{color: 'inherit', textDecoration: 'none'}}>Quy định bảo hành</Link></li>
-              <li><Link to="/giao-nhan-va-thanh-toan" style={{color: 'inherit', textDecoration: 'none'}}>Giao nhận và thanh toán</Link></li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Danh Mục</h4>
-            <ul>
-              {categories.slice(0, 5).map((cat) => (
-                <li key={cat.categoryId}><Link to={`/cua-hang?categoryId=${cat.categoryId}`} style={{color: 'inherit', textDecoration: 'none'}}>{cat.categoryName}</Link></li>
-              ))}
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Hotline Hỗ Trợ</h4>
-            <p style={{marginBottom: '5px', fontSize: '13px', color: '#000'}}>Phương thức thanh toán</p>
-            <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', letterSpacing: '0'}}>
-               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
+    <section className="section">
+      <div className="container">
+        <div className="about-grid">
+          <div>
+            <h2 className="section-title"><small>Giới thiệu</small>Về Hoàng Kim Books</h2>
+            <p>
+              Hoàng Kim Books là một nhà sách trực tuyến — nơi chúng tôi tuyển chọn kỹ lưỡng hàng nghìn đầu sách thuộc đủ thể loại:
+              văn học kinh điển, kinh tế, kỹ năng sống, ngoại ngữ, sách thiếu nhi…
+            </p>
+            <p>
+              Với đội ngũ giàu kinh nghiệm, chúng tôi tin rằng mỗi cuốn sách là một người bạn đồng hành. Vì thế, mục tiêu của chúng tôi
+              không chỉ là bán sách — mà là <strong>kết nối người đọc với những giá trị bền vững</strong> mà mỗi tác phẩm mang lại.
+            </p>
+            <div className="about-actions">
+              <Link to="/books" className="btn btn-primary">Khám phá sách</Link>
+              <Link to="/contact" className="btn btn-secondary">Liên hệ chúng tôi</Link>
             </div>
           </div>
+          <div className="about-stats">
+            <div><strong>10,000+</strong><span>Đầu sách</span></div>
+            <div><strong>15</strong><span>Năm phục vụ</span></div>
+            <div><strong>100k+</strong><span>Khách hàng tin tưởng</span></div>
+            <div><strong>50+</strong><span>NXB hợp tác</span></div>
+          </div>
         </div>
-      </footer>
-    </div>
-  );
-}
+      </div>
+    </section>
+
+    <section className="section about-values">
+      <div className="container">
+        <div className="section-head">
+          <h2 className="section-title"><small>Giá trị</small>Điều chúng tôi tin tưởng</h2>
+        </div>
+        <div className="values-grid">
+          {values.map((v) => (
+            <div className="value-card" key={v.title}>
+              <div className="value-icon"><Icon name={v.icon} size={24} /></div>
+              <h3>{v.title}</h3>
+              <p>{v.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <style>{`
+      .about-hero {
+        background: linear-gradient(135deg, var(--color-primary-bg), var(--color-accent-bg));
+        padding: 64px 0;
+        text-align: center;
+      }
+      .about-hero-inner { max-width: 760px; margin: 0 auto; }
+      .about-hero h1 {
+        font-family: var(--font-serif);
+        font-size: 44px;
+        line-height: 1.2;
+        margin: 14px 0 14px;
+      }
+      .about-hero .hl {
+        background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .about-hero p { color: var(--color-text-soft); font-size: 16.5px; }
+
+      .about-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 48px;
+        align-items: center;
+      }
+      .about-grid p { color: var(--color-text-soft); line-height: 1.7; margin-bottom: 14px; }
+      .about-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+      .about-stats {
+        display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+      }
+      .about-stats > div {
+        padding: 28px 22px;
+        background: var(--color-surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-border-soft);
+        text-align: center;
+      }
+      .about-stats strong {
+        display: block;
+        font-family: var(--font-serif);
+        font-size: 28px;
+        color: var(--color-primary);
+      }
+      .about-stats span { color: var(--color-text-mute); font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; }
+
+      .about-values { background: var(--color-bg-alt); }
+      .values-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+      .value-card {
+        padding: 28px 22px;
+        background: var(--color-surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-border-soft);
+      }
+      .value-icon {
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        background: var(--color-primary-bg);
+        color: var(--color-primary);
+        display: inline-flex; align-items: center; justify-content: center;
+        margin-bottom: 14px;
+      }
+      .value-card h3 { font-size: 16px; margin: 0 0 6px; }
+      .value-card p { color: var(--color-text-soft); margin: 0; font-size: 14px; }
+
+      @media (max-width: 900px) {
+        .about-hero h1 { font-size: 32px; }
+        .about-grid { grid-template-columns: 1fr; gap: 28px; }
+        .values-grid { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 540px) {
+        .values-grid { grid-template-columns: 1fr; }
+      }
+    `}</style>
+  </>
+);
+
+export default AboutPage;

@@ -38,7 +38,7 @@ public class ChatbotService {
     @Value("${spring.ai.google.genai.api-key:}")
     private String apiKey;
 
-    @Value("${spring.ai.google.genai.model:gemini-3.1-flash-lite-preview}")
+    @Value("${spring.ai.google.genai.model:gemini-3.1-flash-lite}")
     private String geminiModel;
 
     private static final String SYSTEM_PROMPT = """
@@ -195,9 +195,10 @@ public class ChatbotService {
             {
               "message": "Lời chào và giới thiệu ngắn gọn",
               "bookRecommendations": [
-                {"bookId": id, "bookName": "Tên sách", "price": giá, "author": "Tác giả", "category": "Thể loại", "image": "URL ảnh", "averageRating": rating}
+                {"bookId": id, "bookName": "Tên sách", "price": giá, "author": "Tác giả", "category": "Thể loại", "image": "URL ảnh từ thông tin sách (trường Ảnh)", "averageRating": rating}
               ]
             }
+            Lưu ý: Sử dụng CHÍNH XÁC URL ảnh từ trường "Ảnh" trong thông tin sách. Không tự tạo URL ảnh.
             Chỉ trả lời JSON, không giải thích gì thêm.
             """, bookContext, message);
 
@@ -343,7 +344,7 @@ public class ChatbotService {
         }
         return callGeminiApiOnce(geminiModel != null && !geminiModel.isBlank()
                 ? geminiModel.trim()
-                : "gemini-3.1-flash-lite-preview", systemPrompt, userContent);
+                : "gemini-3.1-flash-lite", systemPrompt, userContent);
     }
 
     private ChatResponse handleGeneralQuestion(String message) {
@@ -437,14 +438,15 @@ public class ChatbotService {
         return books.stream()
                 .limit(50)
                 .map(book -> String.format(
-                        "- ID: %d | Tên: %s | Giá: %s | Tác giả: %s | Thể loại: %s | Mô tả: %s | Rating: %s",
+                        "- ID: %d | Tên: %s | Giá: %s | Tác giả: %s | Thể loại: %s | Mô tả: %s | Rating: %s | Ảnh: %s",
                         book.getBookId(),
                         book.getBookName(),
                         book.getPrice() != null ? String.format("%.0fđ", book.getPrice()) : "Liên hệ",
                         book.getAuthor() != null ? book.getAuthor() : "Không rõ",
                         book.getCategory() != null ? book.getCategory().getCategoryName() : "Không rõ",
                         book.getDescription() != null ? book.getDescription().substring(0, Math.min(100, book.getDescription().length())) : "Không có",
-                        book.getAverageRating() != null ? String.format("%.1f/5", book.getAverageRating()) : "Chưa có"
+                        book.getAverageRating() != null ? String.format("%.1f/5", book.getAverageRating()) : "Chưa có",
+                        book.getImage() != null ? book.getImage() : "Không có ảnh"
                 ))
                 .collect(Collectors.joining("\n"));
     }

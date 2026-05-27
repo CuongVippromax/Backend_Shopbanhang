@@ -1,187 +1,132 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import './ContactPage.css';
-import MainHeader from '../Components/MainHeader';
-import { getCategories } from '../api';
-import { useToast } from '../Components/Toast';
+import React, { useState } from 'react';
+import Breadcrumb from '../components/common/Breadcrumb';
+import { Icon } from '../components/common/Icon';
+import { Spinner } from '../components/common/Spinner';
+import { useToast } from '../context/ToastContext';
 
-export default function ContactPage() {
-  const [categories, setCategories] = useState([]);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-  const [sending, setSending] = useState(false);
-  const { success, error: showError } = useToast();
+const ContactPage = () => {
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const toast = useToast();
 
-  useEffect(() => {
-    getCategories().then(data => {
-      if (data && data.content) {
-        setCategories(data.content);
-      } else if (Array.isArray(data)) {
-        setCategories(data);
-      }
-    }).catch(err => console.error('Error fetching categories:', err));
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    
-    // Validate required fields
-    if (!formData.name.trim()) {
-      showError('Vui lòng nhập tên của bạn!');
-      return;
-    }
-    if (!formData.email.trim()) {
-      showError('Vui lòng nhập địa chỉ email!');
-      return;
-    }
-    if (!formData.message.trim()) {
-      showError('Vui lòng nhập nội dung liên hệ!');
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      showError('Địa chỉ email không hợp lệ!');
-      return;
-    }
-
-    setSending(true);
-    try {
-      // Simulate sending (backend can add contact API later)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      success('Gửi liên hệ thành công! Chúng tôi sẽ phản hồi sớm nhất có thể.');
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch (err) {
-      showError('Gửi liên hệ thất bại! Vui lòng thử lại.');
-    } finally {
-      setSending(false);
-    }
+    setSubmitting(true);
+    setTimeout(() => {
+      toast.show('Cảm ơn bạn! Chúng tôi sẽ phản hồi qua email sớm nhất.', 'success');
+      setForm({ name: '', email: '', subject: '', message: '' });
+      setSubmitting(false);
+    }, 800);
   };
 
   return (
-    <div className="contact-page">
-      <MainHeader activePage="contact" />
-
-      {/* Contact Content */}
-      <main className="container contact-content-area">
-        <div className="contact-layout">
-          
-          {/* Left Column: Banners */}
-          <div className="contact-left">
-            <img 
-              src="/image/2.png" 
-              alt="Banner Lãnh Đạo" 
-              className="contact-banner"
-            />
-            <img 
-              src="/image/3.png" 
-              alt="Banner Khuyến Mãi" 
-              className="contact-banner"
-            />
+    <>
+      <Breadcrumb items={[{ label: 'Liên hệ' }]} />
+      <section className="section">
+        <div className="container">
+          <div className="contact-head">
+            <span className="badge">Liên hệ</span>
+            <h1>Chúng tôi luôn sẵn sàng lắng nghe bạn</h1>
+            <p>Có câu hỏi, đóng góp hay đơn giản chỉ muốn nói lời chào — đừng ngần ngại liên hệ với Hoàng Kim Books.</p>
           </div>
 
-          {/* Right Column: Contact Form */}
-          <div className="contact-right">
-            <form className="contact-form" onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Tên của bạn (bắt buộc)</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Nhập tên của bạn"
-                />
+          <div className="contact-grid">
+            <div className="contact-info">
+              <div className="contact-card">
+                <div className="ci-icon"><Icon name="location" /></div>
+                <div>
+                  <strong>Địa chỉ</strong>
+                  <span>123 Đường Lê Lợi, Quận 1, TP. Hồ Chí Minh</span>
+                </div>
               </div>
-              
-              <div className="form-group">
-                <label>Địa chỉ Email (bắt buộc)</label>
-                <input 
-                  type="email" 
-                  className="form-input" 
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Nhập địa chỉ email"
-                />
+              <div className="contact-card">
+                <div className="ci-icon"><Icon name="phone" /></div>
+                <div>
+                  <strong>Hotline</strong>
+                  <span>1900 1234 (8:00 - 21:00, cả tuần)</span>
+                </div>
               </div>
-              
-              <div className="form-group">
-                <label>Tiêu đề:</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="Nhập tiêu đề (không bắt buộc)"
-                />
+              <div className="contact-card">
+                <div className="ci-icon"><Icon name="mail" /></div>
+                <div>
+                  <strong>Email</strong>
+                  <span>hello@hoangkim.vn</span>
+                </div>
               </div>
-              
-              <div className="form-group">
-                <label>Thông điệp</label>
-                <textarea 
-                  className="form-textarea" 
-                  rows="6"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Nhập nội dung liên hệ"
-                ></textarea>
+            </div>
+
+            <form className="contact-form" onSubmit={submit}>
+              <h3>Gửi tin nhắn cho chúng tôi</h3>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Họ tên *</label>
+                  <input className="form-control" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email *</label>
+                  <input type="email" className="form-control" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                </div>
               </div>
-              
-              <button type="submit" className="btn-submit-contact" disabled={sending}>
-                {sending ? 'ĐANG GỬI...' : 'GỬI ĐI'}
+              <div className="form-group">
+                <label className="form-label">Chủ đề *</label>
+                <input className="form-control" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Nội dung *</label>
+                <textarea className="form-control" rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required />
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
+                {submitting ? <><Spinner size={14} /> Đang gửi…</> : <><Icon name="send" size={14} /> Gửi tin nhắn</>}
               </button>
             </form>
           </div>
-
         </div>
-      </main>
+      </section>
 
-      {/* Footer */}
-      <footer className="main-footer" style={{marginTop: '60px'}}>
-        <div className="container footer-grid">
-          <div className="footer-col">
-            <h3 className="footer-logo">Nhà Sách Hoàng Kim</h3>
-            <p>📧 nhasachhoangkim@gmail.com</p>
-          </div>
-          <div className="footer-col">
-            <h4>Hỗ Trợ</h4>
-            <ul>
-              <li><Link to="/chinh-sach-doi-tra" style={{color: 'inherit', textDecoration: 'none'}}>Chính sách đổi trả sản phẩm</Link></li>
-              <li><Link to="/quy-dinh-bao-hanh" style={{color: 'inherit', textDecoration: 'none'}}>Quy định bảo hành</Link></li>
-              <li><Link to="/giao-nhan-va-thanh-toan" style={{color: 'inherit', textDecoration: 'none'}}>Giao nhận và thanh toán</Link></li>
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Danh Mục</h4>
-            <ul>
-              {categories.slice(0, 5).map((cat) => (
-                <li key={cat.categoryId}><Link to={`/cua-hang?categoryId=${cat.categoryId}`} style={{color: 'inherit', textDecoration: 'none'}}>{cat.categoryName}</Link></li>
-              ))}
-            </ul>
-          </div>
-          <div className="footer-col">
-            <h4>Hotline Hỗ Trợ</h4>
-            <p style={{marginBottom: '5px', fontSize: '13px', color: '#000'}}>Phương thức thanh toán</p>
-            <div className="payment-icons" style={{display: 'flex', gap: '10px', fontSize: '24px', letterSpacing: '0'}}>
-               💵 <img src="/image/vnpay.png" alt="VNPay" style={{width: '40px', height: 'auto'}} /> 🏦
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <style>{`
+        .contact-head { text-align: center; max-width: 640px; margin: 0 auto 36px; }
+        .contact-head h1 { font-family: var(--font-serif); font-size: 36px; margin: 12px 0 8px; }
+        .contact-head p { color: var(--color-text-mute); }
+
+        .contact-grid {
+          display: grid;
+          grid-template-columns: 0.9fr 1.1fr;
+          gap: 32px;
+          align-items: stretch;
+        }
+        .contact-info { display: flex; flex-direction: column; gap: 14px; }
+        .contact-card {
+          display: flex; align-items: center; gap: 14px;
+          padding: 20px;
+          background: var(--color-surface);
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--color-border-soft);
+        }
+        .ci-icon {
+          width: 46px; height: 46px;
+          border-radius: 12px;
+          background: var(--color-primary-bg);
+          color: var(--color-primary);
+          display: inline-flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .contact-card strong { display: block; }
+        .contact-card span { font-size: 13.5px; color: var(--color-text-mute); }
+
+        .contact-form {
+          background: var(--color-surface);
+          border-radius: var(--radius-lg);
+          border: 1px solid var(--color-border-soft);
+          padding: 28px;
+        }
+        .contact-form h3 { font-family: var(--font-serif); margin: 0 0 18px; font-size: 22px; }
+
+        @media (max-width: 900px) {
+          .contact-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+    </>
   );
-}
+};
+
+export default ContactPage;

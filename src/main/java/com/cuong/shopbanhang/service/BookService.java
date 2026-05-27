@@ -251,4 +251,17 @@ public class BookService {
 
         bookRepository.deleteByBookId(id);
     }
+
+    /**
+     * Lấy danh sách sách ngẫu nhiên cho trang chủ.
+     *
+     * @param limit Số lượng sách cần lấy
+     * @return List<BookResponse> danh sách sách ngẫu nhiên
+     */
+    public List<BookResponse> getRandomBooks(int limit) {
+        List<Book> books = bookRepository.findRandomBooks(limit);
+        return books.stream()
+                .map(this::toBookResponseWithRating)
+                .collect(Collectors.toList());
+    }
 }
