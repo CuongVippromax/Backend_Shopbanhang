@@ -25,4 +25,6 @@ public class VNPayConfig {
     private String vnp_Command;
     @Value("${payment.vnPay.orderType}")
     private String orderType;
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 }

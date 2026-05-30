@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 
 import com.cuong.shopbanhang.config.AppProperties;
@@ -15,6 +16,7 @@ import com.cuong.shopbanhang.config.JwtProperties;
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties({JwtProperties.class, AppProperties.class})
 @PropertySource(value = "classpath:local.env", ignoreResourceNotFound = true)
+@EnableAsync
 public class ShopbanhangApplication {
 
     public static void main(String[] args) {

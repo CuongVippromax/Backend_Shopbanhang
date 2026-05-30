@@ -20,6 +20,7 @@ minio:
   secret-key: ${MINIO_SECRET_KEY}
 
 app:
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
   security:
     allowedOrigins: ${APP_SECURITY_ALLOWEDORIGINS:http://localhost:3000,http://localhost:80,http://frontend}
 
@@ -28,7 +29,7 @@ jwt:
 
 payment:
   vnPay:
-    returnUrl: ${VNPAY_RETURN_URL:http://localhost/payment/vn-pay-callback}
+    returnUrl: ${VNPAY_RETURN_URL:http://backend:8080/api/v1/payment/vn-pay-callback}
     tmnCode: ${VNPAY_TMN_CODE}
     secretKey: ${VNPAY_SECRET_KEY}
 

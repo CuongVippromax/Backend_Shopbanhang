@@ -3,11 +3,14 @@ package com.cuong.shopbanhang.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.repository.query.Param;
 
 import com.cuong.shopbanhang.model.Book;
+
+import jakarta.persistence.LockModeType;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +29,14 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     Long countByQuantityBetween(Integer from, Integer to);
     Long countByQuantity(Integer quantity);
+
+    /**
+     * Lấy Book và khóa row (PESSIMISTIC_WRITE) để tránh race condition khi trừ tồn kho.
+     * Phải gọi trong transaction.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT b FROM Book b WHERE b.bookId = :bookId")
+    Optional<Book> findByIdForUpdate(@Param("bookId") Long bookId);
 
     @Query("SELECT b FROM Book b WHERE " +
             "(:search IS NULL OR :search = '' OR " +

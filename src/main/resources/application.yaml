@@ -127,21 +127,26 @@ logging:
     com.cuong.shopbanhang.exception: WARN
     com.cuong.shopbanhang.security: WARN
     com.cuong.shopbanhang.service.ChatbotService: INFO
-    com.cuong.shopbanhang.service.EmailService: WARN
+    com.cuong.shopbanhang.service.EmailService: DEBUG
     com.cuong.shopbanhang.service.MinIOService: WARN
     com.cuong.shopbanhang.service.DashboardService: WARN
     com.cuong.shopbanhang.service.PaymentService: DEBUG
     com.cuong.shopbanhang.config.VNPayConfig: DEBUG
     com.cuong.shopbanhang.controller.PaymentController: DEBUG
+    com.cuong.shopbanhang.service.OrderService: DEBUG
     org.springframework.web: WARN
     org.hibernate: WARN
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  file:
+    name: logs/application.log
+    max-size: 10MB
+    max-history: 7
 
 payment:
   vnPay:
     url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-    returnUrl: http://localhost:3000/payment/vn-pay-callback
+    returnUrl: http://localhost:8080/api/v1/payment/vn-pay-callback
     tmnCode: ${VNPAY_TMN_CODE}
     secretKey: ${VNPAY_SECRET_KEY}
     version: 2.1.0

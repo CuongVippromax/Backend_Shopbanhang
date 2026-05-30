@@ -81,15 +81,25 @@ public class CartService {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy sách
         Book book = bookRepository.findByBookId(bookId)
             .orElseThrow(() -> new ResourceNotFoundException("Book", bookId)); // EX-001
-        
+
         Cart cart = getOrCreateCart(userId);
 
         Optional<CartItem> existingItem = cartItemRepository
                 .findByCart_CartIdAndBook_BookId(cart.getCartId(), bookId);
 
+        int currentInCart = existingItem.map(ci -> ci.getQuantity() != null ? ci.getQuantity() : 0).orElse(0);
+        int requestedTotal = currentInCart + quantity;
+        int stock = book.getQuantity() != null ? book.getQuantity() : 0;
+
+        // EXCEPTION: CartException - Vượt quá tồn kho
+        if (requestedTotal > stock) {
+            throw new CartException("Sách '" + book.getBookName() + "' chỉ còn " + stock
+                    + " quyển trong kho. Bạn đã có " + currentInCart + " trong giỏ.");
+        }
+
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + quantity);
+            item.setQuantity(requestedTotal);
             cartItemRepository.save(item);
         } else {
             CartItem newItem = CartItem.builder()
@@ -126,10 +136,19 @@ public class CartService {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy giỏ hàng
         Cart cart = cartRepository.findByUser_UserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId)); // EX-001
-        
+
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy sách trong giỏ
         CartItem item = cartItemRepository.findByCart_CartIdAndBook_BookId(cart.getCartId(), bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", "bookId", bookId)); // EX-001
+
+        Book book = item.getBook();
+        int stock = (book != null && book.getQuantity() != null) ? book.getQuantity() : 0;
+
+        // EXCEPTION: CartException - Vượt quá tồn kho
+        if (quantity > stock) {
+            throw new CartException("Sách '" + (book != null ? book.getBookName() : "")
+                    + "' chỉ còn " + stock + " quyển trong kho.");
+        }
 
         item.setQuantity(quantity);
         cartItemRepository.save(item);
@@ -194,14 +213,16 @@ public class CartService {
 
     /**
      * Xây dựng CartResponse từ Cart entity.
-     * 
+     *
      * @param cart Cart entity
      * @return CartResponse
      */
     private CartResponse buildCartResponse(Cart cart) {
         List<CartItem> items = cartItemRepository.findByCart_CartId(cart.getCartId());
 
+        // Lọc bỏ các items đang chờ thanh toán VNPay (pendingPayment = true)
         List<CartItemResponse> itemResponses = items.stream()
+                .filter(item -> item.getPendingPayment() == null || !item.getPendingPayment())
                 .map(item -> {
                     BigDecimal unitPrice = BigDecimal.valueOf(item.getBook().getPrice());
                     BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));

@@ -89,20 +89,29 @@ public class OrderService {
         }
 
         for (CartItem item : cart.getCartItems()) {
-            Book book = item.getBook();
-            Integer currentQty = book.getQuantity() != null ? book.getQuantity() : 0;
-            Integer orderQty = item.getQuantity() != null ? item.getQuantity() : 0;
-            if (currentQty < orderQty) {
-                throw new OrderException("Sách '" + book.getBookName() + "' không đủ hàng trong kho. Còn lại: " + currentQty + " quyển");
+            Book bookRef = item.getBook();
+            if (bookRef == null) {
+                throw new OrderException("Sản phẩm không tồn tại trong giỏ hàng.");
             }
-        }
-
-        // Trừ số lượng tồn kho
-        for (CartItem item : cart.getCartItems()) {
-            Book book = item.getBook();
             Integer orderQty = item.getQuantity() != null ? item.getQuantity() : 0;
-            book.setQuantity(book.getQuantity() - orderQty);
-            bookRepository.save(book);
+            if (orderQty <= 0) {
+                throw new OrderException("Số lượng sản phẩm '" + bookRef.getBookName() + "' không hợp lệ.");
+            }
+
+            // Khóa row Book (PESSIMISTIC_WRITE) để tránh race condition khi 2 user mua cùng lúc
+            Book lockedBook = bookRepository.findByIdForUpdate(bookRef.getBookId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Book", bookRef.getBookId()));
+
+            Integer currentQty = lockedBook.getQuantity() != null ? lockedBook.getQuantity() : 0;
+            if (currentQty < orderQty) {
+                throw new OrderException("Sách '" + lockedBook.getBookName() + "' không đủ hàng trong kho. Còn lại: " + currentQty + " quyển");
+            }
+
+            lockedBook.setQuantity(currentQty - orderQty);
+            bookRepository.save(lockedBook);
+
+            // Đồng bộ tồn kho mới về reference đang nằm trong cart (dùng cho tính tổng phía dưới)
+            bookRef.setQuantity(lockedBook.getQuantity());
         }
 
         Double totalPrice = cart.getCartItems().stream()
@@ -410,9 +419,53 @@ public class OrderService {
         // EXCEPTION: ResourceNotFoundException - Khi không tìm thấy đơn hàng
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId)); // EX-001
-        
+
         order.setPaymentStatus(status);
         return orderRepository.save(order);
+    }
+
+    /**
+     * Xóa cart items sau khi thanh toán VNPay thành công.
+     * Chỉ xóa các items đã được chuyển sang order (có orderDetail).
+     *
+     * @param orderId ID của đơn hàng
+     * @param userId ID của người dùng
+     */
+    @Transactional
+    public void clearCartAfterVNPaySuccess(Long orderId, Long userId) {
+        log.info("Clearing cart for user {} after VNPay payment success for order {}", userId, orderId);
+
+        // Lấy order với details
+        Order order = orderRepository.findWithDetailsByOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
+
+        if (order.getOrderDetails() == null || order.getOrderDetails().getItems() == null) {
+            log.warn("Order {} has no items to clear from cart", orderId);
+            return;
+        }
+
+        // Lấy cart của user
+        Cart cart = cartRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "userId", userId));
+
+        // Xóa các items đã được chuyển sang order khỏi cart
+        List<CartItem> itemsToRemove = order.getOrderDetails().getItems().stream()
+                .filter(item -> item.getCart() != null && item.getCart().getCartId().equals(cart.getCartId()))
+                .toList();
+
+        log.info("Found {} items to remove from cart for order {}", itemsToRemove.size(), orderId);
+
+        for (CartItem item : itemsToRemove) {
+            item.setCart(null);
+            item.setPendingPayment(false);
+            cartItemRepository.save(item);
+        }
+
+        // Refresh cart
+        entityManager.flush();
+        entityManager.clear();
+
+        log.info("Successfully cleared {} items from cart for user {}", itemsToRemove.size(), userId);
     }
 
     /**
@@ -505,18 +558,18 @@ public class OrderService {
 
     /**
      * Lấy Order entity để gửi email (không dùng cho API).
-     * 
+     *
      * @param orderId ID của đơn hàng
      * @return Optional<Order>
      */
     @Transactional(readOnly = true)
     public java.util.Optional<Order> getOrderByIdForEmail(Long orderId) {
-        return orderRepository.findById(orderId);
+        return orderRepository.findWithDetailsByOrderId(orderId);
     }
 
     /**
      * Xây dựng HTML cho email chi tiết đơn hàng.
-     * 
+     *
      * @param order Đơn hàng cần tạo HTML
      * @return String HTML content
      */
@@ -531,6 +584,7 @@ public class OrderService {
         sb.append("</tr>");
 
         if (order.getOrderDetails() != null && order.getOrderDetails().getItems() != null) {
+            log.debug("Building email HTML for order {} with {} items", order.getOrderId(), order.getOrderDetails().getItems().size());
             for (CartItem item : order.getOrderDetails().getItems()) {
                 Double itemTotal = item.getBook().getPrice().doubleValue() * item.getQuantity();
                 sb.append("<tr>");
@@ -540,6 +594,8 @@ public class OrderService {
                 sb.append("<td style='padding: 8px; border: 1px solid #ddd; text-align: right;'>").append(String.format("%,.0f VNĐ", itemTotal)).append("</td>");
                 sb.append("</tr>");
             }
+        } else {
+            log.warn("Order {} has no order details or items for email", order.getOrderId());
         }
 
         sb.append("<tr style='background-color: #e8f5e9; font-weight: bold;'>");

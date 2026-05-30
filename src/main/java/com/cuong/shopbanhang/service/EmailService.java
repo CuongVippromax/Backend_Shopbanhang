@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.cuong.shopbanhang.exception.BadRequestException;
@@ -28,22 +29,29 @@ public class EmailService {
 
     /**
      * Gửi email xác nhận đơn hàng.
-     * 
+     *
      * EXCEPTIONS CÓ THỂ NÉM RA:
      * - BadRequestException (1): Khi gửi email thất bại
-     * 
+     *
      * @param toEmail Email người nhận
      * @param orderId Mã đơn hàng
      * @param totalAmount Tổng số tiền
      * @param orderDetails Chi tiết đơn hàng (HTML)
      */
+    @Async
     public void sendOrderConfirmation(String toEmail, String orderId, Double totalAmount, String orderDetails) {
+        if (toEmail == null || toEmail.isBlank()) {
+            log.error("Cannot send order confirmation: toEmail is empty for order {}", orderId);
+            return;
+        }
         try {
+            log.info("Starting to send order confirmation email to {} for order {}", toEmail, orderId);
+
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Xác nhận đơn hàng - Nhà Sách Hoàng Kim" + orderId);
+            helper.setSubject("Xác nhận đơn hàng #" + orderId + " - Nhà Sách Hoàng Kim");
 
             String htmlContent = "<html>" +
                     "<body style='font-family: Arial, sans-serif;'>" +
@@ -62,10 +70,14 @@ public class EmailService {
                     "</html>";
 
             helper.setText(htmlContent, true);
+
+            log.debug("Sending email to {} with subject: {}", toEmail, helper.getMimeMessage().getSubject());
             javaMailSender.send(message);
+            log.info("Successfully sent order confirmation email to {} for order {}", toEmail, orderId);
         } catch (MessagingException e) {
-            // EXCEPTION: BadRequestException - Khi gửi email thất bại
-            throw new BadRequestException("Không thể gửi email xác nhận đơn hàng. Vui lòng thử lại sau."); // EX-003
+            log.error("MessagingException while sending email to {} for order {}: {}", toEmail, orderId, e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected exception while sending email to {} for order {}: {}", toEmail, orderId, e.getMessage(), e);
         }
     }
 

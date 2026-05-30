@@ -8,24 +8,23 @@ const PaymentResultPage = () => {
   // VNPay callback params
   const vnpAmount = params.get('vnp_Amount');
   const vnpBankCode = params.get('vnp_BankCode');
-  const vnpBankTranNo = params.get('vnp_BankTranNo');
   const vnpCardType = params.get('vnp_CardType');
-  const vnpOrderInfo = params.get('vnp_OrderInfo');
   const vnpPayDate = params.get('vnp_PayDate');
   const vnpResponseCode = params.get('vnp_ResponseCode');
-  const vnpTmnCode = params.get('vnp_TmnCode');
   const vnpTransactionNo = params.get('vnp_TransactionNo');
   const vnpTransactionStatus = params.get('vnp_TransactionStatus');
   const vnpTxnRef = params.get('vnp_TxnRef');
 
-  // Generic params fallback
+  // Generic params fallback (từ backend redirect)
   const responseCode = params.get('code') || vnpResponseCode;
-  const orderId = vnpTxnRef || params.get('orderId');
+  const orderId = params.get('orderId') || vnpTxnRef;
 
   const isSuccess = useMemo(() => {
-    return vnpResponseCode === '00' || vnpTransactionStatus === '00' ||
+    const success = vnpResponseCode === '00' || vnpTransactionStatus === '00' ||
            responseCode === '00' || responseCode === 'PAID' || responseCode === 'SUCCESS';
-  }, [vnpResponseCode, vnpTransactionStatus, responseCode]);
+    console.log('[PaymentResult] isSuccess:', success, 'orderId:', orderId, 'responseCode:', responseCode);
+    return success;
+  }, [vnpResponseCode, vnpTransactionStatus, responseCode, orderId]);
 
   // Format amount from VNP (divide by 100 since VNP sends amount in cents)
   const formattedAmount = useMemo(() => {
@@ -49,6 +48,9 @@ const PaymentResultPage = () => {
     }
     return null;
   }, [vnpPayDate]);
+
+  // Check if we have transaction info to display
+  const hasTransactionInfo = vnpTransactionNo || formattedAmount || vnpBankCode || vnpCardType || formattedDate;
 
   // Get response message from VNPay code
   const getResponseMessage = (code) => {
@@ -91,7 +93,7 @@ const PaymentResultPage = () => {
               : getResponseMessage(vnpResponseCode || responseCode)}
           </p>
 
-          {vnpTxnRef && (
+          {(orderId || hasTransactionInfo) && (
             <div className="pay-info">
               <div className="pay-info-header">
                 <span>Thông tin giao dịch</span>
@@ -127,21 +129,28 @@ const PaymentResultPage = () => {
                     <span className="pay-info-value">{formattedDate}</span>
                   </div>
                 )}
-                <div className="pay-info-item">
-                  <span className="pay-info-label">Mã đơn hàng</span>
-                  <span className="pay-info-value pay-code">#{vnpTxnRef}</span>
-                </div>
+                {orderId && (
+                  <div className="pay-info-item">
+                    <span className="pay-info-label">Mã đơn hàng</span>
+                    <span className="pay-info-value pay-code">#{orderId}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           <div className="pay-actions">
-            {orderId && (
+            {isSuccess && orderId ? (
               <Link to={`/account/orders/${orderId}`} className="btn btn-primary">
                 <Icon name="receipt" size={18} />
-                Xem đơn hàng
+                Xem chi tiết đơn hàng
               </Link>
-            )}
+            ) : isSuccess ? (
+              <Link to="/account/orders" className="btn btn-primary">
+                <Icon name="receipt" size={18} />
+                Xem đơn hàng của tôi
+              </Link>
+            ) : null}
             <Link to="/books" className="btn btn-secondary">
               <Icon name="book" size={18} />
               Tiếp tục mua sắm
