@@ -42,7 +42,7 @@ const Modal = ({ open, onClose, title, children, footer, size = 'md' }) => {
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'center',
-          padding: '80px 20px 40px',
+          padding: '10px 20px 40px',
           zIndex: 9999,
           overflowY: 'auto',
           animation: 'modalOverlayIn 0.15s ease-out',
@@ -58,8 +58,7 @@ const Modal = ({ open, onClose, title, children, footer, size = 'md' }) => {
             boxShadow: '0 25px 80px rgba(44, 58, 51, 0.25)',
             width: '100%',
             maxWidth: maxWidths[size] || maxWidths.md,
-            marginTop: '20px',
-            marginBottom: '40px',
+            margin: '0 0 40px',
             animation: 'modalBoxIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.1)',
           }}
         >

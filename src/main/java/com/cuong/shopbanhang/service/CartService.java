@@ -93,8 +93,7 @@ public class CartService {
 
         // EXCEPTION: CartException - Vượt quá tồn kho
         if (requestedTotal > stock) {
-            throw new CartException("Sách '" + book.getBookName() + "' chỉ còn " + stock
-                    + " quyển trong kho. Bạn đã có " + currentInCart + " trong giỏ.");
+            throw new CartException("Số lượng sản phẩm trong kho không đủ (chỉ còn " + stock + " quyển).");
         }
 
         if (existingItem.isPresent()) {
@@ -146,8 +145,7 @@ public class CartService {
 
         // EXCEPTION: CartException - Vượt quá tồn kho
         if (quantity > stock) {
-            throw new CartException("Sách '" + (book != null ? book.getBookName() : "")
-                    + "' chỉ còn " + stock + " quyển trong kho.");
+            throw new CartException("Số lượng sản phẩm trong kho không đủ (chỉ còn " + stock + " quyển).");
         }
 
         item.setQuantity(quantity);

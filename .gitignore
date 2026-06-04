@@ -90,3 +90,8 @@ build/
 uploads/
 /uploads/**
 !uploads/.gitkeep
+
+# ==========================================
+# Backups (volume dumps, không commit)
+# ==========================================
+backups/

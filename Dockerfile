@@ -1,37 +1,40 @@
-# Build stage - use Gradle official image to build
+# ==========================
+# Build stage
+# Cache gradle deps layer trước, copy src sau — rebuild khi chỉ đổi code
+# sẽ tận dụng được Docker layer cache, không tải lại dependency.
+# ==========================
 FROM gradle:8.9-jdk21 AS builder
 
 WORKDIR /app
 
-# Copy build configuration and source
+# 1) Copy build config trước để cache layer download dependency
 COPY build.gradle settings.gradle ./
+RUN gradle --no-daemon dependencies > /dev/null 2>&1 || true
+
+# 2) Copy source rồi build
 COPY src ./src
+RUN gradle --no-daemon bootJar -x test
 
-# Build the application (skip tests for faster Docker build)
-RUN gradle bootJar --no-daemon -x test
-
+# ==========================
 # Runtime stage
+# ==========================
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Create non-root user for security
-RUN addgroup -S spring && adduser -S spring -G spring
+# wget cho HEALTHCHECK (alpine có sẵn busybox wget nhưng cần --spider)
+RUN apk add --no-cache wget \
+ && addgroup -S spring && adduser -S spring -G spring
 
-# Copy the built jar file from builder stage
+# Copy jar đã build
 COPY --from=builder /app/build/libs/*.jar app.jar
-
-# Set ownership
 RUN chown -R spring:spring /app
 
 USER spring:spring
 
-# Expose port
 EXPOSE 8080
 
-# Health check - use a public endpoint instead of actuator
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://localhost:8080/api/v1/categories/list || exit 1
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "-Xms512m", "-Xmx1024m", "app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

@@ -85,19 +85,47 @@ public class AppConfig {
     }
 
     // Configure CORS
+    // Env var APP_SECURITY_ALLOWEDORIGINS có thể đến dưới dạng 1 chuỗi
+    // comma-separated duy nhất qua YAML placeholder → phải tự split.
+    // Đồng thời luôn thêm các biến thể localhost phổ biến để tránh bị chặn
+    // do sai khác port (vd: browser gửi Origin: http://localhost không có :80).
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        var allowedOrigins = appProperties.getSecurity() != null
-                ? appProperties.getSecurity().getAllowedOrigins()
-                : java.util.Arrays.asList("http://localhost:5173");
-        if (allowedOrigins == null) {
-            allowedOrigins = java.util.Arrays.asList("http://localhost:5173");
+
+        java.util.List<String> rawOrigins = java.util.List.of();
+        if (appProperties.getSecurity() != null
+                && appProperties.getSecurity().getAllowedOrigins() != null) {
+            rawOrigins = appProperties.getSecurity().getAllowedOrigins();
         }
-        allowedOrigins = new java.util.ArrayList<>(allowedOrigins);
-        if (!allowedOrigins.contains("http://localhost:8080")) {
-            allowedOrigins.add("http://localhost:8080");
+
+        java.util.List<String> allowedOrigins = new java.util.ArrayList<>();
+        for (String origin : rawOrigins) {
+            for (String part : origin.split(",")) {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty()) {
+                    allowedOrigins.add(trimmed);
+                }
+            }
         }
+
+        // Luôn thêm các localhost variant để không bị chặn bởi sai khác port
+        for (String fallback : java.util.List.of(
+                "http://localhost",
+                "http://localhost:80",
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:8080",
+                "http://127.0.0.1",
+                "http://127.0.0.1:80",
+                "http://frontend")) {
+            if (!allowedOrigins.contains(fallback)) {
+                allowedOrigins.add(fallback);
+            }
+        }
+
+        log.info("CORS allowed origins: {}", allowedOrigins);
+
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(java.util.Arrays.asList("*"));

@@ -44,14 +44,17 @@ services:
 
   # =====================
   # MinIO Object Storage
+  # Pin đúng version đang chạy để giữ format tương thích với data cũ.
+  # Volume "minio_data" được declare external bên dưới để mount đúng
+  # volume có sẵn (chứa bucket shopbanhang ~4.4MB).
   # =====================
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
     container_name: shopbanhang-minio
     restart: unless-stopped
     ports:
-      - "9000:9000"   
-      - "9001:9001"  
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-12345678}
@@ -116,23 +119,24 @@ services:
 
   # =====================
   # Frontend (React + Nginx)
+  # CRA bake REACT_APP_* tại build time, nên API URL truyền qua build args.
+  # Đổi context sang ./fe để không gửi cả backend vào Docker daemon.
   # =====================
   frontend:
     build:
-      context: .
-      dockerfile: fe/Dockerfile
+      context: ./fe
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-http://localhost:8080}
     container_name: shopbanhang-frontend
     restart: unless-stopped
     ports:
-      - "80:80"       # HTTP
-      - "443:443"     # HTTPS (for future SSL)
-    environment:
-      REACT_APP_API_URL: http://localhost:8080/api/v1
+      - "80:80"
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -142,6 +146,10 @@ services:
 
 # =====================
 # Volumes
+# minio_data: external — trỏ tới volume MinIO có sẵn (anonymous volume từ
+#   container `minio` cũ). Compose KHÔNG tạo / xoá / quản lý volume này;
+#   `docker compose down -v` cũng không xoá nó. Phải tự xoá bằng tay nếu cần.
+# postgres_data / redis_data: managed bình thường (Compose tạo nếu chưa có).
 # =====================
 volumes:
   postgres_data:
@@ -149,7 +157,8 @@ volumes:
   redis_data:
     driver: local
   minio_data:
-    driver: local
+    external: true
+    name: 9e534c85aa2e63b2e637705ae7977b8f39e96c973d1cd4a1bf364b5c5e0e1d85
 
 # =====================
 # Networks
