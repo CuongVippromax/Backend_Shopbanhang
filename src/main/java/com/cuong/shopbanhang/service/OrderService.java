@@ -169,8 +169,8 @@ public class OrderService {
 
     /**
      * Hủy và xóa đơn hàng (dùng khi thanh toán thất bại).
-     * Xóa order TRƯỚC, sau đó mới khôi phục giỏ hàng và tồn kho.
-     * Đảm bảo order không còn trong DB ngay cả khi các bước khôi phục thất bại.
+     * Khôi phục giỏ hàng và tồn kho TRƯỚC, sau đó mới xóa order.
+     * Nếu khôi phục thất bại, transaction rollback và order được giữ lại.
      *
      * EXCEPTIONS CÓ THỂ NÉM RA:
      * - ResourceNotFoundException (1): Khi không tìm thấy đơn hàng
@@ -194,18 +194,19 @@ public class OrderService {
             itemsToRestore = new ArrayList<>(order.getOrderDetails().getItems());
         }
 
-        // BUOC 1: XOA ORDER NGAY (neu that bai thi rollback, nhung order van bi xoa)
+        // BUOC 1: Khôi phục giỏ hàng và tồn kho TRƯỚC
+        // Nếu thất bại, transaction rollback và order được giữ lại
+        restoreCartAndInventory(userId, itemsToRestore);
+
+        // BUOC 2: Xóa order sau khi đã khôi phục thành công
         order.setOrderDetails(null);
         orderRepository.delete(order);
         orderRepository.flush();
-
-        // BUOC 2: Khôi phục giỏ hàng và tồn kho (nếu fail thì log nhưng không ảnh hưởng order đã xóa)
-        restoreCartAndInventory(userId, itemsToRestore);
     }
 
     /**
      * Khôi phục các mặt hàng vào giỏ hàng và số lượng tồn kho.
-     * Chỉ log lỗi, không ném exception để không ảnh hưởng đến việc xóa order.
+     * Ném exception để transaction rollback nếu có lỗi.
      */
     private void restoreCartAndInventory(Long userId, List<CartItem> itemsToRestore) {
         if (itemsToRestore == null || itemsToRestore.isEmpty()) {
@@ -214,40 +215,34 @@ public class OrderService {
 
         // Khôi phục số lượng tồn kho
         for (CartItem item : itemsToRestore) {
-            try {
-                Book book = item.getBook();
-                book.setQuantity(book.getQuantity() + item.getQuantity());
-                bookRepository.save(book);
-            } catch (Exception e) {
-                log.error("Failed to restore inventory for book {} after order cancellation", item.getBook().getBookId(), e);
-            }
+            Book book = item.getBook();
+            book.setQuantity(book.getQuantity() + item.getQuantity());
+            bookRepository.save(book);
         }
         entityManager.flush();
 
         // Khôi phục các mặt hàng vào giỏ hàng
-        Cart userCart = userId != null ? cartRepository.findByUser_UserId(userId).orElse(null) : null;
+        if (userId == null) {
+            return;
+        }
+        Cart userCart = cartRepository.findByUser_UserId(userId).orElse(null);
         if (userCart == null) {
             return;
         }
 
         for (CartItem item : itemsToRestore) {
-            try {
-                item.setOrderDetail(null);
-                item.setPendingPayment(false);
+            item.setOrderDetail(null);
+            item.setPendingPayment(false);
 
-                var existing = cartItemRepository.findByCart_CartIdAndBook_BookId(
-                        userCart.getCartId(), item.getBook().getBookId());
-                if (existing.isPresent()) {
-                    CartItem existingItem = existing.get();
-                    existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
-                    cartItemRepository.save(existingItem);
-                } else {
-                    item.setCart(userCart);
-                    cartItemRepository.save(item);
-                }
-            } catch (Exception e) {
-                log.error("Failed to restore cart item {} for user {} after order cancellation",
-                    item.getBook().getBookId(), userId, e);
+            var existing = cartItemRepository.findByCart_CartIdAndBook_BookId(
+                    userCart.getCartId(), item.getBook().getBookId());
+            if (existing.isPresent()) {
+                CartItem existingItem = existing.get();
+                existingItem.setQuantity(existingItem.getQuantity() + item.getQuantity());
+                cartItemRepository.save(existingItem);
+            } else {
+                item.setCart(userCart);
+                cartItemRepository.save(item);
             }
         }
         entityManager.flush();

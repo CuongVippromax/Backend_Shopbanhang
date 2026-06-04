@@ -54,17 +54,17 @@ export const categoryApi = {
 };
 
 export const cartApi = {
-  get: (userId) => axiosClient.get(`/api/v1/cart/${userId}`).then((r) => r.data),
-  add: (userId, bookId, quantity) =>
-    axiosClient.post(`/api/v1/cart/${userId}/add`, null, { params: { bookId, quantity } })
+  get: () => axiosClient.get('/api/v1/cart').then((r) => r.data),
+  add: (bookId, quantity) =>
+    axiosClient.post('/api/v1/cart/add', null, { params: { bookId, quantity } })
       .then((r) => r.data),
-  update: (userId, bookId, quantity) =>
-    axiosClient.put(`/api/v1/cart/${userId}/update`, null, { params: { bookId, quantity } })
+  update: (bookId, quantity) =>
+    axiosClient.put('/api/v1/cart/update', null, { params: { bookId, quantity } })
       .then((r) => r.data),
-  remove: (userId, bookId) =>
-    axiosClient.delete(`/api/v1/cart/${userId}/remove`, { params: { bookId } })
+  remove: (bookId) =>
+    axiosClient.delete('/api/v1/cart/remove', { params: { bookId } })
       .then((r) => r.data),
-  clear: (userId) => axiosClient.delete(`/api/v1/cart/${userId}/clear`),
+  clear: () => axiosClient.delete('/api/v1/cart/clear'),
 };
 
 export const orderApi = {

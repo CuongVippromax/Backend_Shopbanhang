@@ -20,7 +20,7 @@ export const CartProvider = ({ children }) => {
     }
     setLoading(true);
     try {
-      const data = await cartApi.get(user.userId);
+      const data = await cartApi.get();
       setCart(data || emptyCart);
     } catch (e) {
       setCart(emptyCart);
@@ -34,18 +34,18 @@ export const CartProvider = ({ children }) => {
     else setCart(emptyCart);
   }, [isAuthenticated, fetchCart]);
 
-  const requireLogin = () => {
+  const requireLogin = useCallback(() => {
     if (!isAuthenticated) {
       toast.show('Vui lòng đăng nhập để tiếp tục.', 'warning');
       return false;
     }
     return true;
-  };
+  }, [isAuthenticated, toast]);
 
   const addItem = useCallback(async (bookId, quantity = 1) => {
     if (!requireLogin()) return false;
     try {
-      const data = await cartApi.add(user.userId, bookId, quantity);
+      const data = await cartApi.add(bookId, quantity);
       setCart(data || emptyCart);
       toast.show('Đã thêm vào giỏ hàng', 'success');
       return true;
@@ -53,36 +53,33 @@ export const CartProvider = ({ children }) => {
       toast.show(e.response?.data?.message || 'Không thể thêm vào giỏ hàng', 'error');
       return false;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.userId, isAuthenticated]);
+  }, [requireLogin, toast]);
 
   const updateItem = useCallback(async (bookId, quantity) => {
     if (!requireLogin()) return;
     try {
-      const data = await cartApi.update(user.userId, bookId, quantity);
+      const data = await cartApi.update(bookId, quantity);
       setCart(data || emptyCart);
     } catch (e) {
-      toast.show('Không thể cập nhật số lượng', 'error');
+      toast.show(e.response?.data?.message || 'Không thể cập nhật số lượng', 'error');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.userId, isAuthenticated]);
+  }, [requireLogin, toast]);
 
   const removeItem = useCallback(async (bookId) => {
     if (!requireLogin()) return;
     try {
-      const data = await cartApi.remove(user.userId, bookId);
+      const data = await cartApi.remove(bookId);
       setCart(data || emptyCart);
       toast.show('Đã xoá khỏi giỏ hàng', 'info');
     } catch (e) {
       toast.show('Không thể xoá sản phẩm', 'error');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.userId, isAuthenticated]);
+  }, [requireLogin, toast]);
 
   const clear = useCallback(async () => {
     if (!user?.userId) return;
     try {
-      await cartApi.clear(user.userId);
+      await cartApi.clear();
       setCart(emptyCart);
     } catch (_) {}
   }, [user?.userId]);

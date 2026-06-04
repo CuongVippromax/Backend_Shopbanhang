@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.cuong.shopbanhang.dto.response.CartResponse;
+import com.cuong.shopbanhang.exception.UnauthorizedException;
+import com.cuong.shopbanhang.security.SecurityUtils;
 import com.cuong.shopbanhang.service.CartService;
 
 @RestController
@@ -15,45 +17,46 @@ public class CartController {
 
     private final CartService cartService;
 
-    // Get cart by user ID
-    @GetMapping("/{userId}")
-    public ResponseEntity<CartResponse> getCart(@PathVariable Long userId) {
+    private Long requireUserId() {
+        return SecurityUtils.getCurrentUserId()
+                .orElseThrow(() -> new UnauthorizedException("Vui lòng đăng nhập."));
+    }
+
+    @GetMapping
+    public ResponseEntity<CartResponse> getCart() {
+        Long userId = requireUserId();
         CartResponse cart = cartService.getCartByUserId(userId);
         return ResponseEntity.ok(cart);
     }
 
-    // Add item to cart
-    @PostMapping("/{userId}/add")
+    @PostMapping("/add")
     public ResponseEntity<CartResponse> addToCart(
-            @PathVariable Long userId,
             @RequestParam Long bookId,
             @RequestParam Integer quantity) {
+        Long userId = requireUserId();
         CartResponse cart = cartService.addToCart(userId, bookId, quantity);
         return ResponseEntity.ok(cart);
     }
 
-    // Update item quantity in cart
-    @PutMapping("/{userId}/update")
+    @PutMapping("/update")
     public ResponseEntity<CartResponse> updateQuantity(
-            @PathVariable Long userId,
             @RequestParam Long bookId,
             @RequestParam Integer quantity) {
+        Long userId = requireUserId();
         CartResponse cart = cartService.updateQuantity(userId, bookId, quantity);
         return ResponseEntity.ok(cart);
     }
 
-    // Remove item from cart
-    @DeleteMapping("/{userId}/remove")
-    public ResponseEntity<CartResponse> removeItem(
-            @PathVariable Long userId,
-            @RequestParam Long bookId) {
+    @DeleteMapping("/remove")
+    public ResponseEntity<CartResponse> removeItem(@RequestParam Long bookId) {
+        Long userId = requireUserId();
         CartResponse cart = cartService.removeItem(userId, bookId);
         return ResponseEntity.ok(cart);
     }
 
-    // Clear all items from cart
-    @DeleteMapping("/{userId}/clear")
-    public ResponseEntity<Void> clearCart(@PathVariable Long userId) {
+    @DeleteMapping("/clear")
+    public ResponseEntity<Void> clearCart() {
+        Long userId = requireUserId();
         cartService.clearCart(userId);
         return ResponseEntity.ok().build();
     }
