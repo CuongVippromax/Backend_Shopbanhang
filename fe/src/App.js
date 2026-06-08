@@ -43,6 +43,11 @@ const AdminArticlesPage = lazy(() => import('./Pages/admin/AdminArticlesPage'));
 const AdminUsersPage = lazy(() => import('./Pages/admin/AdminUsersPage'));
 const AdminReviewsPage = lazy(() => import('./Pages/admin/AdminReviewsPage'));
 
+const ResetPasswordRedirect = () => {
+  const location = useLocation();
+  return <Navigate to={`/auth/reset-password${location.search}`} replace />;
+};
+
 const RequireAuth = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
@@ -72,6 +77,8 @@ const App = () => {
           <Route path="/auth/register" element={<RegisterPage />} />
           <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+          {/* Fallback cho link cũ /reset-password?token=... trong email đã gửi trước đó */}
+          <Route path="/reset-password" element={<ResetPasswordRedirect />} />
           <Route path="/auth/oauth-success" element={<OAuthCallbackPage />} />
 
           {/* Admin */}

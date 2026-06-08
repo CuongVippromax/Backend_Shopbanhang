@@ -123,21 +123,18 @@ minio:
 logging:
   level:
     root: WARN
-    com.cuong.shopbanhang: INFO
-    com.cuong.shopbanhang.exception: WARN
-    com.cuong.shopbanhang.security: WARN
-    com.cuong.shopbanhang.service.ChatbotService: INFO
-    com.cuong.shopbanhang.service.EmailService: DEBUG
-    com.cuong.shopbanhang.service.MinIOService: WARN
-    com.cuong.shopbanhang.service.DashboardService: WARN
-    com.cuong.shopbanhang.service.PaymentService: DEBUG
-    com.cuong.shopbanhang.config.VNPayConfig: DEBUG
-    com.cuong.shopbanhang.controller.PaymentController: DEBUG
-    com.cuong.shopbanhang.service.OrderService: DEBUG
-    org.springframework.web: WARN
-    org.hibernate: WARN
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    com.cuong.shopbanhang: WARN
+    com.cuong.shopbanhang.exception: ERROR
+    org.springframework: WARN
+    org.springframework.web: ERROR
+    org.springframework.boot.web.embedded.tomcat: INFO
+    org.hibernate: ERROR
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF
+    org.flywaydb: WARN
+    com.zaxxer.hikari: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
   file:
     name: logs/application.log
     max-size: 10MB

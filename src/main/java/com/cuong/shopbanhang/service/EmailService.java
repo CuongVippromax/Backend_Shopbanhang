@@ -27,6 +27,9 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
+
     /**
      * Gửi email xác nhận đơn hàng.
      *
@@ -117,36 +120,57 @@ public class EmailService {
 
     /**
      * Gửi email đặt lại mật khẩu.
-     * 
+     *
      * EXCEPTIONS CÓ THỂ NÉM RA:
      * - BadRequestException (1): Khi gửi email thất bại
-     * 
+     *
      * @param toEmail Email người nhận
-     * @param resetToken Token đặt lại mật khẩu
+     * @param resetToken Token đặt lại mật khẩu (UUID), sẽ được nhúng vào URL frontend
      */
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
         try {
+            String resetUrl = frontendUrl + "/auth/reset-password?token=" + resetToken;
+
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
             helper.setSubject("Đặt lại mật khẩu - Nhà Sách Hoàng Kim");
 
-            String htmlContent = "<html>" +
-                    "<body style='font-family: Arial, sans-serif;'>" +
-                    "<h2>Yêu cầu đặt lại mật khẩu</h2>" +
-                    "<p>Bạn đã yêu cầu đặt lại mật khẩu. Vui bấm vào link bên dưới:</p>" +
-                    "<p><a href='http://localhost:3000/reset-password?token=" + resetToken + "' " +
-                    "style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Đặt lại mật khẩu</a></p>" +
-                    "<p>Link có hiệu lực trong 24 giờ.</p>" +
-                    "<p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>" +
-                    "<p>Trân trọng,<br>Nhà Sách Hoàng Kim</p>" +
-                    "</body>" +
-                    "</html>";
+            String htmlContent = "<!DOCTYPE html><html><body style='margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;color:#333;'>" +
+                    "<table role='presentation' cellspacing='0' cellpadding='0' border='0' width='100%' style='background:#f5f5f5;padding:24px 0;'>" +
+                    "<tr><td align='center'>" +
+                    "<table role='presentation' cellspacing='0' cellpadding='0' border='0' width='560' style='background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.05);'>" +
+                    "<tr><td style='background:#0f766e;padding:20px 24px;color:#fff;font-size:20px;font-weight:bold;'>Nhà Sách Hoàng Kim</td></tr>" +
+                    "<tr><td style='padding:28px 24px;'>" +
+                    "<h2 style='margin:0 0 12px 0;color:#111;font-size:20px;'>Yêu cầu đặt lại mật khẩu</h2>" +
+                    "<p style='margin:0 0 16px 0;line-height:1.6;'>Xin chào,</p>" +
+                    "<p style='margin:0 0 16px 0;line-height:1.6;'>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản này. Vui lòng nhấn vào nút bên dưới để tạo mật khẩu mới:</p>" +
+                    "<p style='text-align:center;margin:28px 0;'>" +
+                    "<a href='" + resetUrl + "' style='display:inline-block;background:#0f766e;color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:6px;font-weight:bold;'>Đặt lại mật khẩu</a>" +
+                    "</p>" +
+                    "<p style='margin:0 0 8px 0;line-height:1.6;font-size:13px;color:#666;'>Hoặc copy đường dẫn sau vào trình duyệt:</p>" +
+                    "<p style='margin:0 0 20px 0;word-break:break-all;font-size:13px;color:#0f766e;'>" + resetUrl + "</p>" +
+                    "<hr style='border:none;border-top:1px solid #eee;margin:20px 0;' />" +
+                    "<p style='margin:0 0 8px 0;line-height:1.6;font-size:13px;color:#666;'><strong>Lưu ý bảo mật:</strong></p>" +
+                    "<ul style='margin:0 0 16px 18px;padding:0;line-height:1.6;font-size:13px;color:#666;'>" +
+                    "<li>Liên kết có hiệu lực trong <strong>24 giờ</strong>.</li>" +
+                    "<li>Mỗi liên kết chỉ sử dụng được <strong>một lần</strong>.</li>" +
+                    "<li>Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này — tài khoản của bạn vẫn an toàn.</li>" +
+                    "</ul>" +
+                    "<p style='margin:24px 0 0 0;line-height:1.6;'>Trân trọng,<br/><strong>Đội ngũ Nhà Sách Hoàng Kim</strong></p>" +
+                    "</td></tr>" +
+                    "<tr><td style='background:#fafafa;padding:14px 24px;font-size:12px;color:#999;text-align:center;'>" +
+                    "Email tự động — vui lòng không trả lời." +
+                    "</td></tr>" +
+                    "</table>" +
+                    "</td></tr></table></body></html>";
 
             helper.setText(htmlContent, true);
             javaMailSender.send(message);
+            log.info("Sent password reset email to {}", toEmail);
         } catch (MessagingException e) {
+            log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
             throw new BadRequestException("Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau."); // EX-003
         }
     }

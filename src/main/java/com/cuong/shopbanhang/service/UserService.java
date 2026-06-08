@@ -322,6 +322,12 @@ public class UserService {
         userRepository.save(user);
 
         passwordResetTokenRepository.delete(resetToken);
+
+        try {
+            emailService.sendPasswordChangeNotification(user.getEmail(), user.getUsername());
+        } catch (Exception ex) {
+            log.warn("Không gửi được email thông báo đổi mật khẩu cho {}: {}", user.getEmail(), ex.getMessage());
+        }
     }
 
     private List<AddressResponse> parseAddresses(String addressJson) {
